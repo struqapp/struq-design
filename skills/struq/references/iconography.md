@@ -103,7 +103,7 @@ import { ArrowRight, Search } from "@struq/icons";
 - **Name clashes.** `Link`, `Image`, `File` and `Text` collide with `next/link`, `next/image` and DOM globals; import the `LinkIcon`, `ImageIcon`, `FileIcon` and `TextIcon` aliases instead.
 - **Accent off in one area:** `data-icon-accent="off"` on a parent paints the accent in the base colour (needs `icons.css`). `data-icons="live"` keeps the accent on at rest in an area when `states.css` is loaded.
 - **Status icons** (one tone) take their colour from the place they sit in: they follow `currentColor`, or a token through `color="var(--color-...)"`, never a hex.
-- **Without React:** `sprite.svg` (copy it to `public/`, `<use href="/sprite.svg#search" />`, two-tone, no hover motion), plain SVG files under `svg/`, or `iconify.json` (prefix `struq`, for Iconify loaders in Vue, Svelte, Astro or Tailwind). Same family, same rules.
+- **Without React:** `sprite.svg` (copy it to `public/`, `<use href="/sprite.svg#search" />`, two-tone, no hover motion), plain SVG files under `svg/`, or `iconify.json` (prefix `struq`, for Iconify loaders in Vue, Svelte, Astro or Tailwind: the icon in the text colour with the accent at half strength, no hover motion, and `struq:<name>-draw` for a draw-in that plays once and ignores reduced motion). Same family, same rules.
 - **A missing icon** is drawn to the set's rules (24 grid, round caps and joins, the site's stroke, base and accent as two parts) or the whole site moves to row 3. Never patch the gap with a Phosphor glyph.
 
 **Never Lucide as the reflex.** It is the default of every generated UI, so it reads as
