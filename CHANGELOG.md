@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 (unpublished, on feat/skill-0.3)
+## 0.3.0 (2026-11-06)
 
 The skill is rebuilt around one critical path a small model can follow: a Build checklist ticked in STRUQ.md, tested components instead of hand-written plumbing, and scripts that check the result.
 
