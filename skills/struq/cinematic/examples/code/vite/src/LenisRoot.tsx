@@ -16,7 +16,7 @@ export function LenisRoot({ children }: LenisRootProps): JSX.Element {
   useLenis(() => ScrollTrigger.update());
 
   useEffect(() => {
-    // Registered unconditionally, instance resolved per frame (references/setup.md §2).
+    // Registered unconditionally, instance resolved per frame.
     const update = (time: number) => {
       lenisRef.current?.lenis?.raf(time * 1000);
     };

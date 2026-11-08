@@ -21,7 +21,7 @@ export function LenisRoot({ children }: LenisRootProps): JSX.Element {
   useEffect(() => {
     // Registered unconditionally; the instance is resolved through the ref on
     // every frame. Never capture it once and early-return: that is the
-    // dead-scroll race (references/setup.md §2).
+    // dead-scroll race.
     const update = (time: number) => {
       lenisRef.current?.lenis?.raf(time * 1000);
     };

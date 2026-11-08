@@ -14,30 +14,19 @@ Enter directed mode only when at least one of these is true:
 
 If none of these is true, stay in the normal Struq flow at [`../SKILL.md`](../SKILL.md). A marketing site with type, palette, Lenis plus GSAP reveals, a pinned showpiece or a route transition does not need directed mode, and the ceremony below would slow it down.
 
-A page that only has a decorative WebGL hero (one scene, no chapters) also stays in the normal flow. Use [`../references/webgl-r3f.md`](../references/webgl-r3f.md) and [`../references/webgl-scenes.md`](../references/webgl-scenes.md) for that.
+A page that only has a decorative WebGL hero (one scene, no chapters) also stays in the normal flow: use a background block (`blocks/CATALOG.md`, Backgrounds).
 
-Directed mode extends the main skill, it does not replace it:
+Directed mode extends the main skill, it does not replace it. The direction (palette, pairing, pack), the tell list, the craft lessons and the check are the main skill's ([`../SKILL.md`](../SKILL.md), [`../references/craft.md`](../references/craft.md), [`../references/tells.md`](../references/tells.md)). This folder adds what those do not cover: experience state, property ownership, chapters, camera blocking, semantic timelines, handoff contracts, tuning and audit criteria.
 
-| Concern | Where it is decided |
-|---|---|
-| Type system | [`../references/typography.md`](../references/typography.md) |
-| Palette and mood | [`../references/vibe-presets.md`](../references/vibe-presets.md) |
-| Single clock (Lenis driven by `gsap.ticker`, R3F driven from it) | [`../references/setup.md`](../references/setup.md) and [`../references/webgl-r3f.md`](../references/webgl-r3f.md) |
-| Drei helpers, postprocessing, interactive scenes | [`../references/webgl-scenes.md`](../references/webgl-scenes.md) |
-| What awards-level work looks like | [`../references/showcase.md`](../references/showcase.md) |
-| What to avoid | [`../references/anti-patterns.md`](../references/anti-patterns.md) |
-
-This folder adds what those files do not cover: experience state, property ownership, chapters, camera blocking, semantic timelines, handoff contracts, tuning and audit criteria.
-
-**Order of work.** `/struq direct` first runs [`../references/direction.md`](../references/direction.md) phases 0 to 3 (Intake, Brand, Concept, System) into `STRUQ.md`, with `Mode: directed`. Only then do the phases below start, and their lean outputs are appended to the same `STRUQ.md` under a `## DIRECTION` section (see Project artifacts). The direction.md gate still applies: one "Veto anything?" message, after the DIRECTION section is written and before code.
+**Order of work.** `/struq direct` first sets the direction and stops once for approval as the main skill does, with `Mode: directed` in `STRUQ.md`. Then the phases below start, and their lean outputs are appended to the same `STRUQ.md` under a `## DIRECTION` section (see Project artifacts).
 
 ## Stack rules inherited from the main skill
 
 Three rules from the main skill are binding in directed mode. Nothing in this folder overrides them.
 
 1. **One clock.** Lenis is created with `autoRaf: false` and advanced from `gsap.ticker`. ScrollTrigger reads from Lenis. The R3F canvas is mounted with `frameloop="never"` and advanced from the same ticker (a reactive-only scene with no ambient animation may use `frameloop="demand"` with `invalidate()`, never the default `always`). No other `requestAnimationFrame` loop runs. Scroll progress, elapsed time and pointer input are separate signals, not separate clocks.
-2. **GSAP owns scroll.** Every scroll-linked behavior (pinned stage, scrubbed chapter timelines, activation, velocity and direction signals) is GSAP and ScrollTrigger. Motion never reads scroll progress for the narrative, and `lenis.scrollTo()` is the only scroll command path. High-frequency pointer work on DOM elements runs on the same ticker through `gsap.quickTo`, not through a Motion spring loop. Lenis lerp and scrub smoothing are paired as in [`../references/feel-layer.md`](../references/feel-layer.md).
-3. **The GSAP vs Motion split is the one in [`../SKILL.md`](../SKILL.md) (GSAP vs Motion: the decision rule).** That table decides who animates menus, overlays, hover and press; this folder does not restate it. If a Motion component takes part in a GSAP sequence, one library owns the outer wrapper and the other owns an inner element. Never animate the same transform from both.
+2. **GSAP owns scroll.** Every scroll-linked behavior (pinned stage, scrubbed chapter timelines, activation, velocity and direction signals) is GSAP and ScrollTrigger. Motion never reads scroll progress for the narrative, and `lenis.scrollTo()` is the only scroll command path. High-frequency pointer work on DOM elements runs on the same ticker through `gsap.quickTo`, not through a Motion spring loop.
+3. **GSAP and Motion never share a transform.** If a Motion component takes part in a GSAP sequence, one library owns the outer wrapper and the other owns an inner element. Never animate the same transform from both.
 
 ## Principles
 

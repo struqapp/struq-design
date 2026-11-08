@@ -55,7 +55,7 @@ a {
 }
 
 /* Demo values. In a Struq build the h1 takes `font-display text-display` and the
-   pairing's tracking from typography.md §3.1; the clamp keeps a rem term for zoom. */
+   pairing's tracking; the clamp keeps a rem term for zoom. */
 .experience-copy h1 {
   margin: 0;
   font-size: clamp(2.875rem, 1.2rem + 6.86vw, 8rem);
