@@ -1,0 +1,114 @@
+---
+name: struq
+description: "Award-tier studio websites for coding agents, composed from Struq's admitted blocks through the Struq MCP: preloaders, page transitions, headers, heroes, WebGL backgrounds, showpieces, sections and footers, each with real variants and judged at FWA level. struq_richting gives the palette, type pairing and photo pack as tokens, fonts and photos; struq_blok hands over each block and its kit as files; struq_controle returns the check against the AI tells. Use when designing, building, redesigning or auditing a marketing, studio, agency or portfolio site that must feel cinematic and custom instead of templated. Stack: Next.js App Router + Tailwind v4."
+argument-hint: "[brief] | redesign <path> | audit <path-or-url>"
+---
+
+# Struq
+
+A site looks like a template because every choice in it is the likeliest one. Struq replaces those choices with
+blocks a studio would ship: each one built, reviewed against a named award-tier reference and admitted by hand. Your
+job is the direction, the order, the copy and the seams between blocks. Do not rebuild what a block already does.
+
+This plugin works through the Struq MCP, which it connects for you (sign in once through `/mcp`). The catalogue is
+`struq_blokken`, or [catalog.json](catalog.json) in this folder when you only need to read it; the craft that makes the
+blocks feel high end is [references/craft.md](references/craft.md); the tell list is
+[references/tells.md](references/tells.md). The full offline version, with the blocks, canon and scripts on disk, is
+`npx @struq/skill`.
+
+| Invocation | Mode |
+|---|---|
+| `/struq:struq <brief>` | **Build**: the checklist below, start to finish. |
+| `/struq:struq redesign <path>` | Keep the brand, copy and components ([references/triage.md](references/triage.md)); swap in blocks where the page is weakest, then run the checklist from step 3. |
+| `/struq:struq audit <path-or-url>` | Change nothing. Run `struq_controle`'s detectors on the files, report every FAIL and WARN and the three fixes with the most visual payoff. Never a numeric score. |
+
+For a dashboard or product UI keep the tokens, faces and tells; drop the preloader, Lenis and the pinned pieces.
+
+<!-- section: Three rules that never bend -->
+
+## The four tools
+
+| Need | Tool | What comes back |
+|---|---|---|
+| A direction | `struq_richting(brief)`, or with `palette` and `type` ids, or `light` | The palette and pairing, the token block as CSS, the font stylesheet URLs, the photo pack with every photo's alt, size and calm side, the icon set, and the reason in plain words. |
+| What blocks exist | `struq_blokken(kind?, query?)` | Every admitted block with its variants. [catalog.json](catalog.json) is the same list at this plugin's release. |
+| A block as files | `struq_blok(slug, variant?)` | The block, every file it imports, the kit and its `blocks.css`, each with its target path; the packages to install, the props, a usage example and the one-time setup. |
+| The tell check | `struq_controle()` | The detectors and rules. Run them on your own files; Struq never reads your code. |
+
+Put every file `struq_blok` returns at its target under `components/struq/`, exactly as given, so the relative imports
+hold. Follow its setup lines once per project. Put `struq_richting`'s token block in `app/globals.css` after the
+`blocks.css` import and its font URLs in the layout. Note each tool call in `STRUQ-LOG.md`: the tool, what you asked
+for, what you took.
+
+## Build checklist
+
+Copy this into `STRUQ.md` under the plan and tick each line as you finish it. Keep `STRUQ-LOG.md` from the first
+step: append only, one entry per step with what you did and why.
+
+```
+## Build checklist
+- [ ] 1 Project: Next.js App Router + Tailwind v4
+- [ ] 2 Direction and approval: palette, pairing, pack and the block order in STRUQ.md; the one stop sent and answered
+- [ ] 3 Canon: struq_richting's token block and fonts written
+- [ ] 4 Images: only photos whose alt fits the client, placed with their alt and calm side
+- [ ] 5 Blocks: every block on the order taken with struq_blok and composed in app/page.tsx with real copy
+- [ ] 6 Build: the project's production build passes
+- [ ] 7 Look: 390 and 1440 screenshots and one full scroll, fixes made (or "Verify: not seen, no browser")
+- [ ] 8 Check: struq_controle's detectors find no FAIL
+```
+
+**1 Project.** Work in the user's Next.js App Router project with Tailwind v4. In an empty folder, ask the user to
+create one (create-next-app with TypeScript, Tailwind and the App Router) or create it with their approval. Your own
+layout and stylesheet stay; merge the setup lines from `struq_blok` into them.
+
+**2 Direction and the one stop.** Call `struq_richting` with the brief in the user's words; never invent a palette or
+pairing while the canon has one that fits. Palette by the brief's mood, then its sector; a cool palette (blue, purple,
+teal) only for a brand that is that colour, declared as `Cool hue: declared because <brand colour>`. The brand's own
+colours and faces beat the canon: write them into the same token names. Pairing by temperament: Fraunces
+(serif-editorial) warm and premium, Newsreader literate, Sora calm and architectural, Urbanist soft and current, Bodoni
+Moda for fashion, Big Shoulders (condensed-poster) for a campaign at poster scale, Unbounded for a wide agency voice;
+ask again with `palette` or `type` to change one. Then choose the order (below) and write the top of STRUQ.md:
+
+```
+# STRUQ.md: <name>
+Brief: <one line: what, for whom, where>
+Idea: <the one idea the site is about>
+Palette: <id> (<mood>)
+Type: <pairing id>: <display> + <body>
+Images: pack <id> (or the client's photos, then pack <id>)
+Order: <block slug:variant>, <block slug:variant>, ...
+Assumptions: <every drafted line and every fact left out>
+Verify: <filled in at step 7>
+```
+
+Then **stop once**, in the user's language: the plan in five lines (idea, palette, type, pack, order) and
+"Akkoord? Heb je een logo, foto's of echte cijfers, stuur ze nu." (English: "Approve? If you have a logo, photos or
+real numbers, send them now."). The build request is not the approval. Log the reply word for word. Any yes builds
+the plan; what they send replaces the matching pick; a veto changes only what it names. Never ask a second time. When
+no pack shows the client's own product, add: "Ik heb geen foto's van je <product>: stuur ze, dan komen ze in de hero."
+
+**3 Canon.** Write `struq_richting`'s token block after the `blocks.css` import in `app/globals.css`, in place of any
+earlier token block, and load every font URL it returns in the layout. Never drop a weight it asks for: each URL
+carries the face's real range. It is the block Struq's lab judged every block in.
+
+**4 Images.** Read the alts of the pack `struq_richting` returned and keep only the photos that fit the client. Save
+the ones you use under `public/images/` (or allow the host in `images.remotePatterns`) and keep each photo's src, alt,
+width, height and calm side together in `lib/struq-images.ts`, in the shape the blocks read (`StruqImage` in
+`components/struq/kit/images.ts`). With no fitting pack, use no stock photos and let a background block carry the
+hero. Set the title, description and `lang` in the layout.
+
+**5 Blocks.** Take each block on the order with `struq_blok(slug, variant)`, install the packages it names, read its
+props and usage, and compose `app/page.tsx` with the brief's real copy. When several blocks each bring `blocks.css`,
+keep one file with the kit base once and every block's marked sections. Glue between blocks uses the kit (`Reveal`,
+`MediaFrame`, `SplitHeadline`, `MagneticButton`) and the craft rules, never a fresh motion system.
+
+**6 to 8.** The production build passes (fix your code, never delete a block to get green). Look at the production
+build at 390 and 1440 and scroll it once: the preloader lands on the hero, every frame fills, each pin engages and
+releases without a jump, nothing overflows at 390, scrolling back reverses. Never claim you saw what you did not. Then
+run `struq_controle`'s detectors on your files until nothing fails.
+
+<!-- section: The order of a studio site -->
+
+<!-- section: What makes it feel high end -->
+
+<!-- section: When something goes wrong -->

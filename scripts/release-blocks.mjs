@@ -12,6 +12,7 @@
 //   skills/struq/blocks/            the files, laid out as in Struq, so the relative imports hold
 //   skills/struq/blocks/catalog.json and CATALOG.md   the generated catalogue the skill reads
 //   skills/struq/canon/canon.json   palettes, pairings, font weights and providers, for canon.mjs offline
+//   plugin/                         the lean Claude plugin, through scripts/build-plugin.mjs
 //
 // Files are read from the git ref (never the working tree), so another branch checked out in the Struq repo does not
 // leak into a release. Needs Node 22.18 or later: catalog.ts and the canon are TypeScript, loaded by type stripping.
@@ -206,3 +207,7 @@ const byKind = KIND_ORDER.map((k) => [k, entries.filter((e) => e.kind === k).len
 console.log(`Struq ${ref} ${commit}: ${entries.length} admitted blocks (${byKind.map(([k, n]) => `${n} ${k}`).join(", ")}), ${everyFile.size} files.`);
 console.log(`Left out (not admitted): ${[...notAdmitted].join(", ") || "none"}.`);
 console.log(`Canon: ${CANON_PALETTES.length} palettes, ${CANON_TYPOGRAPHY.length} pairings.`);
+
+// --- plugin/, the lean Claude plugin, rebuilt from the catalogue and the skill just written ----------------------
+const { writePlugin } = await import("./build-plugin.mjs");
+console.log(`plugin/: ${writePlugin().size} files.`);
