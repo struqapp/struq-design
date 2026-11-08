@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.4.1 (2026-11-08)
+
+### Blocks
+- Refreshed from Struq main: page-transition-stack, menu-curtain and footer-reveal list `lenis` among their packages (they reach it through the kit's SmoothScroll), and a corrected comment in `kit/HeroCanvas.tsx`.
 
 ### Plugin
 - `plugin/`: a lean Claude plugin for the plugin directory, Markdown and JSON only plus one PNG icon. It connects the Struq MCP (`https://struq.nl/api/mcp`, OAuth) and carries an MCP-first SKILL.md, the block catalogue as JSON and the references, with every script step rewritten to a tool call. Not in the npm package.
@@ -8,7 +11,7 @@
 - `test/plugin.test.mjs` fails on a file type the directory refuses, a `#!` first line, a package manager file, text that is not clean UTF-8, a manifest field off the allowlist, credentials in `.mcp.json`, or a stale `plugin/`.
 - The root `plugin.json` drops `displayName`, `documentationUrl` and `supportUrl`, which the directory reported as unrecognised.
 
-## 0.4.0 (unreleased)
+## 0.4.0 (2026-11-08)
 
 The skill is rebuilt around Struq's admitted block catalogue. The agent sets the direction and the order and writes the copy; the blocks carry the motion.
 

@@ -23,8 +23,8 @@
 //   <div className="relative z-10"><h1 data-quiet>...</h1><p data-quiet>...</p></div>
 // </section>
 //
-// A scene from the Struq MCP (struq_achtergrond) or one of your own: write it as
-// components/struq/scenes/<name>.ts exporting createScene (see scenes/types.ts) and add it to SCENES.
+// A scene of your own: write it as
+// components/struq/kit/scenes/<name>.ts exporting createScene (see scenes/types.ts) and add it to SCENES.
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { gsap } from "./gsap";
