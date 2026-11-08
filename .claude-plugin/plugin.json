@@ -1,6 +1,5 @@
 {
   "name": "struq",
-  "displayName": "Struq",
   "description": "Award-tier studio sites for coding agents, built from Struq's admitted blocks: preloaders, page transitions, headers, heroes, WebGL backgrounds, showpieces, sections and footers, on Struq's palettes and type pairings, with a check against the AI tells.",
   "version": "0.4.0",
   "author": {
@@ -8,8 +7,6 @@
     "url": "https://struq.nl"
   },
   "homepage": "https://struq.nl",
-  "documentationUrl": "https://struq.nl/skill",
-  "supportUrl": "https://github.com/struqnl/struq-design/issues",
   "privacyPolicyUrl": "https://struq.nl/privacy-policy",
   "repository": "https://github.com/struqnl/struq-design",
   "license": "MIT",
