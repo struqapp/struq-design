@@ -1,0 +1,1302 @@
+{
+  "source": {
+    "repo": "Struq blocks/",
+    "ref": "staging",
+    "commit": "3680053"
+  },
+  "blocks": [
+    {
+      "slug": "preloader-wordmark",
+      "kind": "preloader",
+      "title": "Preloader: the wordmark",
+      "does": "The first paint is the page's ground with the studio's name set huge across the screen in the display face at a light weight, fitted to the width with the loaded face; each letter fills through a rising mask, a faint tone first and the ink rising inside it, driven by real progress between a floor and a cap; then the name opens as a curtain onto the hero (split along its middle, dropped letter by letter, or settled into the header's wordmark) within 2.4 seconds of the first paint, once per session (helper: preloaders/preloader-slices-uncovered.ts).",
+      "reference": "Kinetic Studio's preloader (v4vision/projects/kinetic-studio/index.html: light 300 display type, slices lifting on power4.inOut) and Lowlight's gate opening on its middle line (Opus55/build/template.html), handing over through preloader-stack's whenUncovered.",
+      "variants": [
+        {
+          "id": "split",
+          "title": "Gespleten",
+          "does": "The filled name splits on a line through the middle of its caps; the top half rises and the bottom half falls, each carrying its half of the cover."
+        },
+        {
+          "id": "drop",
+          "title": "Letter voor letter",
+          "does": "One column per letter; the letters fall left to right, each taking its column, so the hero arrives letter by letter."
+        },
+        {
+          "id": "settle",
+          "title": "In de kop",
+          "does": "The cover lifts while the name shrinks and travels into the header's wordmark, which takes over in the same frame."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "PreloaderWordmark"
+      ],
+      "file": "preloaders/preloader-wordmark.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "preloaders/preloader-slices-uncovered.ts",
+        "preloaders/preloader-wordmark.tsx"
+      ]
+    },
+    {
+      "slug": "preloader-stack",
+      "kind": "preloader",
+      "title": "Preloader: the stack",
+      "does": "The first paint is the page's ground with the client's name, a quiet count and the first print in a small portrait frame; five or six prints cut inside that frame, each held shorter than the last, ending on the hero's own photo, and the frame then grows to the hero image's exact place and crop (the page marks it data-stack-target) so the cover becomes the hero with no seam, within 2.4 seconds of the first paint, once per session (helper: preloaders/preloader-slices-uncovered.ts).",
+      "reference": "Kinetic Studio and Lowlight for pacing and the counter (v4vision/projects/kinetic-studio/index.html, Opus55/build/template.html); the grow follows image-to-fullbleed's numeric clip.",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "PreloaderStack"
+      ],
+      "file": "preloaders/preloader-stack.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "preloaders/preloader-slices-uncovered.ts",
+        "preloaders/preloader-stack.tsx"
+      ]
+    },
+    {
+      "slug": "preloader-slices",
+      "kind": "preloader",
+      "title": "Preloader: the slices",
+      "does": "The first paint is a dark cover cut into four vertical slices (three on phones), already composed: the client's name large, a caption, a hairline and the count at 000; the count runs to 100 in one move, then the slices drop away left to right, each carrying its strip of the name and count down and off behind a 5px accent edge, uncovering the page from the top onto its own entrance, within 2.4 seconds of the first paint, once per session (helper: preloaders/preloader-slices-uncovered.ts).",
+      "reference": "Kinetic Studio, the counter preloader whose four slices lift away (v4vision/projects/kinetic-studio/index.html, script near line 879).",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "PreloaderSlices"
+      ],
+      "file": "preloaders/preloader-slices.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "preloaders/preloader-slices-uncovered.ts",
+        "preloaders/preloader-slices.tsx"
+      ]
+    },
+    {
+      "slug": "preloader-gate",
+      "kind": "preloader",
+      "title": "Preloader: the gate",
+      "does": "The first paint is a shut gate with a whole film-leader dial and one figure; only the sweep moves, counting 3, 2, 1 on an eased count that waits for the fonts and the hero image, then the line through the middle lights and the two bars open top and bottom onto the hero, by 2.4 seconds from the first paint, once per session.",
+      "reference": "Lowlight (Opus55/build/template.html): the leader countdown and the bars that open as a gate onto the hero (CSS line 143, markup line 600, initLoader line 1024).",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "PreloaderGate"
+      ],
+      "file": "preloaders/preloader-gate.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "preloaders/preloader-gate.tsx"
+      ]
+    },
+    {
+      "slug": "page-transition-stack",
+      "kind": "page-transition",
+      "title": "Page transition: the stack",
+      "does": "On every link click and on back and forward, a small portrait print of the destination's own hero photo appears where the pointer is (centred for keys and history) and grows to fill the screen while the route loads under it, then settles into the new page's hero at its exact place and crop, so arriving is the preloader's own landing, under 0.9 seconds door to door; a print not decoded in time becomes the destination's name on the page ground and the cover lifts away instead (helper: preloaders/preloader-slices-uncovered.ts).",
+      "reference": "preloader-stack's grow-into-the-hero, run per navigation; the navigation engine is page-transition-slices' (click hold, popstate hold-and-replay, scroll, hash, focus).",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap",
+        "lenis"
+      ],
+      "exports": [
+        "PageTransitionStack"
+      ],
+      "file": "page-transitions/page-transition-stack.tsx",
+      "files": [
+        "kit/SmoothScroll.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "page-transitions/page-transition-stack.tsx",
+        "preloaders/preloader-slices-uncovered.ts"
+      ]
+    },
+    {
+      "slug": "page-transition-slices",
+      "kind": "page-transition",
+      "title": "Page transition: the slices",
+      "does": "On every link click and on back and forward, the slices of preloader-slices come in from above and close over the page with the destination's name and a running hairline, the route loads under them, and they carry on down and off, uncovering the new page from the top onto its entrance, about 0.65 seconds door to door, with focus, hashes and scroll restored (helper: preloaders/preloader-slices-uncovered.ts).",
+      "reference": "Kinetic Studio's slice lift (v4vision/projects/kinetic-studio/index.html, script near line 879), run on navigation.",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap",
+        "lenis"
+      ],
+      "exports": [
+        "PageTransitionSlices"
+      ],
+      "file": "page-transitions/page-transition-slices.tsx",
+      "files": [
+        "kit/SmoothScroll.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "page-transitions/page-transition-slices.tsx",
+        "preloaders/preloader-slices-uncovered.ts"
+      ]
+    },
+    {
+      "slug": "page-transition-gate",
+      "kind": "page-transition",
+      "title": "Page transition: the gate",
+      "does": "On every navigation, back button included, the preloader's bars close carrying the two halves of a slate (the dial and the destination's name), lock into one frame as the line and the dial light, hold while the route changes, then split the name and open onto the finished page, 0.9 seconds door to door.",
+      "reference": "Lowlight (Opus55/build/template.html): the gate of its loader, carried over to navigation so the site arrives and moves in one voice.",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap",
+        "lenis"
+      ],
+      "exports": [
+        "GateLink",
+        "GateStage",
+        "PageTransitionGate"
+      ],
+      "file": "page-transitions/page-transition-gate.tsx",
+      "files": [
+        "kit/SmoothScroll.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "page-transitions/page-transition-gate.tsx"
+      ]
+    },
+    {
+      "slug": "header-bar",
+      "kind": "header",
+      "title": "Header: the bar",
+      "does": "A fixed bar with the wordmark Noord, four links and one quiet text action, its ink changing per pixel at the edges of the sections under it, taking the ground once the page scrolls and keeping the hero's type clear; it hides and returns with the scroll and rolls each label, lands a large hero wordmark in the bar, or carries centred links, Rotterdam's live time and a progress rule; on phones it collapses to the wordmark and one Menu link.",
+      "reference": "Lowlight's header (Opus55/build/template.html: the three-part header grid with its time near line 170, the roll mask near line 131), Kinetic Studio's nav-link underline (kinetic-studio/index.html near line 95), and the menu curtain's ink split on data-bar-tone.",
+      "variants": [
+        {
+          "id": "quiet",
+          "title": "De stille balk",
+          "does": "Wordmark left, links right, each label rolling letter by letter on hover; the bar hides as the page scrolls down and returns on scroll up, a hairline under it once scrolled."
+        },
+        {
+          "id": "settle",
+          "title": "Het landende woordmerk",
+          "does": "The wordmark is set large across the hero and shrinks into its place in the bar as the page scrolls, the links fading in as it lands."
+        },
+        {
+          "id": "split",
+          "title": "De gedeelde balk",
+          "does": "Wordmark left, links centred with a line gliding under the hovered one, Rotterdam's live time and the action right, and a thin rule filling with the page's progress."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "HeaderBar"
+      ],
+      "file": "headers/header-bar.tsx",
+      "files": [
+        "headers/header-bar.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts"
+      ]
+    },
+    {
+      "slug": "menu-curtain",
+      "kind": "header",
+      "title": "Menu: the curtain",
+      "does": "A minimal bar (wordmark Noord, one button that rolls Menu to Sluiten) whose ink changes exactly at the edge of the section under it, opening a full-screen menu as a curtain in the gate, slices or stack language: five large links rise through masks, the hovered or focused link shows its decoded photo on the calm side, and a foot line carries the contact address and Rotterdam local time; it closes the same way reversed, a close overtaken by an open turns round, and the page under it is held still and inert while it is open.",
+      "reference": "Lowlight's menu curtain (Opus55/build/template.html: .menu CSS near line 210, initMenu near line 1606), carried into the gate, slices and stack page transitions, with the bar's ink split exactly at section edges.",
+      "variants": [
+        {
+          "id": "gate",
+          "title": "De poort",
+          "does": "An accent line draws from the middle of the screen and the menu opens from it as two edges part; the photo opens from its own middle line on hover."
+        },
+        {
+          "id": "slices",
+          "title": "De repen",
+          "does": "The menu falls in four vertical slices, left to right, each led by an accent edge; the photo stands in the last slice as a tall print and a new one falls over it on hover."
+        },
+        {
+          "id": "stack",
+          "title": "De stapel",
+          "does": "Three panels grow one after another from the button; a small portrait frame flips through a few prints, then cuts to the hovered link's photo."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap",
+        "lenis"
+      ],
+      "exports": [
+        "MenuCurtain"
+      ],
+      "file": "headers/menu-curtain.tsx",
+      "files": [
+        "headers/menu-curtain.tsx",
+        "kit/SmoothScroll.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts"
+      ]
+    },
+    {
+      "slug": "hero-framed",
+      "kind": "hero",
+      "title": "Hero: the frame",
+      "does": "One photograph hung on the page ground like a framed print, with four registration marks, a museum label and a caption, in three hangs: a small print at the centre you walk up to on the first scroll, the name set large on the wall with a tall print at the edge that opens over it, or a print that nearly fills the screen in a thin mat and steps back to a small portrait with the line beside it; pin 150%, the line on the photo's measured calm side or on the wall.",
+      "reference": "Lowlight's gate registration and corner marks (Opus55/build/template.html: hero frame CSS near line 252, gateShift near line 1233), turned from a hero image into a print on a gallery wall that you walk up to.",
+      "variants": [
+        {
+          "id": "wand",
+          "title": "Wand",
+          "does": "A small landscape print at the centre of the wall with its museum label; the first scroll walks up to it until it fills the screen."
+        },
+        {
+          "id": "portret",
+          "title": "Portret",
+          "does": "The studio name set large on the wall with a tall print hung high at the edge; the first scroll opens the print over the name to the whole screen and the line rises on its calm side."
+        },
+        {
+          "id": "passe",
+          "title": "Passe-partout",
+          "does": "A print that nearly fills the screen inside a thin mat; the first scroll steps back to a small portrait at the left with the line on the wall beside it."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "HeroFramed"
+      ],
+      "file": "heroes/hero-framed.tsx",
+      "files": [
+        "heroes/hero-framed.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "kit/photo-read.ts",
+        "preloaders/preloader-slices-uncovered.ts"
+      ]
+    },
+    {
+      "slug": "hero-split",
+      "kind": "hero",
+      "title": "Hero: split",
+      "does": "One headline set twice across a seam, in the ground's ink and the photo's ink, with a cycling discipline and its photograph: the seam stands upright, lies flat with the word rising through it, or opens with the first scroll from a strip at the edge to the split.",
+      "reference": "The award sheets' split-screen pair and image changes by mask and clip (struq-assets/references/award-tier-2026-11/README.md), with Lowlight's caption calm for the type side (Opus55/build/template.html).",
+      "variants": [
+        {
+          "id": "naad",
+          "title": "Staande naad",
+          "does": "The headline beside a tall photograph, the seam upright, the last word cycling through the disciplines with their photos."
+        },
+        {
+          "id": "liggend",
+          "title": "Liggende naad",
+          "does": "The photograph runs across the top and the ground below; the headline stands on the seam and each new word rises out of the ground ink into the photo ink."
+        },
+        {
+          "id": "opening",
+          "title": "Opening",
+          "does": "At rest the ground fills the screen and the photo is a strip at the edge; the first scroll opens it to the split while the headline turns to the photo ink as the edge passes."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "HeroSplit"
+      ],
+      "file": "heroes/hero-split.tsx",
+      "files": [
+        "heroes/hero-split.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "kit/photo-read.ts",
+        "preloaders/preloader-slices-uncovered.ts"
+      ]
+    },
+    {
+      "slug": "hero-index",
+      "kind": "hero",
+      "title": "Hero: the index",
+      "does": "The studio's list of work as the first screen, each name calling up its project's photograph: full screen behind the list on hover, in a window beside the list on the ground, or walked one by one by the first scroll while the hero holds.",
+      "reference": "The hover list's engine at hero scale (blocks/sections/hover-list.tsx), with the restraint of Lowlight's photo-led first screen (Opus55/build/template.html).",
+      "variants": [
+        {
+          "id": "lijst",
+          "title": "Lijst over de foto",
+          "does": "The list of work over a full-screen photograph that each name wipes in on hover or focus."
+        },
+        {
+          "id": "venster",
+          "title": "Venster",
+          "does": "The list stands on the page ground and each name wipes its photograph into a tall window beside it."
+        },
+        {
+          "id": "doorlopen",
+          "title": "Doorlopen",
+          "does": "The list centred over the photograph while the hero holds; each stretch of the first scroll raises the next project and steps its name forward."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "HeroIndex"
+      ],
+      "file": "heroes/hero-index.tsx",
+      "files": [
+        "heroes/hero-index.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "kit/photo-read.ts",
+        "preloaders/preloader-slices-uncovered.ts"
+      ]
+    },
+    {
+      "slug": "hero-still",
+      "kind": "hero",
+      "title": "Hero: full-bleed still",
+      "does": "One photograph with a title in three compositions: full bleed with a slow push-in and the headline on its measured calm side, held in a frame of page ground opening to full bleed by registration on the first scroll, or the headline split across the photo's horizon; the caption strip with place, live time and one link under all three, and preloaders land on its photo box.",
+      "reference": "Lowlight's hero (Opus55/build/template.html, the hero frame and content near lines 240 to 290): a film still with a title and a caption line.",
+      "variants": [
+        {
+          "id": "still",
+          "title": "Still",
+          "does": "Full bleed with a slow push-in and the headline on the photo's measured calm side."
+        },
+        {
+          "id": "frame",
+          "title": "Kader",
+          "does": "The photo held in margins of page ground with the headline beside it, opening to full bleed by registration on the first scroll."
+        },
+        {
+          "id": "horizon",
+          "title": "Horizon",
+          "does": "The headline split at the photo's horizon, each half in the ink its side measures for, the halves closing on the horizon."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "HeroStill"
+      ],
+      "file": "heroes/hero-still.tsx",
+      "files": [
+        "heroes/hero-still.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "kit/photo-read.ts",
+        "preloaders/preloader-slices-uncovered.ts"
+      ]
+    },
+    {
+      "slug": "hero-poster",
+      "kind": "hero",
+      "title": "Hero: poster type",
+      "does": "The first screen as a poster in three compositions: two fitted lines with a letterbox window between them, a narrow slit cutting through the type in the photo's measured ink, or one word per row with a window of a different crop between each pair; on the first scroll (pin 150%) the type parts while the windows open by registration into the full-bleed photo; phones keep the composition with the entrance only.",
+      "reference": "The award sheets' oversized type moves (struq-assets/references/award-tier-2026-11/README.md: \"Display type is the composition\", 12 to 20vw) and Kinetic Studio's oversized wordmark (v4vision/projects/kinetic-studio/index.html), with the registration open from Lowlight's gate (Opus55/build/template.html, gateShift near line 1233).",
+      "variants": [
+        {
+          "id": "window",
+          "title": "Venster",
+          "does": "Two fitted lines with a letterbox window onto the photo between them that opens to full bleed on the first scroll."
+        },
+        {
+          "id": "column",
+          "title": "Spleet",
+          "does": "A tall narrow slit cuts through the fitted lines in the ink the photo measures for, and opens sideways into the full photo on the first scroll."
+        },
+        {
+          "id": "stack",
+          "title": "Stapel",
+          "does": "One word per row with a window of a different crop between each pair; on scroll the rows part and the crops slide into one photograph."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "HeroPoster"
+      ],
+      "file": "heroes/hero-poster.tsx",
+      "files": [
+        "heroes/hero-poster.tsx",
+        "heroes/hero-still.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "kit/photo-read.ts",
+        "preloaders/preloader-slices-uncovered.ts"
+      ]
+    },
+    {
+      "slug": "background-aurora",
+      "kind": "background",
+      "title": "Background: Noorderlicht",
+      "does": "A full-screen hero on a live field of northern light: slow curtains hang from folding hems with long drifting rays, in the palette's accent over its ground, so it is soft ink on paper in light palettes and real light in dark ones.",
+      "reference": "Vapor's Noorderlicht (Vapor lib/ambient/backdrops/aurora.ts: drifting ribbons with a brighter core under a curtain shimmer, and the soft ceiling behind text from led.ts), rebuilt as hanging curtains with folding hems.",
+      "variants": [
+        {
+          "id": "veil",
+          "title": "Gordijn",
+          "does": "One tall curtain of light standing in the right third, two pleats swaying across each other, the type on the calm left."
+        },
+        {
+          "id": "horizon",
+          "title": "Horizon",
+          "does": "A low band of light along the foot of the screen under the type, stronger to the right, rising a little as the hero scrolls away."
+        },
+        {
+          "id": "drift",
+          "title": "Drift",
+          "does": "Curtains across the upper half, drifting slowly sideways and bending away from the pointer."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "BackgroundAurora"
+      ],
+      "file": "backgrounds/background-aurora.tsx",
+      "files": [
+        "backgrounds/background-aurora.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts"
+      ]
+    },
+    {
+      "slug": "background-silk",
+      "kind": "background",
+      "title": "Background: Zijde",
+      "does": "A sheet of silk in raking light behind the headline: long soft folds, the cloth one step off the page ground, and a sheen in the accent that travels slowly over the crests.",
+      "reference": "Vapor's Zijde (Vapor lib/ambient/backdrops/silk.ts): diagonal satin folds bent by slow noise, the light catching each crest; here a continuous surface with real normals and a low wandering light instead of a halftone grid.",
+      "variants": [
+        {
+          "id": "fold",
+          "title": "Plooi",
+          "does": "One large diagonal fold with a lesser one beside it through the right half, the type on the calm left; the pointer turns the light so the sheen slides along the fold."
+        },
+        {
+          "id": "ripple",
+          "title": "Rimpeling",
+          "does": "Long low folds over the whole screen, fuller toward the upper right; the pointer sends a slow band across the folds that lifts and shifts them."
+        },
+        {
+          "id": "drape",
+          "title": "Draperie",
+          "does": "The cloth hangs from the top edge in rounded pleats down to a wavy hem; scrolling the hero away draws the hem down and stretches the pleats."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "BackgroundSilk"
+      ],
+      "file": "backgrounds/background-silk.tsx",
+      "files": [
+        "backgrounds/background-silk.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts"
+      ]
+    },
+    {
+      "slug": "background-facets",
+      "kind": "background",
+      "title": "Background: Facetten",
+      "does": "A full-screen surface of cut planes on a triangle lattice, every crease a crisp hairline where two planes really fold, each plane catching a slow travelling light in the palette's accent, with the type on the flat ground of the calm side.",
+      "reference": "Vapor's Facetten (Vapor lib/ambient/backdrops/facets.ts): the same lattice idea in new compositions.",
+      "variants": [
+        {
+          "id": "shard",
+          "title": "Kristal",
+          "does": "A few cut shards stand apart in the right third, each a pyramid of unequal planes, while a light circles them and each plane and ridge catches it in turn; the type on the flat ground to the left."
+        },
+        {
+          "id": "relief",
+          "title": "Reliëf",
+          "does": "The whole screen a very low relief of large, slowly tilting planes with a broad band of light sweeping across, lowest under the type."
+        },
+        {
+          "id": "turn",
+          "title": "Draai",
+          "does": "Diagonal pleats in the upper left cut into planes; the light turns across them as the hero scrolls away and leans toward the pointer."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "BackgroundFacets"
+      ],
+      "file": "backgrounds/background-facets.tsx",
+      "files": [
+        "backgrounds/background-facets.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "preloaders/preloader-slices-uncovered.ts"
+      ]
+    },
+    {
+      "slug": "hero-opener",
+      "kind": "showpiece",
+      "title": "Hero opener",
+      "does": "A full-bleed photo (or the WebGL scene over it) with the display line at 14 to 20vw across it; on scroll it pins, scales down and darkens while the next section slides over.",
+      "reference": null,
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "@types/three",
+        "gsap",
+        "three"
+      ],
+      "exports": [
+        "HeroOpener"
+      ],
+      "file": "showpieces/hero-opener.tsx",
+      "files": [
+        "kit/HeroCanvas.tsx",
+        "kit/MagneticButton.tsx",
+        "kit/SplitHeadline.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "kit/scenes/contours.ts",
+        "kit/scenes/dots.ts",
+        "kit/scenes/ripple.ts",
+        "kit/scenes/types.ts",
+        "showpieces/hero-opener.tsx"
+      ]
+    },
+    {
+      "slug": "image-to-fullbleed",
+      "kind": "showpiece",
+      "title": "Image to full bleed",
+      "does": "A small image between the two halves of a name unclips to the full screen as the words travel off the edges.",
+      "reference": null,
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "ImageToFullbleed"
+      ],
+      "file": "showpieces/image-to-fullbleed.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "showpieces/image-to-fullbleed.tsx"
+      ]
+    },
+    {
+      "slug": "panel-wipe",
+      "kind": "showpiece",
+      "title": "Panel wipe",
+      "does": "Two panels carrying one word each slide apart to reveal a photo, and close again.",
+      "reference": null,
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "PanelWipe"
+      ],
+      "file": "showpieces/panel-wipe.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "showpieces/panel-wipe.tsx"
+      ]
+    },
+    {
+      "slug": "scrub-connector",
+      "kind": "showpiece",
+      "title": "Scrub connector",
+      "does": "Two words far apart with a tall slab of ink between them; the slab swings into one thick slash through both words (their letters knocked out where it crosses), then carries the words in on its two ends, turning to the accent as it travels, and seats long and rising between them; the joined pair holds and scrolls away whole.",
+      "reference": null,
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "ScrubConnector"
+      ],
+      "file": "showpieces/scrub-connector.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "showpieces/scrub-connector.tsx"
+      ]
+    },
+    {
+      "slug": "project-stack",
+      "kind": "showpiece",
+      "title": "Project stack",
+      "does": "One project per screen; each slides up full bleed over the last while the one beneath recedes.",
+      "reference": null,
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "ProjectStack"
+      ],
+      "file": "showpieces/project-stack.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "showpieces/project-stack.tsx"
+      ]
+    },
+    {
+      "slug": "manifesto-scrub",
+      "kind": "showpiece",
+      "title": "Manifesto scrub",
+      "does": "One large statement that fills word by word, from a faint ink to full ink, as it scrolls through the screen.",
+      "reference": null,
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "ManifestoScrub"
+      ],
+      "file": "showpieces/manifesto-scrub.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "showpieces/manifesto-scrub.tsx"
+      ]
+    },
+    {
+      "slug": "fill-rows",
+      "kind": "showpiece",
+      "title": "Fill rows",
+      "does": "Large hairline rows; on hover or focus a row floods with the accent from below and its detail slides in.",
+      "reference": null,
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "FillRows"
+      ],
+      "file": "showpieces/fill-rows.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "showpieces/fill-rows.tsx"
+      ]
+    },
+    {
+      "slug": "pixel-resolve",
+      "kind": "showpiece",
+      "title": "Pixel resolve",
+      "does": "A photo that arrives as coarse pixels and resolves to full sharpness.",
+      "reference": null,
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "PixelResolve"
+      ],
+      "file": "showpieces/pixel-resolve.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/images.ts",
+        "showpieces/pixel-resolve.tsx"
+      ]
+    },
+    {
+      "slug": "wordmark-finale",
+      "kind": "showpiece",
+      "title": "Wordmark finale",
+      "does": "The footer as a finale: the name fitted edge to edge, rising out of a mask, with a closing line and a live local clock.",
+      "reference": null,
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "WordmarkFinale"
+      ],
+      "file": "showpieces/wordmark-finale.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "showpieces/wordmark-finale.tsx"
+      ]
+    },
+    {
+      "slug": "zoom-through",
+      "kind": "transition",
+      "title": "Zoom-through",
+      "does": "A pinned composed frame (the display line and a lead on the ground, the photo in an upright window with its caption and corner marks) holds; then the camera pushes into the window: the type, nearer the lens, scales away past the edges, the window opens until all four edges leave the screen together, and the photo, deeper than the window, settles out of its push-in to full bleed with its subject held in place; a strip of the ground rises from the bottom edge with the line and caption, and the next section's heading, at the display size of the frame it left, rises out of masks in the photo where its pixels allow a light or dark ink at 4.5:1 (the calm side first, then the window's side), or on bands of ground stepped up from the strip where they do not (or cannot be read), holds, and the pin lets go with the photo drifting slower than the page.",
+      "reference": "The award sheets' zoom-through (struq-assets/references/award-tier-2026-11/README.md, \"Motion\": the camera pushes into an image until it becomes the next section's background), with Lowlight's gate registration and corner marks (Opus55/build/template.html, gateShift line 1233, hero frame CSS line 252).",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "ZoomThrough"
+      ],
+      "file": "transitions/zoom-through.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "kit/photo-read.ts",
+        "transitions/zoom-through.tsx"
+      ]
+    },
+    {
+      "slug": "about-studio",
+      "kind": "section",
+      "title": "About the studio",
+      "does": "Who the studio is (a statement, a paragraph, honest facts and the place given real space), as a plate that opens out of the margins, a walk past two columns of photographs beside sticky type, or a slit of photograph that opens and pushes the statement's halves apart.",
+      "reference": "Lowlight's studio section (Opus55/build/template.html line 841, the wide plate over its facts list), without its eyebrows, numeral or marquee.",
+      "variants": [
+        {
+          "id": "plaat",
+          "title": "Plaat",
+          "does": "A full-bleed plate of the place opens out of the page margins and drifts in its frame, the statement large under it and the facts with rules that draw in."
+        },
+        {
+          "id": "wandeling",
+          "title": "Wandeling",
+          "does": "The statement and facts stay put while two columns of upright photographs pass beside them at different speeds; on phones a swipe row."
+        },
+        {
+          "id": "doorkijk",
+          "title": "Doorkijk",
+          "does": "On a short pin a slit of photograph between the statement's two halves opens into a window and pushes them apart."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "AboutStudio"
+      ],
+      "file": "sections/about-studio.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "sections/about-studio.tsx"
+      ]
+    },
+    {
+      "slug": "approach",
+      "kind": "section",
+      "title": "Approach",
+      "does": "How the studio works from first conversation to handover, told without numbers: a line that draws down the page with the stages hanging off it, one pinned sentence whose clauses come to ink in turn, or an index you scrub by drag, click or arrow keys while the photographs wipe across in register.",
+      "reference": "Lowlight's process section (Opus55/build/template.html line 781, phases beside a scrubbed aperture), with the numbered kickers replaced by sequence in layout, scroll and hand.",
+      "variants": [
+        {
+          "id": "draad",
+          "title": "Draad",
+          "does": "One line draws down the page as you read, the stages hanging off it left and right, each tick drawing out and each name rising as the line reaches it."
+        },
+        {
+          "id": "zin",
+          "title": "Zin",
+          "does": "The whole process as one pinned sentence whose clauses come to ink in turn while the current stage's note swaps beneath it."
+        },
+        {
+          "id": "schuif",
+          "title": "Schuif",
+          "does": "An index you scrub by dragging the rule, clicking a stage or using the arrow keys, the photographs wiping across in register while the copy swaps beside them."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "Approach"
+      ],
+      "file": "sections/approach.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "sections/approach.tsx"
+      ]
+    },
+    {
+      "slug": "manifesto",
+      "kind": "section",
+      "title": "Manifesto",
+      "does": "The studio's statement as the page's moment of conviction: written in line by line behind a caret, set as a pull quote over a drifting photograph on its measured calm side, or split across a short pin where the second half arrives sentence by sentence until the whole statement stands.",
+      "reference": "Deliberately avoids Lowlight's manifesto treatment (Opus55/build/template.html, initTreatment) and manifesto-scrub's word fill; the line masks and scrubbed rises follow the admitted reveals, the calm side and veil cap follow hero-still.",
+      "variants": [
+        {
+          "id": "writes",
+          "title": "Schrift",
+          "does": "The section pins and the statement writes itself in line by line behind a thin accent caret, then holds while a signature rises."
+        },
+        {
+          "id": "quote",
+          "title": "Citaat",
+          "does": "One sentence as a pull quote over a full-bleed photograph on its measured calm side, the photo drifting slowly inside its frame."
+        },
+        {
+          "id": "split",
+          "title": "Tweeluik",
+          "does": "A short pin: the first half stands large on the left while the second half arrives on the right one sentence at a time, each rising under the one before, ending on the whole statement in two columns."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "Manifesto"
+      ],
+      "file": "sections/manifesto.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "kit/photo-read.ts",
+        "sections/manifesto.tsx"
+      ]
+    },
+    {
+      "slug": "contact-form",
+      "kind": "section",
+      "title": "Contact form",
+      "does": "The one place the site asks for input: name, e-mail, a short subject and an optional choice, as fields that are only a drawing rule with lifting labels, as a sentence the reader completes inline at display size, or one question at a time, with every state designed from invalid to a travelling-arrow send, a thank-you in the form's own place and a kept-text retry.",
+      "reference": "Neither Lowlight nor Kinetic has a form; the send link and drawing underline come from cta-closing's action, the light display type from the heroes, and the field states are new.",
+      "variants": [
+        {
+          "id": "lines",
+          "title": "Lijnen",
+          "does": "A display line and a note on the left, the fields on the right; each label rests inside its field and lifts as it is focused or filled, the baseline rule drawing in the accent from the left."
+        },
+        {
+          "id": "sentence",
+          "title": "Zin",
+          "does": "The form is a sentence the reader completes, the blanks inline at display size in a light weight and growing with the text; on phones each clause stacks above its field."
+        },
+        {
+          "id": "steps",
+          "title": "Stappen",
+          "does": "One question at a time at display size; Enter or Volgende moves on, Terug goes back, the answers so far stay small above, and a thin rule fills."
+        }
+      ],
+      "packages": [],
+      "exports": [
+        "ContactForm"
+      ],
+      "file": "sections/contact-form.tsx",
+      "files": [
+        "kit/blocks.css",
+        "sections/contact-form.tsx"
+      ]
+    },
+    {
+      "slug": "cta-closing",
+      "kind": "section",
+      "title": "Closing call to action",
+      "does": "The page's last screen before the footer, one light display line and one large text link with an arrow and a drawing line, arriving on a short scroll-scrubbed stretch that runs backwards on the way back: a photograph opening by registration behind the line on its measured calm side, the line as a slow scroll-nudged band behind a still link, or a still line whose link brings a project frame that follows the pointer.",
+      "reference": "Lowlight's closing contact screen and Kinetic Studio's marquee and hover-preview links, rebuilt with the registration clip from image-to-fullbleed, the shared photo read (blocks/kit/photo-read.ts) and a velocity band that differs from velocity-type.",
+      "variants": [
+        {
+          "id": "photo",
+          "title": "Foto",
+          "does": "A photograph opens behind the line from a centred window to full bleed; line and link stand on its measured calm side over a light veil."
+        },
+        {
+          "id": "marquee",
+          "title": "Band",
+          "does": "The line runs as one slow band in a stepped-back ink, nudged by the scroll's speed; the link stands still at the centre in front of it."
+        },
+        {
+          "id": "pointer",
+          "title": "Aanwijzer",
+          "does": "Plain ground, the line large and still; hovering the link brings a small project frame that follows the pointer while the link's line draws."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "CtaClosing"
+      ],
+      "file": "sections/cta-closing.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "kit/photo-read.ts",
+        "sections/cta-closing.tsx"
+      ]
+    },
+    {
+      "slug": "reveals",
+      "kind": "section",
+      "title": "Reveals",
+      "does": "A plain editorial section (statement, paragraph, one photo, one text link) that enters on a short scroll-scrubbed stretch in one of three ways: lines rising through masks with the photo opening from its bottom edge, the photo opening from a thin slit with the type rising beside it, or the whole section laid over the previous one like a card, which dims and falls behind; scrolling back runs every entrance backwards.",
+      "reference": "Lowlight's mask-line and block reveals (Opus55/build/template.html, initReveals), rebuilt as scroll-scrubbed entrances with the registration clip from image-to-fullbleed and a card-over-table hand-over.",
+      "variants": [
+        {
+          "id": "lines",
+          "title": "Regels",
+          "does": "The statement's lines rise through masks one after another, the paragraph and link follow softly, then the photo opens from its bottom edge."
+        },
+        {
+          "id": "clip",
+          "title": "Spleet",
+          "does": "The photo leads, opening from a thin horizontal slit inside its final frame to full size; the type rises beside it once the slit is half open."
+        },
+        {
+          "id": "card",
+          "title": "Kaart",
+          "does": "The whole section slides up over the previous one with a hairline shadow on its top edge; the covered section dims and falls behind as the content settles."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "Reveals"
+      ],
+      "file": "sections/reveals.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "sections/reveals.tsx"
+      ]
+    },
+    {
+      "slug": "image-trail",
+      "kind": "section",
+      "title": "Image trail",
+      "does": "A list of work at display size; moving the pointer over a row deals that project's photograph at the pointer each time it has travelled a set distance, turned a little with the hand and settling as it lands, while older prints hold, shrink and fade behind it, six at most; a fast hand leaves a longer, wider trail and a still one leaves nothing new; keyboard focus and reduced motion show one print beside the row, and touch and phones show each photograph inline.",
+      "reference": "The award sheets' image trail (struq-assets/references/award-tier-2026-11/README.md), with the restraint of Lowlight's pointer-led still over its rows (Opus55/build/template.html, .make__preview near line 394).",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "ImageTrail"
+      ],
+      "file": "sections/image-trail.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "sections/image-trail.tsx"
+      ]
+    },
+    {
+      "slug": "panel-accordion",
+      "kind": "section",
+      "title": "Panel accordion",
+      "does": "A full-height row of five tall photo panels like gallery shutters: hover or focus opens one wide while the others narrow, the photograph already full size behind a widening window, its name rising in through a mask; on scroll into view the panels rise from their bottom edge one after another and the first opens on its own; phones stack them as rows that open on tap.",
+      "reference": "The award sheets' panel and shutter moves (struq-assets/references/award-tier-2026-11/README.md) and Kinetic Studio's capabilities rhythm (v4vision/projects/kinetic-studio/index.html, near line 447).",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "PanelAccordion"
+      ],
+      "file": "sections/panel-accordion.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "sections/panel-accordion.tsx"
+      ]
+    },
+    {
+      "slug": "grid-assembly",
+      "kind": "section",
+      "title": "Grid assembly",
+      "does": "A pinned section (250%) opens on nine photos lying at angles in a composed pile, a few past the screen edges, that travel one after another into an editorial grid with exact gaps as the section's line rises in its type cell; the grid holds, then the hero print, a window onto its photo at full size, opens to the full screen while the others are pushed out, the photo never changing scale, and the next line rises on the photo's calmer side, holds, and the photo drifts slower than the page as the pin lets go. Phones open the grid tile by tile; reduced motion and pages without scripts show the grid, then the full-bleed photo with its line.",
+      "reference": "The award sheets' \"grid assembly\" and \"image grows to full bleed\" moves (struq-assets/references/award-tier-2026-11/README.md, showpieces 1 and Motion), with Lowlight's restraint (Opus55/build/template.html): one grade, holds as long as the moves, a hand-over into the next scene.",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "GridAssembly"
+      ],
+      "file": "sections/grid-assembly.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "kit/photo-read.ts",
+        "sections/grid-assembly.tsx"
+      ]
+    },
+    {
+      "slug": "velocity-type",
+      "kind": "section",
+      "title": "Velocity type",
+      "does": "Two lines of display type at 15vw run sideways in opposite directions as you scroll, run ahead with its speed, lean back and stretch slightly as if dragged, and settle upright within about 0.4 seconds of stopping, with small photographs sitting between the phrases as their own frames; the belt loops without a seam, and reduced motion and pages without scripts leave the lines at rest.",
+      "reference": "The award sheets' velocity type (struq-assets/references/award-tier-2026-11/README.md, \"Motion\"), with the feel of Kinetic Studio's marquee (v4vision/projects/kinetic-studio/index.html).",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "VelocityType"
+      ],
+      "file": "sections/velocity-type.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "sections/velocity-type.tsx"
+      ]
+    },
+    {
+      "slug": "sticky-chapters",
+      "kind": "section",
+      "title": "Sticky chapters",
+      "does": "A process or story in chapters: one large photograph holds still on the left (plain position sticky) while the chapters scroll past on the right; as each reaches the middle its photograph rises over the last from the bottom edge (from the top when scrolling back) out of a push-in, that chapter comes forward while the others step back, and a hairline beside the frame fills as you read; phones and pages without scripts show each photograph inline, reduced motion keeps the frame with hard cuts.",
+      "reference": "Lowlight's pinned process (Opus55/build/template.html, .process CSS near line 401): copy that holds while a photograph changes beside it.",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "StickyChapters"
+      ],
+      "file": "sections/sticky-chapters.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "sections/sticky-chapters.tsx"
+      ]
+    },
+    {
+      "slug": "film-strip",
+      "kind": "section",
+      "title": "Film strip",
+      "does": "A pinned reel between two rows of sprocket holes opens on the section's display line beside the first project in the gate; the scroll advances it one frame at a time, portrait frames high and landscape low, each seating at the gate as its photo settles out of a push-in while the title swaps through its mask and a hairline progress line fills; the last stop is the closing frame with the call to action, and on release the strip runs on to the left. Phones swipe a snap row between sprocket rows with titles under the frames; reduced motion and pages without scripts get the same still row.",
+      "reference": "Lowlight's pinned reel (Opus55/build/template.html: reel CSS lines 312 to 372 with the sprocket rows and progress line, initReel near line 1320), turned from a 1:1 glide into frame-by-frame advances with a title mask.",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "FilmStrip"
+      ],
+      "file": "sections/film-strip.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "sections/film-strip.tsx"
+      ]
+    },
+    {
+      "slug": "hover-list",
+      "kind": "section",
+      "title": "Hover reveal list",
+      "does": "A list of work at display size, each name with a quiet line of place and year; hovering a row shows its photograph in an upright frame that follows the pointer closely and leans with its speed while the other rows step back, row to row the photograph wipes in the way the pointer travels, and leaving the list folds the frame shut; keyboard focus and reduced motion stand the frame beside the row, and touch and phones show each photograph inline.",
+      "reference": "Lowlight's still that follows the pointer over the \"What we make\" rows (Opus55/build/template.html, .make__preview CSS near line 394, initMake near line 1371), with Kinetic Studio's pointer-speed tilt (v4vision/projects/kinetic-studio/index.html, tilt near line 859).",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "HoverList"
+      ],
+      "file": "sections/hover-list.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "sections/hover-list.tsx"
+      ]
+    },
+    {
+      "slug": "split-pair",
+      "kind": "section",
+      "title": "Split pair",
+      "does": "A pinned pair of tall photos that meet at a hard seam: the word stands whole in ink on the ground with the seam through it; the first photo rises in on the left, turning its half of the letters to the photo's own ink, and holds half and half; the second comes down on the right against it and the pair holds whole, the two photos running against each other at different speeds the whole time, and on release the halves leave at their own speeds so the word shears along the seam.",
+      "reference": "Voyeur Verite's split-screen pair (\"The Symphony of Dance / Stand Up\", struq-assets/references/award-tier-2026-11/voyeur-verite-sheet.png, rows 3 to 5): two photos arriving from opposite directions, oversized serif words across both.",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "SplitPair"
+      ],
+      "file": "sections/split-pair.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "kit/photo-read.ts",
+        "sections/split-pair.tsx"
+      ]
+    },
+    {
+      "slug": "fanned-cards",
+      "kind": "section",
+      "title": "Fanned cards",
+      "does": "Services or cases as a hand of photographs played onto the table: a poster heading set on the diagonal, the hand rising into the frame and fanning open large in 3D between its two lines; it holds, then the hand is played from the back, each card flying along an arc toward the lens and turning as it goes, and laid down at its own scale into a spread (the lead card large in front, each card behind it smaller and partly under the one before, all crossing the first line), each title rising from its mask as its card lands; the spread holds, and on release the cards are picked up off the table at their own speeds. Phones get the hand as a still fan; reduced motion gets the spread. Cards lift slightly on hover.",
+      "reference": "VANTA/LOOP, \"Your flexible creative department\": the offers fanned in 3D beside the heading (struq-assets/references/award-tier-2026-11/vanta-loop-sheet.png, row 4), with Kinetic Studio's staggered card rhythm and pointer tilt (v4vision/projects/kinetic-studio/index.html, capabilities near line 447, tilt near line 859).",
+      "variants": [],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "FannedCards"
+      ],
+      "file": "sections/fanned-cards.tsx",
+      "files": [
+        "kit/blocks.css",
+        "kit/gsap.ts",
+        "kit/images.ts",
+        "sections/fanned-cards.tsx"
+      ]
+    },
+    {
+      "slug": "footer-reveal",
+      "kind": "footer",
+      "title": "Footer: revealed from under the page",
+      "does": "The page's last section lifts away like a sheet and uncovers the footer already waiting beneath it (the name large at a light weight, a closing line, the contact address, a few plain links), scrubbed to the scroll and laid down again on the way back.",
+      "reference": "Lowlight's footer (the page lifts away to uncover the light leak; Opus55/build/template.html), rebuilt with position sticky instead of a fixed layer and a margin.",
+      "variants": [
+        {
+          "id": "lift",
+          "title": "Optillen",
+          "does": "The last section rises off the footer, which stands still beneath it; its leaving edge carries a hairline and a short soft shadow."
+        },
+        {
+          "id": "fold",
+          "title": "Omslaan",
+          "does": "The last section tilts back a few degrees as it lifts, like a page turned up, and the footer brightens from under a shade as it is uncovered."
+        },
+        {
+          "id": "iris",
+          "title": "Opening",
+          "does": "The footer is uncovered through an opening that grows from a thin slit at the bottom of the screen to full, the name rising inside it."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap",
+        "lenis"
+      ],
+      "exports": [
+        "FooterReveal"
+      ],
+      "file": "footers/footer-reveal.tsx",
+      "files": [
+        "footers/footer-reveal.tsx",
+        "kit/SmoothScroll.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts"
+      ]
+    },
+    {
+      "slug": "footer-contact",
+      "kind": "footer",
+      "title": "Footer: contact",
+      "does": "The page ends on the way to reach the studio: the mail address as a real link at display size (or a live clock, or a quiet three-column grid), the city's local time with an honest open marker computed from it, a phone line, the address and a few plain links, entering scrubbed to the scroll.",
+      "reference": "Lowlight's contact footer and roll-host labels (Opus55/build/template.html), Kinetic Studio's footer mailto, and the slot-text roll from the FWA studio footers.",
+      "variants": [
+        {
+          "id": "address",
+          "title": "Adres",
+          "does": "The mail address heads the footer as a fitted headline whose characters roll up into their slots from blank as you scroll in, then roll again from the pointer's side on hover; the details close it under a ruled line."
+        },
+        {
+          "id": "clock",
+          "title": "Klok",
+          "does": "A live Rotterdam clock at display size is the centre, its colon breathing once a second; mail, phone, address and hours stand around it like a timetable."
+        },
+        {
+          "id": "columns",
+          "title": "Kolommen",
+          "does": "A closing line at display size, then three columns (Contact, Studio, Volg ons) with links whose underline draws from the pointer's side."
+        }
+      ],
+      "packages": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "exports": [
+        "FooterContact"
+      ],
+      "file": "footers/footer-contact.tsx",
+      "files": [
+        "footers/footer-contact.tsx",
+        "kit/blocks.css",
+        "kit/gsap.ts"
+      ]
+    }
+  ]
+}

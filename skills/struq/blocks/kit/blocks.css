@@ -1,0 +1,2102 @@
+/* ==========================================================================
+   The block kit's CSS, as a client project gets it from the skill (recipes/app/globals.css), with one change:
+   everything that the skill sets on :root and html is scoped to [data-blocks] here, so the blocks can render
+   inside struq.nl's own page without touching it. Imported once from app/globals.css.
+
+   Two names exist in Struq's own theme too: --color-accent and --font-display. Inside [data-blocks] they are
+   pointed at the block tokens, so bg-accent and font-display mean the block's palette and face there and
+   Struq's everywhere else.
+   ========================================================================== */
+
+@theme inline {
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-accent-ink: var(--accent-ink);
+  --color-line: var(--line);
+  --color-on-photo: var(--on-photo);
+  --color-inverse: var(--inverse);
+  --color-on-inverse: var(--on-inverse);
+  --color-field: var(--field);
+  --color-on-field: var(--on-field);
+  --font-body: var(--face-body), ui-sans-serif, system-ui, sans-serif;
+  --font-accent: var(--face-accent, var(--face-display)), ui-serif, Georgia, serif;
+}
+
+@theme {
+  /* Type roles: text-display, text-h2, text-h3, text-lead, text-body, text-small. */
+  --text-display: clamp(2.875rem, 1.2rem + 6.86vw, 8rem);
+  --text-display--line-height: 0.95;
+  --text-display--letter-spacing: -0.025em;
+  --text-h2: clamp(2.25rem, 1.3rem + 3.4vw, 4.75rem);
+  --text-h2--line-height: 1.04;
+  --text-h2--letter-spacing: -0.015em;
+  --text-h3: clamp(1.375rem, 1.15rem + 0.8vw, 1.875rem);
+  --text-h3--line-height: 1.2;
+  --text-lead: clamp(1.125rem, 1.05rem + 0.3vw, 1.3125rem);
+  --text-lead--line-height: 1.5;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.65;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.5;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
+}
+
+/* The default tokens (the skill's offline "paper" preset). The lab overwrites them per palette. */
+[data-blocks] {
+  --surface-0: #f5efe6;
+  --surface-1: #ede4d6;
+  --surface-2: #e1d4bf;
+  --surface-3: #cdbb9f;
+  --ink: #1e1a15;
+  --ink-muted: #5d5446;
+  --accent: #8a3b22;
+  --accent-ink: #fbf6ee;
+  --line: rgb(30 26 21 / 0.12);
+  --on-photo: #f7f3ec;
+  --inverse: #1e1a15;
+  --on-inverse: #f5efe6;
+  --field: #8a3b22;
+  --on-field: #fbf6ee;
+  --display-weight: 300;
+
+  --color-accent: var(--accent);
+  --font-display: var(--face-display), ui-serif, Georgia, serif;
+
+  font-size: clamp(1rem, 0.92rem + 0.2vw, 1.125rem);
+  background: var(--surface-0);
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+[data-blocks] :is(h1, h2, h3, .font-display) {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  text-wrap: balance;
+}
+[data-blocks] p {
+  text-wrap: pretty;
+}
+[data-blocks] ::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+[data-blocks] :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* The contrast scene: wrap a section in scene-inverse or scene-field; the tokens turn inside it. */
+[data-blocks] .scene-inverse {
+  --surface-0: var(--inverse);
+  --surface-1: color-mix(in oklab, var(--inverse), var(--on-inverse) 6%);
+  --surface-2: color-mix(in oklab, var(--inverse), var(--on-inverse) 12%);
+  --surface-3: color-mix(in oklab, var(--inverse), var(--on-inverse) 22%);
+  --ink: var(--on-inverse);
+  --ink-muted: color-mix(in oklab, var(--on-inverse) 72%, var(--inverse));
+  --line: color-mix(in oklab, var(--on-inverse) 18%, transparent);
+  background-color: var(--surface-0);
+  color: var(--ink);
+}
+[data-blocks] .scene-field {
+  --surface-0: var(--field);
+  --surface-1: color-mix(in oklab, var(--field), var(--on-field) 8%);
+  --surface-2: color-mix(in oklab, var(--field), var(--on-field) 14%);
+  --surface-3: color-mix(in oklab, var(--field), var(--on-field) 24%);
+  --ink: var(--on-field);
+  --ink-muted: color-mix(in oklab, var(--on-field) 78%, var(--field));
+  --line: color-mix(in oklab, var(--on-field) 22%, transparent);
+  --accent: var(--on-field);
+  --accent-ink: var(--field);
+  background-color: var(--surface-0);
+  color: var(--ink);
+}
+
+/* The hero opener's handover: the section after it slides up over the pinned opener. */
+[data-blocks] [data-showpiece="hero-opener"] + *,
+[data-blocks] .pin-spacer:has(> [data-showpiece="hero-opener"]) + * {
+  position: relative;
+  z-index: 2;
+  background-color: var(--surface-0);
+}
+
+/* The motion gate. In a client project the skill's layout puts `js` on <html> before paint; on struq.nl the root
+   layout's pre-paint script puts `sq-js` there (components/site/loaders/use-first-visit.ts), so a visitor without
+   JavaScript gets every element in its final state and nothing waits for a script that will not run. */
+.sq-js [data-blocks] [data-split]:not([data-ready]) {
+  visibility: hidden;
+  animation: struq-show 0s 3s forwards;
+}
+.sq-js [data-blocks] [data-reveal]:not([data-ready]) > * {
+  opacity: 0;
+  animation: struq-fade 0s 3s forwards;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sq-js [data-blocks] [data-frame="mask"]:not([data-ready]) {
+    clip-path: inset(100% 0 0 0);
+    animation: struq-open 0s 3s forwards;
+  }
+  .sq-js [data-blocks] [data-zoom-frame] {
+    clip-path: inset(22% 30% 22% 30%);
+  }
+}
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .sq-js [data-blocks] [data-showpiece="image-to-fullbleed"] [data-frame] {
+    clip-path: inset(31% 40% 31% 40%);
+  }
+  /* The connector's start is computed from the layout, so the joined still waits unseen until it is set. */
+  .sq-js [data-blocks] [data-showpiece="scrub-connector"]:not([data-motion]) > [data-row] {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+  .sq-js [data-blocks] [data-showpiece="pixel-resolve"] canvas {
+    opacity: 1;
+    background: var(--surface-2);
+    animation: struq-unveil 0s 4s forwards;
+  }
+}
+@keyframes struq-unveil { to { opacity: 0; visibility: hidden; } }
+@keyframes struq-show { to { visibility: visible; } }
+@keyframes struq-fade { to { opacity: 1; } }
+@keyframes struq-open { to { clip-path: inset(0 0 0 0); } }
+
+/* SplitText masks: room for descenders inside each line's clip. */
+[data-blocks] .struq-line-mask {
+  padding-block: 0.06em 0.16em;
+  margin-block: -0.06em -0.16em;
+}
+
+/* --- preloader-gate and page-transition-gate --- */
+/* The gate's ground. "deep" (the default) is a step darker than the page in every palette: the depth of an ink on
+   a light ground, a deeper night on a dark one, so the gate reads as the room the page is shown in. Browsers without
+   relative colour take the inverse. --on-gate is the palette's light colour, which reads on either. */
+[data-blocks] [data-gate] {
+  --gate: var(--inverse);
+  --on-gate: var(--on-inverse);
+}
+@supports (color: oklch(from red l c h)) {
+  [data-blocks] [data-gate] {
+    --gate: oklch(from var(--surface-0) min(calc(l * 0.55), 0.2) c h);
+    --on-gate: var(--on-photo);
+  }
+}
+[data-blocks] [data-gate][data-tone="inverse"] {
+  --gate: var(--inverse);
+  --on-gate: var(--on-inverse);
+}
+[data-blocks] [data-gate][data-tone="field"] {
+  --gate: var(--field);
+  --on-gate: var(--on-field);
+}
+/* The preloader is never painted unless its own inline script, which runs in the HTML before the gate is parsed,
+   shows it: so without JS, under reduced motion and on a session revisit it covers nothing. From its first paint
+   the leader runs on CSS alone (the count is one number, --gate-p, everything else is derived from it); the block's
+   script takes the same number over when React hydrates. If the script never arrives the gate still opens at 1.6s
+   and is gone at 2.4s, so a failed bundle can never leave a cover on the page. */
+@property --gate-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+[data-blocks] [data-preloader-gate] {
+  display: none;
+  --gate-b: min(calc(var(--gate-p) * 3), 2.99);
+  animation:
+    struq-gate-count 1.56s linear forwards,
+    struq-gate-gone 0s linear 2.4s forwards;
+}
+/* One beat per figure: --on is 1 during beat --i and 0 outside it, a hard cut as on a film leader. */
+[data-blocks] [data-preloader-gate] [data-beat] {
+  --on: calc(
+    clamp(0, (var(--gate-b) - var(--i) + 0.01) * 1000, 1) * clamp(0, (var(--i) + 1 - var(--gate-b)) * 1000, 1)
+  );
+  opacity: var(--on);
+}
+[data-blocks] [data-preloader-gate] [data-sweep] {
+  stroke-dashoffset: clamp(0, calc(1 - var(--gate-b) + var(--i)), 1);
+}
+[data-blocks] [data-preloader-gate] [data-hand] {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  rotate: calc(var(--gate-b) * 360deg);
+}
+[data-blocks] [data-preloader-gate] [data-bar="top"] {
+  animation: struq-gate-top 0.78s cubic-bezier(0.76, 0, 0.24, 1) 1.6s forwards;
+}
+[data-blocks] [data-preloader-gate] [data-bar="bottom"] {
+  animation: struq-gate-bottom 0.78s cubic-bezier(0.76, 0, 0.24, 1) 1.6s forwards;
+}
+[data-blocks] [data-preloader-gate] :is([data-leader], [data-name]) {
+  animation: struq-gate-leader 0.3s cubic-bezier(0.55, 0, 1, 0.45) 1.42s forwards;
+}
+[data-blocks] [data-preloader-gate] [data-light] {
+  scale: 0 1;
+  animation: struq-gate-light 0.4s cubic-bezier(0.16, 1, 0.3, 1) 1.5s forwards;
+}
+/* Once the block's script drives the gate, the CSS clock stops everywhere in it. */
+[data-blocks] [data-preloader-gate][data-driven],
+[data-blocks] [data-preloader-gate][data-driven] * {
+  animation: none;
+}
+@keyframes struq-gate-count {
+  0% {
+    --gate-p: 0;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  73.7% {
+    --gate-p: 0.86;
+  }
+  83.3% {
+    --gate-p: 0.86;
+    animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+  }
+  100% {
+    --gate-p: 1;
+  }
+}
+@keyframes struq-gate-gone { to { visibility: hidden; } }
+@keyframes struq-gate-top { to { translate: 0 -100%; } }
+@keyframes struq-gate-bottom { to { translate: 0 100%; } }
+@keyframes struq-gate-leader { to { opacity: 0; scale: 0.92; } }
+@keyframes struq-gate-light { to { scale: 1 1; } }
+
+/* --- preloader-stack --- */
+/* The stack is never painted unless its own inline script, which runs while the cover is parsed, armed it: so without
+   JS, under reduced motion and on a session revisit it covers nothing. From its first paint it is alive on CSS alone:
+   the first print shows once it is decoded (data-first), the caption once its own faces are in (data-fonts), both
+   set by tiny scripts parsed inside the cover, and the count runs on one number, --stack-n, shown three digits wide.
+   The block's script takes that number over where it stands when it hydrates (data-live), which also stops this
+   clock and its failsafe. If the script never arrives the cover is gone at 2.3s; everything in it inherits that
+   visibility, so a failed bundle can never leave any of it on the page. */
+@property --stack-n {
+  syntax: "<integer>";
+  inherits: true;
+  initial-value: 0;
+}
+@counter-style struq-stack-count {
+  system: extends decimal;
+  pad: 3 "0";
+}
+[data-blocks] [data-preloader="stack"] {
+  display: none;
+}
+[data-blocks] [data-preloader="stack"][data-armed] {
+  display: block;
+  animation:
+    struq-stack-count 1.7s cubic-bezier(0.33, 1, 0.68, 1) forwards,
+    struq-stack-gone 0s linear 2.3s forwards;
+}
+[data-blocks] [data-preloader="stack"][data-armed][data-first] [data-cut]:first-child {
+  visibility: inherit;
+}
+[data-blocks] [data-preloader="stack"][data-armed]:not([data-fonts]) [data-caption] {
+  visibility: hidden;
+}
+[data-blocks] [data-preloader="stack"] [data-count] {
+  counter-reset: struq-stack-n var(--stack-n);
+}
+[data-blocks] [data-preloader="stack"] [data-count]::after {
+  content: counter(struq-stack-n, struq-stack-count);
+}
+[data-blocks] [data-preloader="stack"][data-live] {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-blocks] [data-preloader="stack"] {
+    display: none !important;
+  }
+}
+@keyframes struq-stack-count { from { --stack-n: 0; } to { --stack-n: 90; } }
+@keyframes struq-stack-gone { to { visibility: hidden; } }
+
+/* --- grid-assembly --- */
+/* The scatter is the first paint on wide screens with motion, and only once the page runs scripts: each tile is
+   moved from its cell to its place in the pile by its own custom properties, and the block's script then drives
+   one number per tile (--p into the cell; the push out of the way is written inline, in whole pixels). If the
+   script never arrives, the tiles drop into the grid after 3s. Phones open each tile from its foot; without
+   scripts nothing is hidden. */
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-grid-assembly] [data-tile] {
+    transform: translate3d(calc((1 - var(--p, 0)) * var(--sx, 0px)), calc((1 - var(--p, 0)) * var(--sy, 0px)), 0)
+      rotate(calc((1 - var(--p, 0)) * var(--sr, 0deg)))
+      scale(calc(1 - (1 - var(--p, 0)) * var(--sd, 0)));
+  }
+  :is(.js, .sq-js) [data-blocks] [data-grid-assembly] [data-ga-line] {
+    transform: translate3d(0, calc((1 - var(--p, 0)) * 112%), 0);
+  }
+  :is(.js, .sq-js) [data-blocks] [data-grid-assembly]:not([data-motion]) [data-tile] {
+    animation: struq-ga-rest 0s 3s forwards;
+  }
+}
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-grid-assembly]:not([data-shown]) [data-tile] {
+    clip-path: inset(100% 0 0 0);
+    animation: struq-open 0s 3s forwards;
+  }
+}
+@keyframes struq-ga-rest { to { --p: 1; } }
+
+/* --- panel-accordion --- */
+/* The panels arrive from their bottom edge, so with motion and scripts they wait below it from the first paint; the
+   block's script takes over (data-motion) and draws every window itself. If the script never arrives they open after
+   3s. Without scripts or under reduced motion nothing is hidden. */
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-panel-accordion]:not([data-motion]) [data-panel] {
+    clip-path: inset(100% 0 0 0);
+    animation: struq-open 0s 3s forwards;
+  }
+}
+
+/* --- hero-poster --- */
+/* With scripts and motion the poster's first paint is the moment before its entrance: the lines wait below their
+   masks and the window is a hairline. The block's script takes over (data-live) and plays the entrance; if it never
+   arrives everything opens after 3s. Without scripts or under reduced motion the composed poster shows at once. */
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-hero-poster]:not([data-live]) [data-hp-line] {
+    translate: 0 112%;
+    animation: struq-hp-rise 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-hero-poster]:not([data-live]) [data-hp-slot] {
+    clip-path: inset(50% 0 50% 0);
+    animation: struq-open 0s 3s forwards;
+  }
+}
+@keyframes struq-hp-rise { to { translate: 0 0; } }
+
+/* --- hero-poster variants --- */
+/* column: the slit's place as shares of the screen (its left edge, its right margin) and the band of the foot line
+   below it; the script writes the band in pixels once it has measured the foot. The slit's box is what a stack
+   preloader lands on; the cut layer inside it is the whole screen at the screen's origin, clipped to the slit, and
+   holds the photo, its light veil and the copy of the type. With scripts and motion the slit waits closed at the top
+   edge and draws down with the entrance, or after 3s. The stack needs nothing here: its windows use the gate above. */
+[data-blocks] [data-hero-poster][data-hp-variant="column"] {
+  --hp-cl: 0.6;
+  --hp-cr: 0.24;
+  --hp-cb: calc(5svh + 1.4rem);
+}
+@media (max-width: 767px) {
+  [data-blocks] [data-hero-poster][data-hp-variant="column"] {
+    --hp-cl: 0.56;
+    --hp-cr: 0.18;
+    --hp-cb: 6.5rem;
+  }
+}
+[data-blocks] [data-hero-poster] [data-hp-cutslot] {
+  position: absolute;
+  top: 0;
+  left: calc(var(--hp-cl) * 100%);
+  right: calc(var(--hp-cr) * 100%);
+  bottom: var(--hp-cb);
+  z-index: 10;
+}
+[data-blocks] [data-hero-poster] [data-hp-cut] {
+  position: absolute;
+  top: 0;
+  left: calc(-100% * var(--hp-cl) / (1 - var(--hp-cl) - var(--hp-cr)));
+  width: calc(100% / (1 - var(--hp-cl) - var(--hp-cr)));
+  height: calc(100% + var(--hp-cb));
+  clip-path: inset(0 calc(var(--hp-cr) * 100%) var(--hp-cb) calc(var(--hp-cl) * 100%));
+}
+[data-blocks] [data-hero-poster] [data-hp-veil] {
+  background: var(--inverse);
+  background: oklch(from var(--surface-0) min(l, 0.2) c h);
+  opacity: 0.4;
+}
+[data-blocks] [data-hero-poster] [data-hp-veil][data-tone="light"] {
+  background: var(--on-photo);
+}
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-hero-poster]:not([data-live]) [data-hp-cut] {
+    clip-path: inset(0 calc(var(--hp-cr) * 100%) 100% calc(var(--hp-cl) * 100%));
+    animation: struq-hp-cut 0s 3s forwards;
+  }
+}
+@keyframes struq-hp-cut { to { clip-path: inset(0 calc(var(--hp-cr) * 100%) var(--hp-cb) calc(var(--hp-cl) * 100%)); } }
+
+/* --- hero-still --- */
+/* The veil over the photograph is the page ground held dark (its own hue, never black); the block's script tunes its
+   strength to what the photo needs (3:1 for the display-size headline, never past 0.45; the caption sits on the
+   ground in the ink), and the safe strength here stays when the photo cannot be read or scripts never run: the cap
+   on the left, a lighter one when the headline is set on a calm right side. The photograph is laid out six percent larger than its box and shown scaled
+   back to fit, so at rest it is exactly an object-cover of the box; the push-in is set up from the first paint, paused
+   (so the layer is rastered at its final scale before anything is seen), and runs once the entrance has played. With
+   motion and scripts the headline and the caption wait below their masks from the first paint (the composed still is
+   the photo and its veil) and arrive after 3s if the script never runs; without scripts nothing waits. */
+[data-blocks] [data-hero-still] [data-veil] {
+  background: var(--inverse);
+  background: oklch(from var(--surface-0) min(l, 0.2) c h);
+  opacity: 0.45;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-blocks] [data-hero-still][data-side="right"] [data-veil] {
+  opacity: 0.36;
+}
+[data-blocks] [data-hero-still] [data-push] {
+  transform: scale(0.9434);
+  will-change: transform;
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-blocks] [data-hero-still] [data-push] {
+    animation: struq-hs-push 20s cubic-bezier(0.45, 0, 0.55, 1) 1.2s forwards paused;
+  }
+  [data-blocks] [data-hero-still][data-pushing] [data-push] {
+    animation-play-state: running;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-hero-still]:not([data-ready]) [data-rise] {
+    transform: translateY(115%);
+    animation: struq-hs-rise 0s 3s forwards;
+  }
+}
+@keyframes struq-hs-push { to { transform: scale(1); } }
+@keyframes struq-hs-rise { to { transform: none; } }
+
+/* --- hero-still variants --- */
+/* frame: the photograph inside margins of page ground; the frame's box is what a stack preloader lands on, and the
+   photo inside it is the whole still at the still's origin (placed here from the viewport units, measured by the
+   script), so the frame shows its part of the still and opening it is a clip. Phones keep the photo's own crop in a
+   smaller frame above the headline. horizon: a veil band that a dark ink turns pale, and the lower half of the
+   headline waiting above its masks (it drops to the horizon as the upper half rises to it). */
+[data-blocks] [data-hero-still] [data-hs-slot] {
+  position: absolute;
+  top: 4svh;
+  left: 1.5rem;
+  right: 1.5rem;
+  bottom: 42%;
+  overflow: hidden;
+}
+[data-blocks] [data-hero-still] [data-hs-photo] {
+  position: absolute;
+  inset: 0;
+}
+@media (min-width: 768px) {
+  [data-blocks] [data-hero-still] [data-hs-slot] {
+    top: 7svh;
+    left: 42vw;
+    right: 4vw;
+    bottom: 3svh;
+  }
+  [data-blocks] [data-hero-still] [data-hs-photo] {
+    inset: auto;
+    left: -42vw;
+    top: -7svh;
+    width: 100vw;
+    height: calc(100% + 10svh);
+  }
+  [data-blocks] [data-hero-still][data-live] [data-hs-slot] {
+    overflow: visible;
+  }
+}
+[data-blocks] [data-hero-still] [data-veil][data-tone="light"] {
+  background: var(--on-photo);
+}
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-hero-still]:not([data-ready]) [data-below] [data-rise] {
+    transform: translateY(-115%);
+  }
+}
+
+/* --- hero-index --- */
+/* Each photograph layer carries its own light veil: the page ground held dark (its own hue, never black), tuned by
+   the block's script per photograph (none under the dark ink, at most a quarter under the light ink); the safe
+   strength here stays when a photograph cannot be read. One ink for the whole list, chosen per photograph and
+   switched once the incoming photograph has passed the list; each place line takes its own ink, or stands at the
+   foot of the list in the list's ink when neither holds (no box, no scrim, no glow). With scripts on a fine pointer only the
+   current project's place shows (at rest, the first one's). With motion and scripts the names wait below their masks
+   from the first paint and arrive after 3s if the script never runs; without scripts nothing waits. */
+/* Without scripts nothing can read the photo, so the light ink stands over a veil strong enough for any of them; with
+   scripts the veil starts clear and the script writes each photograph's own value before the names rise. */
+[data-blocks] [data-hero-index] [data-veil] {
+  background: var(--inverse);
+  background: oklch(from var(--surface-0) min(l, 0.2) c h);
+  opacity: 0.45;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+:is(.js, .sq-js) [data-blocks] [data-hero-index] [data-veil] {
+  opacity: 0;
+}
+[data-blocks] [data-hero-index] [data-list] {
+  color: var(--on-photo);
+}
+[data-blocks] [data-hero-index][data-tone="dark"] [data-list] {
+  color: var(--inverse);
+  color: oklch(from var(--surface-0) min(l, 0.2) c h);
+}
+[data-blocks] [data-hero-index] [data-meta] {
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-blocks] [data-hero-index] [data-row][data-place-ink="light"] [data-meta] {
+  color: var(--on-photo);
+}
+[data-blocks] [data-hero-index] [data-row][data-place-ink="dark"] [data-meta] {
+  color: var(--inverse);
+  color: oklch(from var(--surface-0) min(l, 0.2) c h);
+}
+/* A place line that cannot hold its own ink stays out of the row; the script sets it at the foot of the list, in
+   the list's ink, while its row is shown. Each place line stands on its own line under its name. */
+[data-blocks] [data-hero-index] [data-row][data-place-ink="foot"] [data-meta] {
+  visibility: hidden;
+}
+[data-blocks] [data-hero-index] [data-foot]:not([data-on]) {
+  visibility: hidden;
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  [data-blocks] [data-hero-index][data-ready] [data-meta] {
+    opacity: 0;
+  }
+  [data-blocks] [data-hero-index][data-ready] [data-row][data-current] [data-meta],
+  [data-blocks] [data-hero-index][data-ready] [data-list]:not([data-active]) li:first-child [data-meta] {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-hero-index]:not([data-ready]) [data-rise] {
+    transform: translateY(115%);
+    animation: struq-hi-rise 0s 3s forwards;
+  }
+}
+@keyframes struq-hi-rise { to { transform: none; } }
+
+/* --- hero-split --- */
+/* With motion and scripts the type waits below its masks from the first paint (the composed still is the photograph
+   and the ground) and arrives with the entrance; if the script never runs it arrives after 3s, and the block's script
+   reads this clock to leave type it has already shown in place. Only the first word and the first photograph show
+   without scripts; the others wait below their mask and behind their clip. Each photograph carries a light veil
+   (never past 0.3), of the ground held dark under the photo ink or of the ground under the ground's ink, whichever
+   the script finds weaker for that photo; the safe one here stays when a photo cannot be read or scripts never run,
+   and a re-grade eases. Phones carry no veil: the headline is not on the photo there. */
+[data-blocks] [data-hero-split] [data-veil] {
+  background: var(--inverse);
+  background: oklch(from var(--surface-0) min(l, 0.2) c h);
+  opacity: 0.3;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (max-width: 767px) {
+  [data-blocks] [data-hero-split] [data-veil] {
+    opacity: 0 !important;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-hero-split]:not([data-ready]) [data-rise] {
+    transform: translateY(115%);
+    animation: struq-hsp-rise 0s 3s forwards;
+  }
+}
+@keyframes struq-hsp-rise { to { transform: none; } }
+
+/* --- hero-framed --- */
+/* With scripts and motion the wall's first paint is the moment before its entrance: the marks undrawn, the
+   photograph a hairline in its frame, the label below its masks. The block's script takes over (data-live); if it
+   never arrives the wall is whole after 3s. The copy that stands on the open photograph waits below its masks for the
+   scroll. Without scripts or under reduced motion the composed wall shows at once. */
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-hero-framed]:not([data-live]) [data-hf-rise] {
+    translate: 0 140%;
+    animation: struq-hf-rise 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-hero-framed]:not([data-live]) [data-hf-mark] > [data-arm="h"] {
+    transform: scaleX(0);
+    animation: struq-hf-arm 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-hero-framed]:not([data-live]) [data-hf-mark] > [data-arm="v"] {
+    transform: scaleY(0);
+    animation: struq-hf-arm 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-hero-framed]:not([data-live]) [data-hf-frame] > div:first-child {
+    clip-path: inset(50% 0 50% 0);
+    animation: struq-open 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-hero-framed]:not([data-live]) [data-hf-copy-rise] {
+    translate: 0 140%;
+  }
+}
+@keyframes struq-hf-rise { to { translate: 0 0; } }
+@keyframes struq-hf-arm { to { transform: none; } }
+
+/* --- heroes: light display weights --- */
+/* Roy, 2026-11-07: "make sure we use light font weights, we sometimes use quite thick font weights in the hero
+   section". A hero's display type never goes heavier than 300, whatever the pairing asks for (display-drama asks
+   700, condensed-poster 800). A face without a 300 falls to its lightest loaded weight. A new hero adds its root
+   attribute here. */
+[data-blocks] :is([data-hero-still], [data-hero-poster], [data-hero-index], [data-hero-split], [data-hero-framed], [data-bg-aurora], [data-bg-silk], [data-bg-facets], [data-showpiece="hero-opener"]) :is(h1, h2, h3, .font-display) {
+  font-weight: min(var(--display-weight, 300), 300);
+}
+
+/* --- background-aurora --- */
+/* The field's canvas stays hidden until the block has drawn its first frame (data-lit), then fades in while the
+   light dawns; without scripts it never shows and the hero stands on the plain ground. With scripts and motion the
+   type waits below its masks and is released after 3s if the script never runs. */
+[data-blocks] [data-bg-aurora] [data-field] {
+  opacity: 0;
+}
+[data-blocks] [data-bg-aurora][data-lit] [data-field] {
+  opacity: 1;
+}
+/* With reduced motion the held still simply appears. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-blocks] [data-bg-aurora] [data-field] {
+    transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-bg-aurora]:not([data-ready]) [data-rise] {
+    transform: translateY(115%);
+    animation: struq-bga-rise 0s 3s forwards;
+  }
+}
+@keyframes struq-bga-rise { to { transform: none; } }
+
+/* --- background-facets --- */
+/* The surface's canvas waits invisible until its first frame (the flat ground) is drawn, then fades in
+   (data-drawn); without scripts or WebGL the hero is the plain ground with its type. The copy stands on the calm side
+   of each variant: left for shard, bottom left for relief, bottom right for turn, and at the bottom on phones. With
+   motion and scripts the lines wait below their masks from the first paint and arrive after 3s if the script never
+   runs; without scripts nothing waits. */
+[data-blocks] [data-bg-facets] [data-bf-canvas] {
+  display: block;
+  opacity: 0;
+  transition: opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-blocks] [data-bg-facets][data-drawn] [data-bf-canvas] {
+  opacity: 1;
+}
+[data-blocks] [data-bg-facets] [data-copy] {
+  left: 24px;
+  right: 24px;
+  bottom: 9svh;
+}
+[data-blocks] [data-bg-facets] h1 {
+  font-size: clamp(2.75rem, 12.5vw, 4.25rem);
+}
+@media (min-width: 768px) {
+  [data-blocks] [data-bg-facets] [data-copy] {
+    left: 6vw;
+    right: auto;
+    width: min(46vw, 44rem);
+  }
+  [data-blocks] [data-bg-facets][data-variant="shard"] [data-copy] {
+    bottom: 15svh;
+  }
+  [data-blocks] [data-bg-facets][data-variant="turn"] [data-copy] {
+    left: 58vw;
+    width: 36vw;
+    bottom: 11svh;
+  }
+  [data-blocks] [data-bg-facets] h1 {
+    font-size: clamp(3.5rem, 6.6vw, 8rem);
+  }
+  [data-blocks] [data-bg-facets][data-variant="turn"] h1 {
+    font-size: clamp(3.25rem, 5.4vw, 6.5rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-blocks] [data-bg-facets] [data-bf-canvas] {
+    transition: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-bg-facets]:not([data-ready]) [data-rise] {
+    transform: translateY(115%);
+    animation: struq-bf-rise 0s 3s forwards;
+  }
+}
+@keyframes struq-bf-rise { to { transform: none; } }
+
+/* --- background-silk --- */
+/* The cloth's canvas is made by the script, so without scripts or WebGL the hero is the plain ground with its type.
+   The canvas waits invisible until its first frame is drawn, then fades in (data-live). With motion and scripts the
+   type waits below its masks from the first paint and arrives after 3s if the script never runs; without scripts
+   nothing waits. */
+[data-blocks] [data-bg-silk] [data-field] > canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-blocks] [data-bg-silk][data-live] [data-field] > canvas {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-blocks] [data-bg-silk] [data-field] > canvas {
+    transition: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-bg-silk]:not([data-ready]) [data-rise] {
+    transform: translateY(115%);
+    animation: struq-silk-rise 0s 3s forwards;
+  }
+}
+@keyframes struq-silk-rise { to { transform: none; } }
+
+/* --- reveals --- */
+/* The card variant's top edge: a hairline and a short soft shadow, both from the ground held dark (its own hue, never
+   black); browsers without relative colour keep the hairline. The shade above the card is the dark that falls over the
+   section it covers; it starts clear and the block's scroll writes its strength. With motion and scripts every start
+   state waits from the first paint (the statement unseen until it is cut into lines, the paragraph and the link and
+   the card's content clear, the photograph's clip shut) and arrives after 3s if the script never runs; without scripts
+   nothing waits. */
+[data-blocks] [data-reveals="card"] {
+  box-shadow: 0 -1px 0 var(--line);
+  box-shadow: 0 -1px 0 var(--line), 0 -22px 44px -22px oklch(from var(--surface-0) calc(l * 0.3) c h / 0.3);
+}
+[data-blocks] [data-reveals] [data-rv-shade] {
+  background: var(--inverse);
+  background: oklch(from var(--surface-0) calc(l * 0.3) c h);
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-reveals]:not([data-ready]) [data-rv-type] {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-reveals]:not([data-ready]) :is([data-rv-soft], [data-rv-settle]) {
+    opacity: 0;
+    animation: struq-fade 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-reveals="lines"]:not([data-ready]) [data-rv-frame] {
+    clip-path: inset(100% 0% 0% 0%);
+    animation: struq-open 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-reveals="clip"]:not([data-ready]) [data-rv-frame] {
+    clip-path: inset(49.6% 7% 49.6% 7%);
+    animation: struq-open 0s 3s forwards;
+  }
+}
+
+/* --- preloader-wordmark --- */
+/* The cover is never painted unless its own inline script, which runs while the cover is parsed, armed it: so without
+   JS and on a session revisit it covers nothing. The name stays unseen until a second inline script has loaded its
+   face and fitted it to the width (data-fit), so it is never drawn in a fallback. From the first paint the fill runs
+   on one number, --wm-p, on a CSS clock; the block's script takes the number over where it stands (data-live), which
+   stops this clock and its failsafe. If the script never arrives, the cover fades from 1.95s and is hidden at 2.3s,
+   and everything in it inherits that, so a failed bundle never leaves it over the hero. Reduced motion: the name is
+   filled from the start and the cover fades sooner. */
+@property --wm-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+[data-blocks] [data-preloader="wordmark"] {
+  display: none;
+}
+/* Nothing in the cover transitions: the fit measures in the same frame it sets a size, and a site-wide reduced-motion
+   rule that gives every element a tiny transition would otherwise hand it the old size. */
+[data-blocks] :is([data-preloader="wordmark"], [data-preloader="wordmark"] *) {
+  transition-property: none;
+}
+[data-blocks] [data-preloader="wordmark"][data-armed] {
+  display: block;
+  animation:
+    struq-wm-fill 1.5s linear forwards,
+    struq-wm-fade 0.35s cubic-bezier(0.33, 1, 0.68, 1) 1.95s forwards,
+    struq-wm-gone 0s linear 2.3s forwards;
+}
+[data-blocks] [data-preloader="wordmark"][data-armed]:not([data-fit]) [data-name] {
+  visibility: hidden;
+}
+[data-blocks] [data-preloader="wordmark"][data-live] {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-blocks] [data-preloader="wordmark"][data-armed] {
+    --wm-p: 1;
+    animation:
+      struq-wm-fade 0.3s ease-out 1.1s forwards,
+      struq-wm-gone 0s linear 1.4s forwards;
+  }
+  [data-blocks] [data-preloader="wordmark"][data-live] {
+    animation: none;
+  }
+}
+/* The name and the header's wordmark it settles into share one face, weight and tracking, so the hand-over is exact:
+   the display face at a light weight (300, or the pairing's own if lighter), no kerning or ligatures, since the
+   preloader sets each letter in a cell of its own. */
+[data-blocks] :is([data-preloader="wordmark"] [data-name], [data-wordmark-target]) {
+  font-family: var(--font-display);
+  font-weight: min(var(--display-weight, 300), 300);
+  letter-spacing: -0.03em;
+  font-kerning: none;
+  font-variant-ligatures: none;
+}
+[data-blocks] [data-preloader="wordmark"] [data-name] {
+  display: flex;
+  flex: none;
+  white-space: nowrap;
+  font-size: var(--wm-size, 22vw);
+  line-height: 1;
+  /* The last letter's tracking is taken back, so the box holds its whole glyph and centres it. */
+  padding-inline-end: 0.03em;
+  color: var(--wm-ink, var(--ink));
+}
+/* Letters sit above every column of the cover, so a glyph's overhang is never cut by a neighbour's column. */
+[data-blocks] [data-preloader="wordmark"] [data-fitbox] {
+  z-index: 1;
+}
+[data-blocks] [data-preloader="wordmark"] [data-l] {
+  display: grid;
+  /* Each letter fills a little after the one before: the whole name spans 1.6 of --wm-p. */
+  --f: clamp(0, var(--wm-p) * 1.6 - var(--wm-lag, 0) * var(--i, 0), 1);
+}
+/* Both copies of a letter in one cell, trimmed to the cap height and the baseline where the browser can, so the name
+   centres on its cap band. Where it cannot (Firefox), the cell is the whole line box and the script's measures say
+   where the ink and the cap band sit in it instead. */
+[data-blocks] [data-preloader="wordmark"] [data-l] > * {
+  grid-area: 1 / 1;
+}
+@supports (text-box: trim-both cap alphabetic) {
+  [data-blocks] [data-preloader="wordmark"] [data-l] > * {
+    text-box: trim-both cap alphabetic;
+  }
+}
+[data-blocks] [data-preloader="wordmark"] [data-faint] {
+  color: color-mix(in oklch, var(--wm-ink, var(--ink)) 15%, transparent);
+}
+/* The ink rises over the letter's own measured ink, from its lowest point (--wm-b, in the cell) to its highest
+   (--wm-a), with 0.02em of air at each end: shut at --f 0, the whole glyph at --f 1 and not before, so the last letter
+   completes as the fill does. */
+[data-blocks] [data-preloader="wordmark"] [data-ink] {
+  clip-path: inset(
+    calc(var(--wm-b) + 0.02em + (var(--wm-a) - var(--wm-b) - 0.04em) * var(--f)) -0.12em calc(100% - var(--wm-b) - 0.02em) -0.12em
+  );
+}
+@keyframes struq-wm-fill {
+  0% {
+    --wm-p: 0;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  80% {
+    --wm-p: 0.85;
+    animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+  }
+  100% {
+    --wm-p: 1;
+  }
+}
+@keyframes struq-wm-fade { to { opacity: 0; } }
+@keyframes struq-wm-gone { to { visibility: hidden; } }
+
+/* --- menu-curtain --- */
+/* The menu's ground is the gate's deep one (a step darker than the page in every palette, so the menu reads as the
+   room the page is shown in); the slices take their own, as in page-transition-slices. Browsers without relative
+   colour take the inverse. The bar's height is shared with the page, which keeps its hero type below it. */
+[data-blocks] [data-menu-curtain] {
+  --menu-bar-h: 4rem;
+  --menu: var(--inverse);
+  --on-menu: var(--on-inverse);
+  --on-menu-muted: color-mix(in oklch, var(--on-menu) 70%, var(--menu));
+}
+@media (min-width: 768px) {
+  [data-blocks] [data-menu-curtain] {
+    --menu-bar-h: 4.5rem;
+  }
+}
+@supports (color: oklch(from red l c h)) {
+  [data-blocks] [data-menu-curtain] {
+    --menu: oklch(from var(--surface-0) min(calc(l * 0.55), 0.2) c h);
+    --on-menu: var(--on-photo);
+  }
+  [data-blocks] [data-menu-curtain][data-variant="slices"] {
+    --menu: oklch(from var(--surface-0) min(l + 0.07, 0.27) c h);
+  }
+}
+/* Large type in the first screen stays light, as in the heroes. */
+[data-blocks] [data-menu-curtain] .font-display {
+  font-weight: min(var(--display-weight, 300), 300);
+}
+[data-blocks] [data-menu-curtain] [data-menu-panel] :focus-visible {
+  outline-color: var(--on-menu);
+}
+/* The hovered or focused link stands; the others step back. */
+[data-blocks] [data-menu-curtain] [data-menu-link] {
+  transition:
+    opacity 0.3s var(--ease-out-expo),
+    transform 0.45s var(--ease-out-expo);
+}
+[data-blocks] [data-menu-curtain] [data-menu-list]:is(:hover, :focus-within) [data-menu-link]:not([data-on]) {
+  opacity: 0.42;
+}
+[data-blocks] [data-menu-curtain] [data-menu-list]:is(:hover, :focus-within) [data-menu-link][data-on] {
+  transform: translateX(0.06em);
+}
+/* The button works only with the script. Without it the bar shows its links in a row; with it but before it runs, the
+   button shows for 3 seconds and then gives way to the row if the script never arrived. */
+[data-blocks] [data-menu-curtain] [data-menu-toggle] {
+  visibility: hidden;
+}
+.sq-js [data-blocks] [data-menu-curtain]:not([data-ready]) [data-menu-toggle] {
+  visibility: inherit;
+  animation: struq-mc-gone 0s 3s forwards;
+}
+.sq-js [data-blocks] [data-menu-curtain]:not([data-ready]) [data-menu-fallback] {
+  visibility: hidden;
+  animation: struq-show 0s 3s forwards;
+}
+[data-blocks] [data-menu-curtain][data-ready] [data-menu-toggle] {
+  visibility: inherit;
+}
+[data-blocks] [data-menu-curtain][data-ready] [data-menu-fallback] {
+  visibility: hidden;
+}
+@keyframes struq-mc-gone { to { visibility: hidden; } }
+
+/* --- footer-reveal --- */
+/* The last section sits above the footer in one wrapper; the footer goes sticky beneath it only once the script is
+   live (it sets data-live, and only with motion allowed), so without scripts and under reduced motion the footer simply
+   follows the page and nothing waits. --fr-bottom is 0 for a footer that fits the screen and the screen height minus
+   the footer's for a taller one, which then sticks by its top. The wrapper clips sideways only (clip, not hidden, so
+   the sticky footer still sticks) for the fold's tilt. The edge is a transparent strip in the sheet's foot whose
+   hairline and short shadow fall on the footer, from the ground held dark; the shade is the dark the fold lifts off
+   the footer. The footer's name never goes heavier than 300. */
+[data-blocks] [data-footer-reveal] {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+  background-color: var(--surface-0);
+}
+[data-blocks] [data-footer-reveal] > [data-fr-sheet] {
+  position: relative;
+  z-index: 1;
+  background-color: var(--surface-0);
+}
+[data-blocks] [data-footer-reveal] > [data-fr-foot] {
+  position: relative;
+  z-index: 0;
+}
+[data-blocks] [data-footer-reveal][data-live] > [data-fr-foot] {
+  position: sticky;
+  bottom: var(--fr-bottom, 0px);
+}
+[data-blocks] [data-footer-reveal] [data-fr-edge] {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 3rem;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: 0 1px 0 var(--line);
+  box-shadow: 0 1px 0 var(--line), 0 26px 44px -20px oklch(from var(--surface-1) calc(l * 0.3) c h / 0.32);
+}
+[data-blocks] [data-footer-reveal] [data-fr-shade] {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+}
+/* Only where relative colour works: a fallback colour would brighten a dark footer instead of shading it. */
+@supports (color: oklch(from red l c h)) {
+  [data-blocks] [data-footer-reveal] [data-fr-shade] {
+    background: oklch(from var(--surface-1) calc(l * 0.3) c h);
+  }
+}
+[data-blocks] [data-footer-reveal] [data-fr-name] {
+  font-weight: min(var(--display-weight, 300), 300);
+}
+
+/* --- cta-closing --- */
+/* The line and the link stay light, whatever the pairing asks, as in the heroes. The line's size is fitted by the
+   block's script to its column with the real face (--cc-size); until then, and without scripts, a clamp that wraps. */
+[data-blocks] [data-cta-closing] .font-display {
+  font-weight: min(var(--display-weight, 300), 300);
+}
+[data-blocks] [data-cta-closing] [data-cc-head] {
+  font-size: var(--cc-size, clamp(2.75rem, 1rem + 6vw, 8.5rem));
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+}
+[data-blocks] [data-cta-closing][data-fit] [data-cc-text] {
+  white-space: nowrap;
+}
+/* photo: the ink and the veil come in two pairs (light ink over the ground held dark, dark ink over the photo's own
+   light), chosen and graded by the block's script from the photograph; the safe pair stays when it cannot be read.
+   Browsers without relative colour take the inverse for the dark. */
+[data-blocks] [data-cta-closing="photo"] {
+  --cc-dark: var(--inverse);
+  --cc-light: var(--on-photo);
+}
+@supports (color: oklch(from red l c h)) {
+  [data-blocks] [data-cta-closing="photo"] {
+    --cc-dark: oklch(from var(--surface-0) min(l, 0.2) c h);
+  }
+}
+[data-blocks] [data-cta-closing="photo"] [data-cc-veil] {
+  background: var(--cc-dark);
+  opacity: 0.4;
+}
+[data-blocks] [data-cta-closing="photo"] [data-cc-ink] {
+  color: var(--cc-light);
+}
+[data-blocks] [data-cta-closing="photo"][data-ink="dark"] [data-cc-veil] {
+  background: var(--cc-light);
+}
+[data-blocks] [data-cta-closing="photo"][data-ink="dark"] [data-cc-ink] {
+  color: var(--cc-dark);
+}
+[data-blocks] [data-cta-closing="photo"] [data-cc-link]:focus-visible {
+  outline-color: currentColor;
+}
+@media (min-width: 768px) {
+  [data-blocks] [data-cta-closing="photo"][data-side="right"] [data-cc-copy] {
+    margin-left: auto;
+  }
+}
+/* The copy stands at the bottom, or at the top when the read of the photograph finds the top calmer. */
+[data-blocks] [data-cta-closing="photo"][data-v="top"] [data-cc-stage] {
+  justify-content: flex-start;
+}
+/* marquee: the band is a backdrop, not a second voice: the muted ink drawn far toward the ground (about 1.7:1; it is
+   decoration and hidden from screen readers), so the link in the full ink reads in front of it without any halo. */
+[data-blocks] [data-cta-closing="marquee"] [data-cc-band] {
+  color: var(--ink-muted);
+  color: color-mix(in oklch, var(--ink-muted) 34%, var(--surface-0));
+}
+/* pointer: the project frame is shut until the pointer or the focus opens it. */
+[data-blocks] [data-cta-closing="pointer"] [data-cc-float] {
+  clip-path: inset(0 0 100% 0);
+}
+/* Every photograph waits unseen until it is decoded, and shows after 3 s whatever happens. */
+[data-blocks] [data-cta-closing] [data-cc-pic] {
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+:is(.js, .sq-js) [data-blocks] [data-cta-closing] [data-cc-pic]:not([data-shown]) {
+  opacity: 0;
+  animation: struq-fade 0s 3s forwards;
+}
+/* The photo variant's copy waits for the first read of the photograph (it sets the side and the ink). */
+:is(.js, .sq-js) [data-blocks] [data-cta-closing="photo"]:not([data-graded]) [data-cc-copy] {
+  opacity: 0;
+  animation: struq-fade 0s 3s forwards;
+}
+/* With motion and scripts every start state waits from the first paint (the lines and the band unseen, the link clear,
+   the photograph's clip shut) and arrives after 3 s if the script never runs; without scripts nothing waits. */
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-cta-closing]:not([data-ready]) [data-cc-rise] {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-cta-closing]:not([data-ready]) [data-cc-soft] {
+    opacity: 0;
+    animation: struq-fade 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-cta-closing="photo"]:not([data-ready]) [data-cc-frame] {
+    clip-path: inset(50% 50% 50% 50%);
+    animation: struq-open 0s 3s forwards;
+  }
+}
+
+/* --- footer-contact --- */
+/* Display type stays light (300, or the pairing's own if lighter); the column headings are in the body face. The mail
+   address rolls per character: each one sits in its own mask with a copy below it, and hover or keyboard focus lifts
+   the pair by one line, each after its own delay (--d, written by the script from the pointer's side). Plain links
+   draw an underline from the side in --fc-o. With scripts the time and the open marker are unseen until the time is
+   known; without them they are left out and the clock's slot shows the opening hours (a noscript line), never a
+   made-up time. The fitted address and clock are unseen until measured with their face, and show after 3s if the
+   script never runs. With motion and scripts every entrance start state waits from the first paint, with the same 3s
+   way out. */
+/* The footer clips what hangs below it: the waiting copies of the rolling characters would otherwise lengthen the
+   page by a line. */
+[data-blocks] [data-footer-contact] {
+  overflow: clip;
+}
+[data-blocks] [data-footer-contact] :is(h2, .font-display) {
+  font-weight: min(var(--display-weight, 300), 300);
+}
+[data-blocks] [data-footer-contact] h3 {
+  font-family: inherit;
+  font-weight: inherit;
+}
+[data-blocks] [data-footer-contact] a {
+  color: inherit;
+  text-decoration: none;
+}
+[data-blocks] [data-footer-contact] [data-fc-rule] {
+  transform-origin: left center;
+}
+[data-blocks] [data-footer-contact="address"] [data-fc-address] {
+  display: block;
+  width: max-content;
+  max-width: none;
+  font-size: min(7vw, 30svh);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+@media (max-width: 639px) {
+  [data-blocks] [data-footer-contact="address"] [data-fc-address]:not([data-lines]) {
+    font-size: 10.5vw;
+  }
+  [data-blocks] [data-footer-contact="address"] [data-fc-address]:not([data-lines]) [data-fc-part] {
+    display: block;
+    width: max-content;
+  }
+}
+[data-blocks] [data-footer-contact="address"] [data-fc-address][data-lines="2"] [data-fc-part] {
+  display: block;
+  width: max-content;
+}
+[data-blocks] [data-footer-contact] :is([data-fc-address], [data-fc-clock]) {
+  font-kerning: none;
+  font-variant-ligatures: none;
+}
+[data-blocks] [data-footer-contact] [data-fc-part] {
+  display: inline-block;
+  white-space: nowrap;
+  clip-path: inset(0 -0.3em);
+}
+[data-blocks] [data-footer-contact] [data-fc-ch] {
+  display: inline-block;
+  position: relative;
+  white-space: pre;
+  clip-path: inset(0 -0.2em);
+}
+[data-blocks] [data-footer-contact] [data-fc-enter] {
+  display: block;
+}
+[data-blocks] [data-footer-contact] [data-fc-roll] {
+  display: block;
+  position: relative;
+  transition: transform 0.75s var(--ease-out-expo) var(--d, 0s);
+}
+[data-blocks] [data-footer-contact] [data-fc-roll] > span {
+  display: block;
+}
+[data-blocks] [data-footer-contact] [data-fc-roll] > [data-fc-copy] {
+  position: absolute;
+  left: 0;
+  top: 100%;
+}
+[data-blocks] [data-footer-contact] [data-fc-roll-host]:is(:hover, :focus-visible) [data-fc-roll] {
+  transform: translateY(-100%);
+}
+[data-blocks] [data-footer-contact] [data-fc-draw]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.08em;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: var(--fc-o, left) center;
+  transition: transform 0.55s var(--ease-out-expo);
+}
+[data-blocks] [data-footer-contact] [data-fc-draw]:is(:hover, :focus-visible)::after {
+  transform: scaleX(1);
+}
+[data-blocks] [data-footer-contact] [data-fc-dot] {
+  display: inline-block;
+  flex: none;
+  width: 0.5em;
+  height: 0.5em;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+[data-blocks] [data-footer-contact] [data-fc-dot][data-open] {
+  background: currentColor;
+}
+[data-blocks] [data-footer-contact] :is([data-fc-fade], [data-fc-dot], [data-fc-clock]) {
+  transition: opacity 0.45s cubic-bezier(0.33, 1, 0.68, 1);
+}
+.sq-js [data-blocks] [data-footer-contact] [data-pending] {
+  opacity: 0;
+}
+html:not(.sq-js) [data-blocks] [data-footer-contact] [data-pending] {
+  display: none;
+}
+/* The clock: hours and minutes each in a mask that clips sideways (they slide out from the colon), every digit in a
+   mask that clips up and down (a changed digit rolls over), the colon breathing once a second. */
+[data-blocks] [data-footer-contact="clock"] [data-fc-clock] {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  font-size: min(24vw, 40svh);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+[data-blocks] [data-footer-contact] :is([data-fc-hmask], [data-fc-mmask]) {
+  display: inline-block;
+  clip-path: inset(-0.3em 0);
+}
+[data-blocks] [data-footer-contact] [data-fc-colon-wrap] {
+  display: inline-block;
+  padding-inline: 0.04em;
+}
+[data-blocks] [data-footer-contact] [data-fc-colon] {
+  display: inline-block;
+  transform: translateY(-0.06em);
+  animation: struq-fc-breathe 1s ease-in-out infinite;
+}
+/* Every digit stands in a slot as wide as the face's widest (--fc-dw, measured by the script), centred, so a narrow
+   1 never shifts the colon on the minute; many display faces keep proportional figures whatever tabular-nums asks. */
+[data-blocks] [data-footer-contact] [data-fc-digit] {
+  display: inline-block;
+  position: relative;
+  width: var(--fc-dw, auto);
+  text-align: center;
+  clip-path: inset(0 -0.12em);
+}
+[data-blocks] [data-footer-contact] [data-fc-out] {
+  position: absolute;
+  inset: 0;
+  animation: struq-fc-out 0.8s var(--ease-out-expo) forwards;
+}
+[data-blocks] [data-footer-contact] [data-fc-in] {
+  animation: struq-fc-in 0.8s var(--ease-out-expo) both;
+}
+@keyframes struq-fc-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.22;
+  }
+}
+@keyframes struq-fc-out { to { transform: translateY(-100%); } }
+@keyframes struq-fc-in { from { transform: translateY(100%); } }
+@keyframes struq-fc-rule { to { transform: none; } }
+.sq-js [data-blocks] [data-footer-contact]:not([data-fit]) :is([data-fc-address], [data-fc-clock]) {
+  visibility: hidden;
+  animation: struq-show 0s 3s forwards;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sq-js [data-blocks] [data-footer-contact]:not([data-ready]) :is([data-fc-enter], [data-fc-split], [data-fc-h], [data-fc-m], [data-fc-colon-wrap]) {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+  .sq-js [data-blocks] [data-footer-contact]:not([data-ready]) [data-fc-soft] {
+    opacity: 0;
+    animation: struq-fade 0s 3s forwards;
+  }
+  .sq-js [data-blocks] [data-footer-contact]:not([data-ready]) [data-fc-rule] {
+    transform: scaleX(0);
+    animation: struq-fc-rule 0s 3s forwards;
+  }
+}
+/* Reduced motion: no roll and no draw, the hover shows as a cut (the address steps back to the muted ink, a link's
+   underline is simply there); the colon holds and a changed digit cuts. */
+@media (prefers-reduced-motion: reduce) {
+  [data-blocks] [data-footer-contact] [data-fc-roll],
+  [data-blocks] [data-footer-contact] [data-fc-draw]::after {
+    transition: none;
+  }
+  [data-blocks] [data-footer-contact] [data-fc-roll-host]:is(:hover, :focus-visible) [data-fc-roll] {
+    transform: none;
+  }
+  [data-blocks] [data-footer-contact] [data-fc-roll-host]:is(:hover, :focus-visible) {
+    color: var(--ink-muted);
+  }
+  [data-blocks] [data-footer-contact] [data-fc-colon],
+  [data-blocks] [data-footer-contact] [data-fc-in] {
+    animation: none;
+  }
+  [data-blocks] [data-footer-contact] [data-fc-out] {
+    display: none;
+  }
+}
+
+/* --- manifesto --- */
+/* The statement is display type at a light weight, whatever the pairing asks. The quote's veil is the page ground held
+   dark (its own hue, never black), and the frame under the photograph is that same dark, so the light quote reads
+   before the photo is decoded; the block's script tunes the veil's strength to the photo (never past 0.45) and this
+   safe strength stays when the photo cannot be read. The caret is unseen until the script writes it. With motion and
+   scripts every start state waits from the first paint (the statement unseen until it is cut into lines and every
+   clip or mask is set, the signature clear, the photograph clear until decoded) and arrives after 3s if the script
+   never runs; without scripts nothing waits. */
+[data-blocks] [data-manifesto] .font-display {
+  font-weight: min(var(--display-weight, 300), 300);
+}
+[data-blocks] [data-manifesto] :is([data-mf-frame], [data-mf-veil]) {
+  background: var(--inverse);
+  background: oklch(from var(--surface-0) min(l, 0.2) c h);
+}
+[data-blocks] [data-manifesto] [data-mf-veil] {
+  opacity: 0.4;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-blocks] [data-manifesto] [data-mf-caret] {
+  opacity: 0;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-manifesto]:not([data-ready]) [data-mf-text] {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-manifesto]:not([data-ready]) [data-mf-soft] {
+    opacity: 0;
+    animation: struq-fade 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-manifesto="quote"]:not([data-ready]) [data-mf-layer] {
+    opacity: 0;
+    animation: struq-fade 0s 3s forwards;
+  }
+  [data-blocks] [data-manifesto="quote"] [data-mf-layer] {
+    will-change: transform;
+  }
+}
+
+/* --- header-bar --- */
+/* The bar's height is shared with the page through the nearest [data-blocks]; the block sets --hb-top there once it has
+   measured (the bar's height, or for settle the bottom of the large wordmark), so a hero keeps its type below it. The
+   copies (one per ink) show only once the script has cut them; until then, and without scripts, the real bar stands in
+   the start tone's ink as the plain bar (settle's set large, below). */
+[data-blocks]:has([data-header-bar]),
+[data-blocks] [data-header-bar] {
+  --hb-h: 4rem;
+}
+[data-blocks]:has([data-header-bar]) {
+  --hb-top: var(--hb-h);
+}
+/* Without scripts the plain bar stays on the hero it was inked for, instead of riding over light sections in light ink. */
+html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
+  position: absolute;
+}
+@media (min-width: 768px) {
+  [data-blocks]:has([data-header-bar]),
+  [data-blocks] [data-header-bar] {
+    --hb-h: 4.5rem;
+  }
+}
+[data-blocks] [data-header-bar] .font-display {
+  font-weight: min(var(--display-weight, 300), 300);
+}
+[data-blocks] [data-header-bar] :is(a, button) {
+  color: inherit;
+  text-decoration: none;
+}
+[data-blocks] [data-header-bar] [data-hb-real] :is(a, button) {
+  pointer-events: auto;
+}
+[data-blocks] [data-header-bar][data-links-off] [data-hb-real] [data-hb-fade] :is(a, button) {
+  pointer-events: none;
+}
+[data-blocks] [data-header-bar]:not([data-ready]) [data-hb-copy] {
+  visibility: hidden;
+}
+[data-blocks] [data-header-bar][data-ready] [data-hb-real] {
+  color: transparent;
+}
+/* settle from the first paint: the wordmark already stands large across the hero, its scale the gutter span over its
+   estimated advance (--hb-adv, set by the block, read against the face on screen as half em and half ch), capped at
+   55svh over its line, at the top the script will use;
+   the links wait for the landing. The script takes over with the measured face and eases out the difference. If the
+   script never runs the plain bar returns after 3s. The wordmark rises out of its mask from 0s, script or not. */
+[data-blocks] [data-header-bar] {
+  --hb-gx: 1.5rem;
+}
+@media (min-width: 768px) {
+  [data-blocks] [data-header-bar] {
+    --hb-gx: 3vw;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sq-js [data-blocks] [data-header-bar="settle"]:not([data-ready]) [data-hb-word] {
+    translate: 0 calc(var(--hb-h) * 0.5 - (var(--hb-h) - 1em) / 2);
+    scale: max(1, min(tan(atan2(100vw - 2 * var(--hb-gx), var(--hb-adv, 3) * (0.5em + 0.76ch))), tan(atan2(55svh, 1em))));
+    animation: hb-plain 0s 3s forwards;
+  }
+  .sq-js [data-blocks] [data-header-bar="settle"]:not([data-ready]) [data-hb-fade] {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+  .sq-js [data-blocks] [data-header-bar="settle"] [data-hb-word] [data-hb-wroll] {
+    animation: hb-rise 1.2s var(--ease-out-expo) both;
+  }
+}
+@keyframes hb-plain {
+  to {
+    translate: none;
+    scale: none;
+  }
+}
+@keyframes hb-rise {
+  from {
+    translate: 0 calc(100% + 0.22em);
+  }
+}
+/* Keyboard focus: drawn on the copies in their own ink (the real links' text is transparent once they show). */
+[data-blocks] [data-header-bar] [data-hb-real] :focus-visible {
+  outline: 1.5px solid currentColor;
+  outline-offset: 6px;
+}
+[data-blocks] [data-header-bar][data-ready] [data-hb-real] :focus-visible {
+  outline: none;
+}
+[data-blocks] [data-header-bar] [data-hb-copy] [data-hb-link][data-focus] {
+  outline: 1.5px solid currentColor;
+  outline-offset: 6px;
+  border-radius: 1px;
+}
+/* Once the page has scrolled the bar takes the ground under it (over a photo the palette's dark over a blur) and quiet
+   its hairline, all scrubbed by --hb-k over the bar's own height of scroll. */
+[data-blocks] [data-header-bar] :is([data-hb-ground], [data-hb-blur]) {
+  opacity: var(--hb-k, 0);
+}
+[data-blocks] [data-header-bar] [data-hb-line] {
+  opacity: calc(var(--hb-k, 0) * 0.2);
+}
+[data-blocks] [data-header-bar] [data-hb-track] {
+  opacity: 0.2;
+}
+/* The wordmark rolls whole (its letters keep their kerning, even set large): the name slides up out of its mask and its
+   copy rises in from below. The mask has room for descenders; the copy waits a little lower than the line. */
+[data-blocks] [data-header-bar] [data-hb-wmask] {
+  overflow: hidden;
+  padding-block: 0.08em 0.14em;
+  margin-block: -0.08em -0.14em;
+}
+[data-blocks] [data-header-bar] [data-hb-wroll] > span:last-child {
+  top: calc(100% + 0.22em);
+}
+[data-blocks] [data-header-bar] [data-hb-wroll] {
+  transition: transform 0.6s var(--ease-out-expo);
+}
+[data-blocks] [data-header-bar] [data-hb-word][data-hot] [data-hb-wroll] {
+  transform: translateY(calc(-100% - 0.22em));
+}
+/* quiet: each letter in its own mask, rolling after the one before it. */
+[data-blocks] [data-header-bar] [data-hb-ch] {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  white-space: pre;
+  padding-block: 0.15em;
+  margin-block: -0.15em;
+}
+[data-blocks] [data-header-bar] [data-hb-ch] > span {
+  display: block;
+  transition: transform 0.55s var(--ease-out-expo) calc(var(--i, 0) * 24ms);
+}
+[data-blocks] [data-header-bar] [data-hb-ch] > span:last-child {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.15em);
+}
+[data-blocks] [data-header-bar] [data-hb-link][data-hot] [data-hb-ch] > span {
+  transform: translateY(calc(-100% - 0.3em));
+}
+/* The action: a text link with a faint rule under it at rest; quiet's rule comes up to the full ink on hover. */
+[data-blocks] [data-header-bar] [data-hb-action]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.2rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.35;
+  transition: opacity 0.3s var(--ease-out-expo);
+}
+[data-blocks] [data-header-bar="quiet"] [data-hb-action][data-hot]::before {
+  opacity: 1;
+}
+/* settle (every link but the wordmark) and split's action: a line draws from the side the pointer came in and
+   retracts toward the side it leaves (--hb-o); settle's other links step back. */
+[data-blocks] [data-header-bar="settle"] [data-hb-link]:not([data-hb-link="w"])::after,
+[data-blocks] [data-header-bar="split"] [data-hb-action]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.2rem;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: var(--hb-o, left) center;
+  transition: transform 0.5s var(--ease-out-expo);
+}
+[data-blocks] [data-header-bar="settle"] [data-hb-link][data-hot]::after,
+[data-blocks] [data-header-bar="split"] [data-hb-action][data-hot]::after {
+  transform: scaleX(1);
+}
+[data-blocks] [data-header-bar="settle"] [data-hb-fade] [data-hb-link] {
+  transition: opacity 0.3s var(--ease-out-expo);
+}
+[data-blocks] [data-header-bar="settle"][data-hot-any] [data-hb-fade] [data-hb-link]:not([data-hot]) {
+  opacity: 0.45;
+}
+/* split: one line glides under the hovered link and takes its width; it appears in place the first time. */
+[data-blocks] [data-header-bar="split"] [data-hb-mark] {
+  bottom: 0.2rem;
+  width: var(--hb-mw, 0px);
+  transform: translate3d(var(--hb-mx, 0px), 0, 0);
+  opacity: 0;
+  transition:
+    transform 0.45s var(--ease-out-expo),
+    width 0.45s var(--ease-out-expo),
+    opacity 0.25s linear;
+}
+[data-blocks] [data-header-bar="split"][data-mark] [data-hb-mark] {
+  opacity: 1;
+}
+[data-blocks] [data-header-bar="split"][data-mark-snap] [data-hb-mark] {
+  transition: opacity 0.25s linear;
+}
+/* The local time: unseen until it is known; without scripts it is left out, never a made-up time. */
+.sq-js [data-blocks] [data-header-bar] [data-hb-time][data-pending] {
+  visibility: hidden;
+}
+html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-time] {
+  display: none;
+}
+/* Reduced motion: nothing rolls or glides; a hover underlines (quiet and the wordmark), draws its line as a cut
+   (settle) or puts the line under the link at once (split); the scrolled ground cuts in with a short fade. */
+@media (prefers-reduced-motion: reduce) {
+  [data-blocks] [data-header-bar] :is([data-hb-ch] > span, [data-hb-wroll], [data-hb-mark]),
+  [data-blocks] [data-header-bar] [data-hb-link]::after {
+    transition: none;
+  }
+  [data-blocks] [data-header-bar] [data-hb-link][data-hot] :is([data-hb-ch] > span, [data-hb-wroll]) {
+    transform: none;
+  }
+  [data-blocks] [data-header-bar="quiet"] [data-hb-link][data-hot] [data-hb-label] {
+    box-shadow: 0 1px 0 currentColor;
+  }
+  [data-blocks] [data-header-bar] [data-hb-word][data-hot] [data-hb-wroll] > span:first-child {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  [data-blocks] [data-header-bar] :is([data-hb-ground], [data-hb-blur], [data-hb-line]) {
+    transition: opacity 0.2s linear;
+  }
+}
+
+/* --- contact-form --- */
+/* Display type stays light, whatever the pairing asks, as in the heroes. */
+[data-blocks] [data-contact-form] .font-display,
+[data-blocks] [data-contact-form] [data-cf-float] :is([data-cf-grow], label) {
+  font-weight: min(var(--display-weight, 300), 300);
+}
+/* The fields carry no box and no browser chrome: the rule under them is the field. */
+[data-blocks] [data-contact-form] :is(input[type="text"], input[type="email"], textarea) {
+  appearance: none;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  outline: none;
+  caret-color: var(--accent);
+  resize: none;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  /* struq.nl's own base layer paints text inputs with these two (as !important, which a layer wins); pointed at the
+     block's ground and ink here, so the field stays a rule. */
+  --color-panel: transparent;
+  --color-primary-text: var(--ink);
+}
+[data-blocks] [data-contact-form] :is(input, textarea)::placeholder {
+  color: color-mix(in oklch, var(--ink-muted) 72%, var(--surface-0));
+  opacity: 1;
+}
+/* Autofill keeps its own ground away from a field that is only a rule. */
+[data-blocks] [data-contact-form] :is(input, textarea):-webkit-autofill {
+  -webkit-text-fill-color: var(--ink);
+  transition: background-color 0s 86400s, color 0s 86400s;
+}
+/* A field that grows with its text: the hidden copy of the value (data-mirror) sizes the cell the field fills, in the
+   same face, so nothing is measured by script. */
+[data-blocks] [data-contact-form] [data-cf-grow] {
+  position: relative;
+  display: inline-grid;
+  max-width: 100%;
+  padding-bottom: 0.14em;
+  vertical-align: baseline;
+}
+[data-blocks] [data-contact-form] [data-cf-grow][data-block] {
+  display: grid;
+  width: 100%;
+}
+[data-blocks] [data-contact-form] [data-cf-grow] > :is(input, textarea) {
+  grid-area: 1 / 1;
+  width: 100%;
+}
+[data-blocks] [data-contact-form] [data-cf-grow]::after {
+  content: attr(data-mirror);
+  grid-area: 1 / 1;
+  padding-right: 0.08em;
+  visibility: hidden;
+  white-space: pre;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* A text area keeps a trailing space in its copy, so a closing new line still takes its height. */
+[data-blocks] [data-contact-form] [data-cf-grow][data-multiline]::after {
+  content: attr(data-mirror) " ";
+}
+[data-blocks] [data-contact-form] [data-cf-grow][data-multiline]::after {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* The rule: a quiet line at rest; on focus the accent draws over it from the left, and draws back the way it came on
+   leaving. An invalid field's rule turns to the full ink. */
+[data-blocks] [data-contact-form] [data-cf-rule] {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: color-mix(in oklch, var(--ink-muted) 55%, transparent);
+  pointer-events: none;
+}
+[data-blocks] [data-contact-form] [data-cf-rule]::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-blocks] [data-contact-form] [data-cf-grow]:focus-within [data-cf-rule]::after {
+  transform: scaleX(1);
+}
+[data-blocks] [data-contact-form] [data-invalid] [data-cf-rule] {
+  height: 2px;
+  background: var(--ink);
+}
+/* Each message has its slot from the start, one line high, so saying it moves nothing. */
+[data-blocks] [data-contact-form] [data-cf-msg] {
+  display: block;
+  min-height: 1.95rem;
+  padding-top: 0.6rem;
+  font-family: var(--face-body), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+/* lines: the label rests inside the field and lifts to a small label above it when the field is focused or filled. */
+[data-blocks] [data-contact-form="lines"] [data-cf-float] {
+  --cf-size: clamp(1.25rem, 1.05rem + 0.7vw, 1.75rem);
+  position: relative;
+  padding-top: calc(var(--cf-size) * 0.9);
+}
+[data-blocks] [data-contact-form="lines"] [data-cf-float] :is([data-cf-grow], label) {
+  font-family: var(--font-display);
+  font-size: var(--cf-size);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+[data-blocks] [data-contact-form="lines"] [data-cf-float] > label {
+  position: absolute;
+  left: 0;
+  top: calc(var(--cf-size) * 0.9);
+  color: var(--ink-muted);
+  white-space: nowrap;
+  transform-origin: 0 0;
+  pointer-events: none;
+  transition:
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-blocks] [data-contact-form="lines"] [data-cf-float]:focus-within > label,
+[data-blocks] [data-contact-form="lines"] [data-cf-float]:has(:is(input, textarea):not(:placeholder-shown)) > label {
+  transform: translateY(calc(var(--cf-size) * -0.9)) scale(0.58);
+  color: var(--ink);
+}
+
+/* sentence: the blanks inline at display size; each message hangs under its blank. Below 768 px the clauses stack,
+   each fragment the label above its own field. */
+[data-blocks] [data-contact-form="sentence"] [data-cf-sentence] {
+  font-size: clamp(2rem, 0.9rem + 3.6vw, 4.25rem);
+  line-height: 1.75;
+  letter-spacing: -0.02em;
+}
+[data-blocks] [data-contact-form="sentence"] [data-cf-blank] {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 1.1;
+  vertical-align: baseline;
+}
+/* The text area's first line sits on the sentence's own line: top-aligned, down by half the difference in leading. */
+[data-blocks] [data-contact-form="sentence"] [data-cf-blank][data-multiline] {
+  vertical-align: top;
+  margin-top: 0.25em;
+}
+@media (min-width: 768px) {
+  [data-blocks] [data-contact-form="sentence"] [data-cf-msg] {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 0.05em);
+    min-height: 0;
+    padding-top: 0.15rem;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 767px) {
+  [data-blocks] [data-contact-form="sentence"] [data-cf-sentence] {
+    font-size: clamp(1.625rem, 1rem + 2.6vw, 2rem);
+    line-height: 1.2;
+  }
+  [data-blocks] [data-contact-form="sentence"] [data-cf-clause] {
+    display: block;
+  }
+  [data-blocks] [data-contact-form="sentence"] [data-cf-clause] + [data-cf-clause] {
+    margin-top: 1rem;
+  }
+  [data-blocks] [data-contact-form="sentence"] [data-cf-clause] > label {
+    display: block;
+    margin-bottom: 0.3em;
+  }
+  [data-blocks] [data-contact-form="sentence"] [data-cf-blank],
+  [data-blocks] [data-contact-form="sentence"] [data-cf-blank][data-multiline] {
+    display: block;
+    margin-top: 0;
+  }
+  [data-blocks] [data-contact-form="sentence"] [data-cf-blank] [data-cf-grow] {
+    display: grid;
+    width: 100%;
+  }
+  [data-blocks] [data-contact-form="sentence"] [data-cf-comma] {
+    display: none;
+  }
+}
+
+/* The choice: real radio inputs as quiet rings; the checked one takes a small dot in the accent. */
+[data-blocks] [data-contact-form] [data-cf-radio] {
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  flex-shrink: 0;
+  width: 0.9em;
+  height: 0.9em;
+  margin: 0;
+  border: 1px solid var(--ink-muted);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.25s ease;
+}
+[data-blocks] [data-contact-form] [data-cf-radio]::before {
+  content: "";
+  width: 0.46em;
+  height: 0.46em;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: scale(0);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-blocks] [data-contact-form] [data-cf-radio]:checked,
+[data-blocks] [data-contact-form] [data-cf-choice]:hover [data-cf-radio] {
+  border-color: var(--ink);
+}
+[data-blocks] [data-contact-form] [data-cf-radio]:checked::before {
+  transform: scale(1);
+}
+
+/* The send link: its arrow nudges on hover and focus, and travels while the message is on its way. */
+[data-blocks] [data-contact-form] [data-cf-arrow] {
+  padding-right: 0.25em;
+  margin-right: -0.25em;
+}
+[data-blocks] [data-contact-form] [data-cf-arrow] svg {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-blocks] [data-contact-form] button:is(:hover, :focus-visible) [data-cf-arrow] svg {
+  transform: translateX(0.22em);
+}
+[data-blocks] [data-contact-form][data-state="sending"] [data-cf-send] {
+  cursor: progress;
+}
+[data-blocks] [data-contact-form][data-state="sending"] [data-cf-send] [data-cf-arrow] svg {
+  animation: cf-travel 1.1s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+/* The arrow leaves on the right and comes back in from the left; the arrow's own overflow clip does the hiding. */
+@keyframes cf-travel {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(110%); }
+  50.01% { transform: translateX(-110%); }
+  100% { transform: translateX(0); }
+}
+/* The link buttons say focus with their own full underline, never the kit's boxed outline. */
+[data-blocks] [data-contact-form] [data-cf-link]:focus-visible {
+  outline: none;
+}
+[data-blocks] [data-contact-form] [data-cf-fields] {
+  transition: opacity 0.3s ease;
+}
+[data-blocks] [data-contact-form][data-state="sending"] [data-cf-fields] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* The form and the thank-you share one cell: the stage keeps the form's height, so the exchange moves nothing. */
+[data-blocks] [data-contact-form] [data-cf-stage] {
+  display: grid;
+}
+[data-blocks] [data-contact-form] [data-cf-stage] > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+[data-blocks] [data-contact-form] [data-cf-form] {
+  transition:
+    opacity 0.35s ease,
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s;
+}
+[data-blocks] [data-contact-form][data-state="sent"] [data-cf-form] {
+  opacity: 0;
+  transform: translateY(-0.75rem);
+  visibility: hidden;
+  transition:
+    opacity 0.35s ease,
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s 0.35s;
+}
+[data-blocks] [data-contact-form] [data-cf-thanks] {
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    visibility 0s 0.3s;
+}
+[data-blocks] [data-contact-form][data-state="sent"] [data-cf-thanks] {
+  visibility: visible;
+  opacity: 1;
+  transition:
+    opacity 0.2s ease 0.2s,
+    visibility 0s 0.2s;
+}
+[data-blocks] [data-contact-form] [data-cf-thanks] [data-cf-rise] {
+  transform: translateY(105%);
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s;
+}
+[data-blocks] [data-contact-form] [data-cf-thanks] [data-cf-soft] {
+  opacity: 0;
+  transform: translateY(0.75rem);
+  transition:
+    opacity 0.6s ease 0.55s,
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.55s;
+}
+[data-blocks] [data-contact-form][data-state="sent"] [data-cf-thanks] :is([data-cf-rise], [data-cf-soft]) {
+  opacity: 1;
+  transform: none;
+}
+
+/* steps: every question shares one cell, so the stage is as tall as the tallest from the first paint. With scripts the
+   first question shows and the rest wait; if the script never runs they stand stacked after 3 s. Without scripts they
+   stand stacked from the start. */
+[data-blocks] [data-contact-form="steps"] [data-cf-fill] {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sq-js [data-blocks] [data-contact-form="steps"] [data-cf-steps],
+[data-blocks] [data-contact-form="steps"][data-ready] [data-cf-steps] {
+  display: grid;
+}
+.sq-js [data-blocks] [data-contact-form="steps"] [data-cf-step],
+[data-blocks] [data-contact-form="steps"][data-ready] [data-cf-step] {
+  grid-area: 1 / 1;
+}
+.sq-js [data-blocks] [data-contact-form="steps"]:not([data-ready]) [data-cf-step]:not(:first-child) {
+  visibility: hidden;
+  animation: cf-unstack 0s 3s forwards;
+}
+@keyframes cf-unstack {
+  to { visibility: visible; grid-area: auto; }
+}
+[data-blocks] [data-contact-form="steps"][data-ready] [data-cf-step] {
+  transition:
+    opacity 0.45s ease 0.1s,
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s;
+}
+[data-blocks] [data-contact-form="steps"][data-ready] [data-cf-step]:not([data-pos="current"]) {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s ease,
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s 0.6s;
+}
+[data-blocks] [data-contact-form="steps"][data-ready] [data-cf-step][data-pos="before"] {
+  transform: translateY(-2.5rem);
+}
+[data-blocks] [data-contact-form="steps"][data-ready] [data-cf-step][data-pos="after"] {
+  transform: translateY(2.5rem);
+}
+[data-blocks] [data-contact-form="steps"] [data-cf-grow] {
+  line-height: 1.15;
+}
+
+/* Reduced motion: the same states as cuts and short fades, nothing travels. */
+@media (prefers-reduced-motion: reduce) {
+  [data-blocks] [data-contact-form] [data-cf-rule]::after {
+    transform: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  [data-blocks] [data-contact-form] [data-cf-grow]:focus-within [data-cf-rule]::after {
+    transform: none;
+    opacity: 1;
+  }
+  [data-blocks] [data-contact-form="lines"] [data-cf-float] > label,
+  [data-blocks] [data-contact-form] [data-cf-radio]::before,
+  [data-blocks] [data-contact-form] [data-cf-arrow] svg,
+  [data-blocks] [data-contact-form="steps"] [data-cf-fill] {
+    transition: none;
+  }
+  [data-blocks] [data-contact-form] button:is(:hover, :focus-visible) [data-cf-arrow] svg {
+    transform: none;
+  }
+  [data-blocks] [data-contact-form][data-state="sending"] [data-cf-send] [data-cf-arrow] svg {
+    animation: none;
+    opacity: 0.45;
+  }
+  [data-blocks] [data-contact-form][data-state="sent"] [data-cf-form],
+  [data-blocks] [data-contact-form] [data-cf-thanks] :is([data-cf-rise], [data-cf-soft]),
+  [data-blocks] [data-contact-form="steps"][data-ready] [data-cf-step][data-pos] {
+    transform: none;
+  }
+  [data-blocks] [data-contact-form] [data-cf-thanks] :is([data-cf-rise], [data-cf-soft]) {
+    transition: none;
+  }
+  [data-blocks] [data-contact-form="steps"][data-ready] [data-cf-step] {
+    transition:
+      opacity 0.15s ease,
+      visibility 0s;
+  }
+  [data-blocks] [data-contact-form="steps"][data-ready] [data-cf-step]:not([data-pos="current"]) {
+    transition:
+      opacity 0.15s ease,
+      visibility 0s 0.15s;
+  }
+}
+
+/* --- hero-index variants --- */
+/* venster: the names stand on the page ground in the ink, their place lines in the muted ink; the photograph in its
+   window carries no veil, since no name stands on it. */
+[data-blocks] [data-hero-index][data-variant="venster"] [data-veil] {
+  display: none;
+}
+[data-blocks] [data-hero-index][data-variant="venster"] :is([data-list], [data-foot]) {
+  color: var(--ink);
+}
+[data-blocks] [data-hero-index][data-variant="venster"] [data-meta] {
+  color: var(--ink-muted);
+}
+
+/* --- hero-split variants --- */
+/* opening: on wide screens with motion and scripts, from the first paint until the script writes the window, the
+   photograph waits as a strip at the outer edge (16% of the screen out of its 58%, the photo behind it at the cell's
+   full width) and the headline's copies are clipped to that seam. Without scripts it is the split; if the script
+   never runs the strip stays, a whole composition with nothing hidden. */
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-hero-split][data-variant="opening"]:not([data-ready]) [data-photo-box] {
+    width: 27.5862%;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-hero-split][data-variant="opening"]:not([data-ready]) [data-drift] {
+    width: 362.5%;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-hero-split][data-variant="opening"][data-photo="right"]:not([data-ready]) [data-copy="ground"] {
+    clip-path: inset(0 16% 0 0) !important;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-hero-split][data-variant="opening"][data-photo="right"]:not([data-ready]) [data-copy="photo"] {
+    clip-path: inset(0 0 0 84%) !important;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-hero-split][data-variant="opening"][data-photo="left"]:not([data-ready]) [data-copy="ground"] {
+    clip-path: inset(0 0 0 16%) !important;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-hero-split][data-variant="opening"][data-photo="left"]:not([data-ready]) [data-copy="photo"] {
+    clip-path: inset(0 84% 0 0) !important;
+  }
+}
+
+/* --- about-studio --- */
+/* Display type at a light weight, whatever the pairing asks. Each fact's rule is drawn by the script through
+   --as-draw (0 to 1, plain numbers); without it the rule stands whole. doorkijk's window width is shared by the frame
+   and the grid track it sits in. With motion and scripts the statement waits unseen until it is cut into lines, the
+   copy and the photographs wait clear (a photograph until it is decoded), and all of it arrives after 3s if the script
+   never runs. */
+[data-blocks] [data-about-studio] .font-display {
+  font-weight: min(var(--display-weight, 300), 300);
+}
+[data-blocks] [data-about-studio] [data-as-rule]::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: var(--line);
+  clip-path: inset(0 calc((1 - var(--as-draw, 1)) * 100%) 0 0);
+}
+[data-blocks] [data-about-studio="doorkijk"] {
+  --dk-w: min(62vw, 34svh);
+}
+@media (min-width: 768px) {
+  [data-blocks] [data-about-studio="doorkijk"] {
+    --dk-w: min(34vw, 54svh);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-blocks] [data-about-studio] :is([data-as-layer], [data-as-col="1"]) {
+    will-change: transform;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-about-studio]:not([data-ready]) [data-as-head] {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-about-studio]:not([data-ready]) :is([data-as-soft], [data-as-photo]) {
+    opacity: 0;
+    animation: struq-fade 0s 3s forwards;
+  }
+}
+
+/* --- approach --- */
+/* Display type at a light weight. Once the script runs (data-stacked) the notes of zin and schuif share one cell, so
+   only the current one stands; without it they read as a plain list. schuif's later photographs wait shut, so without
+   scripts the first one stands alone. With motion and scripts the titles and names wait unseen until they are cut into
+   lines, draad's line, ticks and copy wait clear, zin's notes and schuif's photographs wait unseen, and all of it
+   arrives after 3s if the script never runs. */
+[data-blocks] [data-approach] .font-display {
+  font-weight: min(var(--display-weight, 300), 300);
+}
+[data-blocks] [data-approach][data-stacked] [data-ap-notes] > * {
+  grid-area: 1 / 1;
+}
+[data-blocks] [data-approach="schuif"] [data-ap-layer] + [data-ap-layer] {
+  clip-path: inset(0 0 0 100%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-blocks] [data-approach="schuif"] [data-ap-handle] {
+    will-change: transform;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-approach]:not([data-ready]) :is([data-ap-title], [data-ap-head]) {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-approach="draad"]:not([data-ready]) :is([data-ap-soft], [data-ap-ink], [data-ap-tick]) {
+    opacity: 0;
+    animation: struq-fade 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-approach="zin"]:not([data-ready]) [data-ap-notes] {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-approach="schuif"]:not([data-ready]) [data-ap-layer] {
+    opacity: 0;
+    animation: struq-fade 0s 3s forwards;
+  }
+}

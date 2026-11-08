@@ -1,0 +1,627 @@
+{
+  "source": {
+    "repo": "Struq lib/canon",
+    "ref": "staging",
+    "commit": "3680053"
+  },
+  "palettes": [
+    {
+      "id": "graphite-ivory",
+      "mood": "editorial premium",
+      "colors": {
+        "background": "#F3F0E8",
+        "surface": "#E8E1D5",
+        "text": "#272826",
+        "accent": "#995029",
+        "accentAlt": "#2B4A56"
+      }
+    },
+    {
+      "id": "midnight-brass",
+      "mood": "executive authority",
+      "colors": {
+        "background": "#101218",
+        "surface": "#191C24",
+        "text": "#F7F3EA",
+        "accent": "#C69B5D",
+        "accentAlt": "#8E9AA8"
+      }
+    },
+    {
+      "id": "stone-forest",
+      "mood": "quiet confidence",
+      "colors": {
+        "background": "#EEF0EA",
+        "surface": "#D8DDD3",
+        "text": "#162017",
+        "accent": "#2B5C45",
+        "accentAlt": "#7B6A58"
+      }
+    },
+    {
+      "id": "terracotta-sand",
+      "mood": "warm earthy premium",
+      "colors": {
+        "background": "#F9F6F0",
+        "surface": "#EFE9DF",
+        "text": "#402218",
+        "accent": "#A74E2C",
+        "accentAlt": "#5C6B62"
+      }
+    },
+    {
+      "id": "ocean-breeze",
+      "mood": "clean professional depth",
+      "autoPick": false,
+      "colors": {
+        "background": "#EDF2F4",
+        "surface": "#D9E2EC",
+        "text": "#0D2740",
+        "accent": "#0A6C74",
+        "accentAlt": "#486581"
+      }
+    },
+    {
+      "id": "frontier-aperture-technical-dark",
+      "mood": "high-velocity technical dark",
+      "colors": {
+        "background": "oklch(0.16 0.012 248)",
+        "surface": "oklch(0.205 0.014 248)",
+        "text": "oklch(0.96 0.004 248)",
+        "accent": "oklch(0.87 0.21 128)",
+        "accentAlt": "oklch(0.30 0.018 248)"
+      }
+    },
+    {
+      "id": "frontier-ferro-forge-dark",
+      "mood": "cinematic forge dark",
+      "colors": {
+        "background": "oklch(0.15 0.012 55)",
+        "surface": "oklch(0.19 0.014 55)",
+        "text": "oklch(0.95 0.008 75)",
+        "accent": "oklch(0.67 0.19 45)",
+        "accentAlt": "oklch(0.29 0.018 55)"
+      }
+    },
+    {
+      "id": "frontier-field-cream-madder",
+      "mood": "restrained editorial paper",
+      "colors": {
+        "background": "oklch(0.965 0.012 85)",
+        "surface": "oklch(0.94 0.014 85)",
+        "text": "oklch(0.25 0.02 60)",
+        "accent": "oklch(0.49 0.13 30)",
+        "accentAlt": "oklch(0.86 0.02 85)"
+      }
+    },
+    {
+      "id": "frontier-halo-saturated-blush",
+      "mood": "bold kinetic beauty",
+      "colors": {
+        "background": "oklch(0.965 0.018 38)",
+        "surface": "oklch(0.99 0.01 38)",
+        "text": "oklch(0.24 0.04 20)",
+        "accent": "oklch(0.565 0.21 22)",
+        "accentAlt": "oklch(0.22 0.04 18)"
+      }
+    },
+    {
+      "id": "frontier-hollow-acid-tide",
+      "mood": "atmospheric near-black",
+      "autoPick": false,
+      "colors": {
+        "background": "oklch(0.13 0.012 230)",
+        "surface": "oklch(0.17 0.014 230)",
+        "text": "oklch(0.93 0.01 210)",
+        "accent": "oklch(0.82 0.16 195)",
+        "accentAlt": "oklch(0.28 0.018 230)"
+      }
+    },
+    {
+      "id": "frontier-kinetic-lime-cobalt",
+      "mood": "aggressive athletic duotone",
+      "colors": {
+        "background": "oklch(0.18 0.005 250)",
+        "surface": "oklch(0.22 0.006 250)",
+        "text": "oklch(0.96 0.008 95)",
+        "accent": "oklch(0.86 0.22 130)",
+        "accentAlt": "oklch(0.55 0.20 260)"
+      }
+    },
+    {
+      "id": "frontier-lumen-firelit-flour",
+      "mood": "warm firelit editorial",
+      "colors": {
+        "background": "oklch(0.972 0.012 75)",
+        "surface": "oklch(0.995 0.006 75)",
+        "text": "oklch(0.24 0.02 55)",
+        "accent": "oklch(0.555 0.15 48)",
+        "accentAlt": "oklch(0.19 0.02 45)"
+      }
+    },
+    {
+      "id": "frontier-marrow-bone-blood-orange",
+      "mood": "studio theatrical warm bone",
+      "colors": {
+        "background": "oklch(0.955 0.01 85)",
+        "surface": "oklch(0.975 0.008 85)",
+        "text": "oklch(0.17 0.008 85)",
+        "accent": "oklch(0.555 0.19 35)",
+        "accentAlt": "oklch(0.16 0.01 85)"
+      }
+    },
+    {
+      "id": "frontier-meridian-signal-graphite",
+      "mood": "cool operational clarity",
+      "colors": {
+        "background": "oklch(0.965 0.005 250)",
+        "surface": "oklch(0.995 0.001 250)",
+        "text": "oklch(0.22 0.015 255)",
+        "accent": "oklch(0.525 0.138 152)",
+        "accentAlt": "oklch(0.2 0.015 255)"
+      }
+    },
+    {
+      "id": "frontier-mizu-greige-bronze",
+      "mood": "slow ceramic restraint",
+      "colors": {
+        "background": "oklch(0.945 0.006 80)",
+        "surface": "oklch(0.92 0.008 80)",
+        "text": "oklch(0.27 0.012 80)",
+        "accent": "oklch(0.51 0.07 70)",
+        "accentAlt": "oklch(0.85 0.012 80)"
+      }
+    },
+    {
+      "id": "frontier-numen-paper-cobalt",
+      "mood": "confident portfolio editorial",
+      "autoPick": false,
+      "colors": {
+        "background": "oklch(0.949 0.012 92)",
+        "surface": "oklch(0.986 0.006 92)",
+        "text": "oklch(0.205 0.014 70)",
+        "accent": "oklch(0.50 0.20 250)",
+        "accentAlt": "oklch(0.64 0.17 250)"
+      }
+    },
+    {
+      "id": "frontier-objet-gallery-brass",
+      "mood": "dark editorial commerce",
+      "colors": {
+        "background": "oklch(0.19 0.008 62)",
+        "surface": "oklch(0.235 0.009 62)",
+        "text": "oklch(0.93 0.012 82)",
+        "accent": "oklch(0.74 0.11 74)",
+        "accentAlt": "oklch(0.34 0.011 62)"
+      }
+    },
+    {
+      "id": "frontier-olea-flour-terracotta",
+      "mood": "wood-fire neighborhood warmth",
+      "colors": {
+        "background": "oklch(0.96 0.014 75)",
+        "surface": "oklch(0.985 0.01 80)",
+        "text": "oklch(0.28 0.03 55)",
+        "accent": "oklch(0.55 0.16 40)",
+        "accentAlt": "oklch(0.27 0.03 50)"
+      }
+    },
+    {
+      "id": "frontier-otterbrook-river-amber",
+      "mood": "deep charity data story",
+      "colors": {
+        "background": "oklch(0.23 0.045 195)",
+        "surface": "oklch(0.28 0.05 193)",
+        "text": "oklch(0.95 0.018 90)",
+        "accent": "oklch(0.78 0.14 75)",
+        "accentAlt": "oklch(0.41 0.05 189)"
+      }
+    },
+    {
+      "id": "frontier-relay-brutalist-blue",
+      "mood": "brutalist conference energy",
+      "autoPick": false,
+      "colors": {
+        "background": "oklch(0.96 0.005 110)",
+        "surface": "oklch(1 0 0)",
+        "text": "oklch(0.2 0.012 110)",
+        "accent": "oklch(0.47 0.25 262)",
+        "accentAlt": "oklch(0.22 0.01 110)"
+      }
+    },
+    {
+      "id": "frontier-seve-bone-oxblood",
+      "mood": "restrained fashion editorial",
+      "colors": {
+        "background": "oklch(0.965 0.008 70)",
+        "surface": "oklch(0.995 0.004 70)",
+        "text": "oklch(0.18 0.012 40)",
+        "accent": "oklch(0.45 0.16 28)",
+        "accentAlt": "oklch(0.16 0.012 40)"
+      }
+    },
+    {
+      "id": "frontier-solene-coastal-coral",
+      "mood": "sunlit coastal hospitality",
+      "autoPick": false,
+      "colors": {
+        "background": "oklch(0.96 0.012 190)",
+        "surface": "oklch(0.99 0.006 190)",
+        "text": "oklch(0.28 0.045 200)",
+        "accent": "oklch(0.70 0.16 25)",
+        "accentAlt": "oklch(0.30 0.05 195)"
+      }
+    },
+    {
+      "id": "frontier-stillwater-oat-sage",
+      "mood": "large-radius calming care",
+      "colors": {
+        "background": "oklch(0.96 0.014 110)",
+        "surface": "oklch(0.99 0.008 110)",
+        "text": "oklch(0.32 0.03 150)",
+        "accent": "oklch(0.545 0.1 50)",
+        "accentAlt": "oklch(0.3 0.03 150)"
+      }
+    },
+    {
+      "id": "frontier-substrate-industrial-ice",
+      "mood": "industrial material dark",
+      "autoPick": false,
+      "colors": {
+        "background": "oklch(0.17 0.009 64)",
+        "surface": "oklch(0.215 0.011 64)",
+        "text": "oklch(0.95 0.005 72)",
+        "accent": "oklch(0.78 0.12 235)",
+        "accentAlt": "oklch(0.31 0.015 64)"
+      }
+    },
+    {
+      "id": "frontier-tessellate-mint-graphite",
+      "mood": "technical turquoise dark",
+      "autoPick": false,
+      "colors": {
+        "background": "oklch(0.16 0.012 190)",
+        "surface": "oklch(0.21 0.016 190)",
+        "text": "oklch(0.97 0.01 185)",
+        "accent": "oklch(0.82 0.15 178)",
+        "accentAlt": "oklch(0.31 0.022 190)"
+      }
+    },
+    {
+      "id": "frontier-thuispost-oat-petrol",
+      "mood": "warm human care",
+      "colors": {
+        "background": "oklch(0.975 0.012 75)",
+        "surface": "oklch(0.955 0.016 72)",
+        "text": "oklch(0.29 0.028 60)",
+        "accent": "oklch(0.55 0.15 32)",
+        "accentAlt": "oklch(0.78 0.13 60)"
+      }
+    },
+    {
+      "id": "frontier-velar-graphite-scarlet",
+      "mood": "mechanical performance dark",
+      "colors": {
+        "background": "oklch(0.16 0.005 40)",
+        "surface": "oklch(0.205 0.006 40)",
+        "text": "oklch(0.96 0.004 60)",
+        "accent": "oklch(0.63 0.225 25)",
+        "accentAlt": "oklch(0.305 0.008 40)"
+      }
+    },
+    {
+      "id": "frontier-velden-linen-forest",
+      "mood": "credentialed editorial care",
+      "colors": {
+        "background": "oklch(0.967 0.012 95)",
+        "surface": "oklch(0.985 0.008 95)",
+        "text": "oklch(0.30 0.025 150)",
+        "accent": "oklch(0.55 0.12 45)",
+        "accentAlt": "oklch(0.27 0.03 152)"
+      }
+    },
+    {
+      "id": "frontier-voss-limestone-blueprint",
+      "mood": "structural architectural restraint",
+      "autoPick": false,
+      "colors": {
+        "background": "oklch(0.955 0.003 250)",
+        "surface": "oklch(0.99 0.002 250)",
+        "text": "oklch(0.23 0.008 255)",
+        "accent": "oklch(0.53 0.13 245)",
+        "accentAlt": "oklch(0.21 0.012 255)"
+      }
+    },
+    {
+      "id": "field-deep-red",
+      "mood": "cinematic deep red field",
+      "colors": {
+        "background": "oklch(0.955 0.012 80)",
+        "surface": "oklch(0.925 0.016 78)",
+        "text": "oklch(0.17 0.012 30)",
+        "accent": "oklch(0.5 0.2 27)",
+        "accentAlt": "oklch(0.32 0.11 25)"
+      },
+      "roles": {
+        "field": "oklch(0.44 0.18 27)",
+        "fieldInk": "oklch(0.955 0.012 80)",
+        "inverse": "oklch(0.17 0.012 30)",
+        "inverseInk": "oklch(0.955 0.012 80)"
+      }
+    },
+    {
+      "id": "field-ink-green",
+      "mood": "ink green field, botanical and literary",
+      "colors": {
+        "background": "oklch(0.96 0.012 100)",
+        "surface": "oklch(0.93 0.016 105)",
+        "text": "oklch(0.22 0.03 160)",
+        "accent": "oklch(0.42 0.08 160)",
+        "accentAlt": "oklch(0.68 0.12 80)"
+      },
+      "roles": {
+        "field": "oklch(0.3 0.055 162)",
+        "fieldInk": "oklch(0.95 0.015 95)",
+        "inverse": "oklch(0.22 0.03 160)",
+        "inverseInk": "oklch(0.96 0.012 100)"
+      }
+    },
+    {
+      "id": "field-ultramarine",
+      "mood": "deliberate ultramarine field for water and maritime themes",
+      "autoPick": false,
+      "colors": {
+        "background": "oklch(0.965 0.008 85)",
+        "surface": "oklch(0.935 0.012 85)",
+        "text": "oklch(0.2 0.03 260)",
+        "accent": "oklch(0.42 0.2 264)",
+        "accentAlt": "oklch(0.78 0.12 80)"
+      },
+      "roles": {
+        "field": "oklch(0.38 0.19 264)",
+        "fieldInk": "oklch(0.965 0.008 85)",
+        "inverse": "oklch(0.2 0.03 260)",
+        "inverseInk": "oklch(0.965 0.008 85)"
+      }
+    },
+    {
+      "id": "field-saturated-ochre",
+      "mood": "saturated ochre field, warm and graphic",
+      "colors": {
+        "background": "oklch(0.965 0.014 85)",
+        "surface": "oklch(0.935 0.02 82)",
+        "text": "oklch(0.2 0.02 60)",
+        "accent": "oklch(0.525 0.11 75)",
+        "accentAlt": "oklch(0.3 0.05 40)"
+      },
+      "roles": {
+        "field": "oklch(0.76 0.15 78)",
+        "fieldInk": "oklch(0.2 0.02 60)",
+        "inverse": "oklch(0.2 0.02 60)",
+        "inverseInk": "oklch(0.965 0.014 85)"
+      }
+    }
+  ],
+  "pairings": [
+    {
+      "id": "editorial-sans-precision",
+      "name": "Editorial Sans Precision",
+      "mood": "quiet architectural",
+      "notes": "Quiet architectural sans display with readable neutral body copy and a restrained editorial accent.",
+      "display": "\"Sora\", ui-sans-serif, system-ui, sans-serif",
+      "body": "\"Public Sans\", ui-sans-serif, system-ui, sans-serif",
+      "accentItalic": "\"Newsreader\", Georgia, serif",
+      "displayScale": {
+        "size": "clamp(3rem, 12vw, 16rem)",
+        "weight": 300,
+        "leading": 0.95,
+        "tracking": "-0.03em"
+      }
+    },
+    {
+      "id": "grotesk-workhorse",
+      "name": "Grotesk Workhorse",
+      "mood": "clean product",
+      "notes": "A characterful grotesk display over a dependable sans body, versatile for product and SaaS surfaces.",
+      "display": "\"Schibsted Grotesk\", ui-sans-serif, system-ui, sans-serif",
+      "body": "\"Hanken Grotesk\", ui-sans-serif, system-ui, sans-serif",
+      "accentItalic": "\"Instrument Serif\", Georgia, serif",
+      "displayScale": {
+        "size": "clamp(3rem, 12vw, 16rem)",
+        "weight": 400,
+        "leading": 0.92,
+        "tracking": "-0.03em"
+      }
+    },
+    {
+      "id": "serif-editorial",
+      "name": "Serif Editorial",
+      "mood": "luxury restraint",
+      "notes": "Light serif display over a soft geometric sans body: premium, quiet, fashion-led interfaces.",
+      "display": "\"Fraunces\", Georgia, serif",
+      "body": "\"Urbanist\", ui-sans-serif, system-ui, sans-serif",
+      "accentItalic": "\"Fraunces\", Georgia, serif",
+      "displayScale": {
+        "size": "clamp(3rem, 12vw, 17rem)",
+        "weight": 300,
+        "leading": 0.92,
+        "tracking": "-0.02em"
+      }
+    },
+    {
+      "id": "display-drama",
+      "name": "Display Drama",
+      "mood": "expressive campaign",
+      "notes": "Larger jumps and tighter display leading for expressive landing and campaign pages.",
+      "display": "\"Syne\", ui-sans-serif, system-ui, sans-serif",
+      "body": "\"Hanken Grotesk\", ui-sans-serif, system-ui, sans-serif",
+      "accentItalic": "\"Instrument Serif\", Georgia, serif",
+      "displayScale": {
+        "size": "clamp(3rem, 12vw, 16rem)",
+        "weight": 700,
+        "leading": 0.9,
+        "tracking": "-0.02em"
+      },
+      "autoPick": false
+    },
+    {
+      "id": "newsreader-classic",
+      "name": "Newsreader Classic",
+      "mood": "editorial warmth",
+      "notes": "A warm reading serif paired with a clean sans, for long-form and editorial directions.",
+      "display": "\"Newsreader\", Georgia, serif",
+      "body": "\"Public Sans\", ui-sans-serif, system-ui, sans-serif",
+      "accentItalic": "\"Newsreader\", Georgia, serif",
+      "displayScale": {
+        "size": "clamp(3rem, 11vw, 15rem)",
+        "weight": 300,
+        "leading": 0.95,
+        "tracking": "-0.02em"
+      }
+    },
+    {
+      "id": "geometric-modern",
+      "name": "Geometric Modern",
+      "mood": "confident modern",
+      "notes": "A soft geometric display over an even, humanist body: confident, contemporary product brands.",
+      "display": "\"Urbanist\", ui-sans-serif, system-ui, sans-serif",
+      "body": "\"Figtree\", ui-sans-serif, system-ui, sans-serif",
+      "accentItalic": "\"Instrument Serif\", Georgia, serif",
+      "displayScale": {
+        "size": "clamp(3.5rem, 14vw, 20rem)",
+        "weight": 300,
+        "leading": 0.92,
+        "tracking": "-0.035em"
+      }
+    },
+    {
+      "id": "condensed-poster",
+      "name": "Condensed Poster",
+      "mood": "loud poster campaign",
+      "notes": "A heavy condensed grotesk for display lines at 12 to 20vw over a plain humanist body: the poster scale of a film or campaign site.",
+      "display": "\"Big Shoulders Display\", ui-sans-serif, system-ui, sans-serif",
+      "body": "\"Figtree\", ui-sans-serif, system-ui, sans-serif",
+      "accentItalic": "\"Instrument Serif\", Georgia, serif",
+      "displayScale": {
+        "size": "clamp(4rem, 16vw, 22rem)",
+        "weight": 800,
+        "leading": 0.82,
+        "tracking": "-0.01em"
+      }
+    },
+    {
+      "id": "fashion-contrast",
+      "name": "Fashion Contrast",
+      "mood": "high-contrast fashion editorial",
+      "notes": "A high-contrast display serif with hairline strokes and a true italic, over a soft geometric sans: fashion, beauty and editorial luxury.",
+      "display": "\"Bodoni Moda\", Georgia, serif",
+      "body": "\"Urbanist\", ui-sans-serif, system-ui, sans-serif",
+      "accentItalic": "\"Bodoni Moda\", Georgia, serif",
+      "displayScale": {
+        "size": "clamp(3.5rem, 13vw, 18rem)",
+        "weight": 400,
+        "leading": 0.9,
+        "tracking": "-0.02em"
+      }
+    },
+    {
+      "id": "wide-agency",
+      "name": "Wide Agency",
+      "mood": "wide confident agency",
+      "notes": "A wide geometric grotesk that fills the line at display size, over a neutral reading sans: creative agencies and brand studios.",
+      "display": "\"Unbounded\", ui-sans-serif, system-ui, sans-serif",
+      "body": "\"Public Sans\", ui-sans-serif, system-ui, sans-serif",
+      "accentItalic": "\"Instrument Serif\", Georgia, serif",
+      "displayScale": {
+        "size": "clamp(2.75rem, 11vw, 14rem)",
+        "weight": 400,
+        "leading": 0.95,
+        "tracking": "-0.03em"
+      }
+    },
+    {
+      "id": "italic-accent",
+      "name": "Italic Accent",
+      "mood": "soft geometric with a serif italic",
+      "notes": "Light Urbanist display with one word set in a true serif italic, over Hanken Grotesk: the soft geometric against refined serif contrast.",
+      "display": "\"Urbanist\", ui-sans-serif, system-ui, sans-serif",
+      "body": "\"Hanken Grotesk\", ui-sans-serif, system-ui, sans-serif",
+      "accentItalic": "\"Instrument Serif\", Georgia, serif",
+      "displayScale": {
+        "size": "clamp(3.5rem, 14vw, 20rem)",
+        "weight": 300,
+        "leading": 0.92,
+        "tracking": "-0.035em"
+      }
+    }
+  ],
+  "fontWeights": {
+    "Sora": [
+      100,
+      800
+    ],
+    "Public Sans": [
+      100,
+      900
+    ],
+    "Newsreader": [
+      200,
+      800
+    ],
+    "Schibsted Grotesk": [
+      400,
+      900
+    ],
+    "Hanken Grotesk": [
+      100,
+      900
+    ],
+    "Fraunces": [
+      100,
+      900
+    ],
+    "Urbanist": [
+      100,
+      900
+    ],
+    "Syne": [
+      400,
+      800
+    ],
+    "Figtree": [
+      300,
+      900
+    ],
+    "Big Shoulders Display": [
+      100,
+      900
+    ],
+    "Bodoni Moda": [
+      400,
+      900
+    ],
+    "Unbounded": [
+      200,
+      900
+    ],
+    "Instrument Serif": [
+      400,
+      400
+    ]
+  },
+  "fontProviders": {
+    "Big Shoulders Display": "google",
+    "Bodoni Moda": "google",
+    "Figtree": "google",
+    "Fraunces": "google",
+    "Hanken Grotesk": "google",
+    "Instrument Serif": "google",
+    "Newsreader": "google",
+    "Public Sans": "google",
+    "Schibsted Grotesk": "google",
+    "Sora": "google",
+    "Syne": "google",
+    "Unbounded": "google",
+    "Urbanist": "google"
+  }
+}
