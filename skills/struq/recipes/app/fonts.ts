@@ -1,22 +1,12 @@
-// app/fonts.ts (Struq recipe)
-// Exactly two faces: a display face and a text face. Swap these two imports for the pairing you
-// picked in SKILL.md ("Pick the two faces"); keep the variable names --face-display and --face-body,
-// globals.css maps them to font-display and font-body.
-// Default: S2, Fraunces (soft serif display) over Urbanist (round geometric text).
-import { Fraunces, Urbanist } from "next/font/google";
-
-export const display = Fraunces({
-  subsets: ["latin"],
-  axes: ["SOFT", "opsz"],
-  variable: "--face-display",
-  display: "swap",
-});
-
-export const body = Urbanist({
-  subsets: ["latin"],
-  variable: "--face-body",
-  display: "swap",
-});
-
-/** Every face's CSS variable, for the <html> className in app/layout.tsx. */
-export const fontVariables = [display, body].map((f) => f.variable).join(" ");
+// app/fonts.ts (Struq recipe). canon.mjs type <pairing> rewrites this file; the default is serif-editorial.
+// Each Google face is asked for its real weight range, then as the bare family as a fallback, because Google refuses a
+// request for a weight the family lacks. The layout puts one <link> per URL in <head>; the token block in globals.css
+// names the faces (--face-display, --face-body, --face-accent), so the blocks measure with the real face.
+export const fontHrefs: string[] = [
+  "https://fonts.googleapis.com/css2?family=Fraunces:wght@100..900&display=swap",
+  "https://fonts.googleapis.com/css2?family=Fraunces&display=swap",
+  "https://fonts.googleapis.com/css2?family=Urbanist:wght@100..900&display=swap",
+  "https://fonts.googleapis.com/css2?family=Urbanist&display=swap",
+  "https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,100..900&display=swap",
+  "https://fonts.googleapis.com/css2?family=Fraunces:ital@1&display=swap",
+];

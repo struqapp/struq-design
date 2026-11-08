@@ -1,0 +1,142 @@
+{
+  "note": "Struq lab output (lib/lab/tokens.ts) at staging 3680053, the golden canon.mjs must match.",
+  "combos": [
+    {
+      "palette": "midnight-brass",
+      "pairing": "serif-editorial",
+      "tokens": {
+        "--surface-0": "#101218",
+        "--surface-1": "#191C24",
+        "--surface-2": "oklch(0.2934 0.0136 268.94)",
+        "--surface-3": "oklch(0.3598 0.0110 268.94)",
+        "--ink": "#F7F3EA",
+        "--ink-muted": "color-mix(in oklab, var(--ink) 70%, var(--surface-0))",
+        "--accent": "#C69B5D",
+        "--accent-ink": "#101218",
+        "--accent-2": "#8E9AA8",
+        "--line": "color-mix(in oklab, var(--ink) 13%, transparent)",
+        "--on-photo": "#F7F3EA",
+        "--photo-ground": "#101218",
+        "--inverse": "#F7F3EA",
+        "--on-inverse": "#101218",
+        "--field": "#C69B5D",
+        "--on-field": "#101218",
+        "colorScheme": "dark",
+        "--display-weight": "300",
+        "--face-display": "\"Fraunces\"",
+        "--face-body": "\"Urbanist\"",
+        "--face-accent": "\"Fraunces\""
+      },
+      "hrefs": [
+        "https://fonts.googleapis.com/css2?family=Fraunces:wght@100..900&display=swap",
+        "https://fonts.googleapis.com/css2?family=Fraunces&display=swap",
+        "https://fonts.googleapis.com/css2?family=Urbanist:wght@100..900&display=swap",
+        "https://fonts.googleapis.com/css2?family=Urbanist&display=swap",
+        "https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,100..900&display=swap",
+        "https://fonts.googleapis.com/css2?family=Fraunces:ital@1&display=swap"
+      ]
+    },
+    {
+      "palette": "frontier-olea-flour-terracotta",
+      "pairing": "condensed-poster",
+      "tokens": {
+        "--surface-0": "oklch(0.96 0.014 75)",
+        "--surface-1": "oklch(0.985 0.01 80)",
+        "--surface-2": "oklch(0.9356 0.0112 80.00)",
+        "--surface-3": "oklch(0.8722 0.0129 80.00)",
+        "--ink": "oklch(0.28 0.03 55)",
+        "--ink-muted": "color-mix(in oklab, var(--ink) 66%, var(--surface-0))",
+        "--accent": "oklch(0.55 0.16 40)",
+        "--accent-ink": "oklch(0.96 0.014 75)",
+        "--accent-2": "oklch(0.27 0.03 50)",
+        "--line": "color-mix(in oklab, var(--ink) 13%, transparent)",
+        "--on-photo": "oklch(0.96 0.014 75)",
+        "--photo-ground": "oklch(0.28 0.03 55)",
+        "--inverse": "oklch(0.28 0.03 55)",
+        "--on-inverse": "oklch(0.96 0.014 75)",
+        "--field": "oklch(0.55 0.16 40)",
+        "--on-field": "oklch(0.96 0.014 75)",
+        "colorScheme": "light",
+        "--display-weight": "800",
+        "--face-display": "\"Big Shoulders Display\"",
+        "--face-body": "\"Figtree\"",
+        "--face-accent": "\"Instrument Serif\""
+      },
+      "hrefs": [
+        "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@100..900&display=swap",
+        "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display&display=swap",
+        "https://fonts.googleapis.com/css2?family=Figtree:wght@300..900&display=swap",
+        "https://fonts.googleapis.com/css2?family=Figtree&display=swap",
+        "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap"
+      ]
+    },
+    {
+      "palette": "field-saturated-ochre",
+      "pairing": "grotesk-workhorse",
+      "tokens": {
+        "--surface-0": "oklch(0.965 0.014 85)",
+        "--surface-1": "oklch(0.935 0.02 82)",
+        "--surface-2": "oklch(0.8835 0.0199 82.00)",
+        "--surface-3": "oklch(0.8174 0.0198 82.00)",
+        "--ink": "oklch(0.2 0.02 60)",
+        "--ink-muted": "color-mix(in oklab, var(--ink) 66%, var(--surface-0))",
+        "--accent": "oklch(0.525 0.11 75)",
+        "--accent-ink": "oklch(0.965 0.014 85)",
+        "--accent-2": "oklch(0.3 0.05 40)",
+        "--line": "color-mix(in oklab, var(--ink) 13%, transparent)",
+        "--on-photo": "oklch(0.965 0.014 85)",
+        "--photo-ground": "oklch(0.2 0.02 60)",
+        "--inverse": "oklch(0.2 0.02 60)",
+        "--on-inverse": "oklch(0.965 0.014 85)",
+        "--field": "oklch(0.76 0.15 78)",
+        "--on-field": "oklch(0.2 0.02 60)",
+        "colorScheme": "light",
+        "--display-weight": "400",
+        "--face-display": "\"Schibsted Grotesk\"",
+        "--face-body": "\"Hanken Grotesk\"",
+        "--face-accent": "\"Instrument Serif\""
+      },
+      "hrefs": [
+        "https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&display=swap",
+        "https://fonts.googleapis.com/css2?family=Schibsted+Grotesk&display=swap",
+        "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@100..900&display=swap",
+        "https://fonts.googleapis.com/css2?family=Hanken+Grotesk&display=swap",
+        "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap"
+      ]
+    },
+    {
+      "palette": "graphite-ivory",
+      "pairing": "geometric-modern",
+      "tokens": {
+        "--surface-0": "#F3F0E8",
+        "--surface-1": "#E8E1D5",
+        "--surface-2": "oklch(0.8674 0.0168 81.33)",
+        "--surface-3": "oklch(0.8101 0.0154 81.33)",
+        "--ink": "#272826",
+        "--ink-muted": "color-mix(in oklab, var(--ink) 66%, var(--surface-0))",
+        "--accent": "#995029",
+        "--accent-ink": "#F3F0E8",
+        "--accent-2": "#2B4A56",
+        "--line": "color-mix(in oklab, var(--ink) 13%, transparent)",
+        "--on-photo": "#F3F0E8",
+        "--photo-ground": "#272826",
+        "--inverse": "#272826",
+        "--on-inverse": "#F3F0E8",
+        "--field": "#995029",
+        "--on-field": "#F3F0E8",
+        "colorScheme": "light",
+        "--display-weight": "300",
+        "--face-display": "\"Urbanist\"",
+        "--face-body": "\"Figtree\"",
+        "--face-accent": "\"Instrument Serif\""
+      },
+      "hrefs": [
+        "https://fonts.googleapis.com/css2?family=Urbanist:wght@100..900&display=swap",
+        "https://fonts.googleapis.com/css2?family=Urbanist&display=swap",
+        "https://fonts.googleapis.com/css2?family=Figtree:wght@300..900&display=swap",
+        "https://fonts.googleapis.com/css2?family=Figtree&display=swap",
+        "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap"
+      ]
+    }
+  ]
+}
