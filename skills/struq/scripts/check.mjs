@@ -500,7 +500,7 @@ const warns = results.filter((r) => r.status === "WARN").length;
 if (!args.includes("--no-log")) {
   const names = (status) => results.filter((r) => r.status === status).map((r) => `${r.group} ${r.message.split(":")[0].replace(/[.(].*$/, "").trim()}`);
   const passed = results.filter((r) => r.status === "PASS").length;
-  appendLog(root, "Step 12 Check", [
+  appendLog(root, "Step 8 Check", [
     `check.mjs: RESULT ${fails ? "FAIL" : "PASS"}, ${passed} pass, ${fails} fail, ${warns} warn.`,
     ...(fails ? [`Fail: ${names("FAIL").join("; ")}.`] : []),
     ...(warns ? [`Warn: ${names("WARN").join("; ")}.`] : []),
