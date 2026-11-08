@@ -1,8 +1,8 @@
 {
   "name": "struq",
   "displayName": "Struq",
-  "description": "Award-tier web design for coding agents: two-face light typography, curated palettes, Lenis on one GSAP clock, SplitText, DrawSVG, MorphSVG, pinned showpieces, full-screen transitions and R3F moments.",
-  "version": "0.3.0",
+  "description": "Award-tier studio sites for coding agents, built from Struq's admitted blocks: preloaders, page transitions, headers, heroes, WebGL backgrounds, showpieces, sections and footers, on Struq's palettes and type pairings, with a check against the AI tells.",
+  "version": "0.4.0",
   "author": {
     "name": "Struq",
     "url": "https://struq.nl"
