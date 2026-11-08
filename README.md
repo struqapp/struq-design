@@ -26,16 +26,7 @@ It finds the AI tools on your machine and installs the skill into each of them. 
 
 ## Same brief, with and without Struq
 
-Three briefs, each built twice by the same model with the same materials: once as a plain coding agent, once with `/struq`. An independent reviewer then scored all six sites **blind**, from screenshots only, without knowing which side used the skill.
-
-| Brief | Without | With Struq | Invented facts (without / with) | Template tells (without / with) |
-|---|---|---|---|---|
-| Ceramicist portfolio, no logo, no photos | 56 | **79** | 14 / 5 | 6 / 3 |
-| E-bike launch, existing brand, wants 3D | 66 | **76** | 11 / 3 | 6 / 3 |
-| Open-source dev-tool landing page | 50 | **76** | 11 / 2 | 10 / 2 |
-| **Average** | **57** | **77** | **36 / 10** | **22 / 8** |
-
-Scored out of 100 on typography, composition, color, concept, motion, content honesty, craft and distinctiveness. "Invented facts" counts claims the brief never gave: quotes, bios, stats, specs, API names.
+Three briefs, each built twice by the same model with the same materials: once as a plain coding agent, once with `/struq`.
 
 **Dev-tool landing page.** Without: the dark developer-tool template, item for item. With: a light page built around a trace waterfall that assembles as you scroll.
 
