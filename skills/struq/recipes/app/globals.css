@@ -1,185 +1,42 @@
 @import "tailwindcss";
+/* The block kit: type roles, the motion gate (.sq-js with its 3 s fallback), the contrast scenes and every block's
+   own CSS, all scoped to [data-blocks] (on <body>). */
+@import "../components/struq/kit/blocks.css";
 
-/* ==========================================================================
-   STRUQ TOKENS. Set the values from the palette you chose in SKILL.md.
-   Keep the names: every recipe and the hero canvas read them.
-   ========================================================================== */
-:root {
-  --surface-0: #f5efe6; /* the page */
-  --surface-1: #ede4d6; /* one step: panels, the showpiece ground */
-  --surface-2: #e1d4bf; /* two steps: image wells, hover grounds */
-  --surface-3: #cdbb9f; /* three steps: hairline accents, never text */
-  --ink: #1e1a15; /* headlines and body */
-  --ink-muted: #5d5446; /* secondary text, at least 4.5:1 on surface-0 */
-  --accent: #8a3b22; /* the one accent: the key CTA, one highlight per screen */
-  --accent-ink: #fbf6ee; /* text on the accent */
-  --line: rgb(30 26 21 / 0.12); /* hairlines: the ink at low alpha, never a grey hex */
-  --on-photo: #f7f3ec; /* type set over a photo or the ripple hero, on light and dark presets alike */
-  --inverse: #1e1a15; /* the contrast scene's ground: the palette's inverse role, else the ink */
-  --on-inverse: #f5efe6; /* type on it: else the page ground */
-  --field: #8a3b22; /* a full-strength colour field: the palette's field role, else the accent */
-  --on-field: #fbf6ee; /* type on it */
-  --display-weight: 300; /* light display: 300, or 400 for a face without a 300 */
-}
-
+/* The theme names the blocks use that the kit leaves to the site. */
 @theme inline {
-  --color-surface-0: var(--surface-0);
-  --color-surface-1: var(--surface-1);
-  --color-surface-2: var(--surface-2);
-  --color-surface-3: var(--surface-3);
-  --color-ink: var(--ink);
-  --color-ink-muted: var(--ink-muted);
   --color-accent: var(--accent);
-  --color-accent-ink: var(--accent-ink);
-  --color-line: var(--line);
-  --color-on-photo: var(--on-photo);
-  --color-inverse: var(--inverse);
-  --color-on-inverse: var(--on-inverse);
-  --color-field: var(--field);
-  --color-on-field: var(--on-field);
+  --color-accent-2: var(--accent-2);
+  --color-photo-ground: var(--photo-ground);
   --font-display: var(--face-display), ui-serif, Georgia, serif;
-  --font-body: var(--face-body), ui-sans-serif, system-ui, sans-serif;
-  --font-accent: var(--face-accent, var(--face-display)), ui-serif, Georgia, serif;
-  --font-sans: var(--face-body), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme {
-  /* Type roles: write text-display, text-h2, text-h3, text-lead, text-body, text-small. Never text-xl or text-5xl. */
-  --text-display: clamp(2.875rem, 1.2rem + 6.86vw, 8rem);
-  --text-display--line-height: 0.95;
-  --text-display--letter-spacing: -0.025em;
-  --text-h2: clamp(2.25rem, 1.3rem + 3.4vw, 4.75rem);
-  --text-h2--line-height: 1.04;
-  --text-h2--letter-spacing: -0.015em;
-  --text-h3: clamp(1.375rem, 1.15rem + 0.8vw, 1.875rem);
-  --text-h3--line-height: 1.2;
-  --text-lead: clamp(1.125rem, 1.05rem + 0.3vw, 1.3125rem);
-  --text-lead--line-height: 1.5;
-  --text-body: 1.0625rem;
-  --text-body--line-height: 1.65;
-  --text-small: 0.875rem;
-  --text-small--line-height: 1.5;
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
+/* One fluid root-rem knob: author in rem, breakpoints change layout, never size. */
+html {
+  font-size: clamp(1rem, 0.92rem + 0.2vw, 1.125rem);
 }
 
-/* ==========================================================================
-   THE CONTRAST SCENE. Every site has one, at most two: wrap a section in scene-inverse (the
-   palette's dark ground with light type) or scene-field (a full-strength colour field). The tokens
-   are remapped inside, so every recipe in it turns with it.
-   ========================================================================== */
-.scene-inverse {
-  --surface-0: var(--inverse);
-  --surface-1: color-mix(in oklch, var(--inverse), var(--on-inverse) 6%);
-  --surface-2: color-mix(in oklch, var(--inverse), var(--on-inverse) 12%);
-  --surface-3: color-mix(in oklch, var(--inverse), var(--on-inverse) 22%);
-  --ink: var(--on-inverse);
-  --ink-muted: color-mix(in oklch, var(--on-inverse) 72%, var(--inverse));
-  --line: color-mix(in oklch, var(--on-inverse) 18%, transparent);
-  background-color: var(--surface-0);
-  color: var(--ink);
-}
-.scene-field {
-  --surface-0: var(--field);
-  --surface-1: color-mix(in oklch, var(--field), var(--on-field) 8%);
-  --surface-2: color-mix(in oklch, var(--field), var(--on-field) 14%);
-  --surface-3: color-mix(in oklch, var(--field), var(--on-field) 24%);
-  --ink: var(--on-field);
-  --ink-muted: color-mix(in oklch, var(--on-field) 78%, var(--field));
-  --line: color-mix(in oklch, var(--on-field) 22%, transparent);
-  --accent: var(--on-field);
-  --accent-ink: var(--field);
-  background-color: var(--surface-0);
-  color: var(--ink);
-}
-
-@layer base {
-  /* The hero opener's handover: the section after it slides up over the pinned opener. */
-  [data-showpiece="hero-opener"] + *,
-  .pin-spacer:has(> [data-showpiece="hero-opener"]) + * {
-    position: relative;
-    z-index: 2;
-    background-color: var(--surface-0);
-  }
-  /* The one scaling knob: 16px at 390, about 17.6px at 1440, 18px from about 1640. */
-  html {
-    font-size: clamp(1rem, 0.92rem + 0.2vw, 1.125rem);
-    background: var(--surface-0);
-    color: var(--ink);
-  }
-  body {
-    font-family: var(--font-body);
-    font-size: var(--text-body);
-    line-height: 1.65;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
-  h1, h2, h3, .font-display {
-    font-family: var(--font-display);
-    font-weight: var(--display-weight);
-    text-wrap: balance;
-  }
-  p {
-    text-wrap: pretty;
-  }
-  ::selection {
-    background: var(--accent);
-    color: var(--accent-ink);
-  }
-  :focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 3px;
-  }
-}
-
-/* ==========================================================================
-   STRUQ MOTION GATE. Do not edit.
-   With JavaScript on (the `js` class the layout sets before paint) the animated elements start
-   hidden, so nothing flashes before its entrance. Each recipe marks itself data-ready the moment
-   it has set its own start state. If the scripts never run, the failsafe shows everything after
-   3s, so no region can stay empty.
-   ========================================================================== */
-.js [data-split]:not([data-ready]) {
-  visibility: hidden;
-  animation: struq-show 0s 3s forwards;
-}
-.js [data-reveal]:not([data-ready]) > * {
-  opacity: 0;
-  animation: struq-fade 0s 3s forwards;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .js [data-frame="mask"]:not([data-ready]) {
-    clip-path: inset(100% 0 0 0);
-    animation: struq-open 0s 3s forwards;
-  }
-  .js [data-zoom-frame] {
-    clip-path: inset(22% 30% 22% 30%);
-  }
-}
-/* The cinematic showpieces start in their first key frame, so nothing flashes before it. */
-@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
-  .js [data-showpiece="image-to-fullbleed"] [data-frame] {
-    clip-path: inset(31% 40% 31% 40%);
-  }
-  .js [data-showpiece="pixel-resolve"] canvas {
-    opacity: 1;
-    background: var(--surface-2);
-    animation: struq-unveil 0s 4s forwards;
-  }
-}
-@keyframes struq-unveil { to { opacity: 0; visibility: hidden; } }
-@keyframes struq-show { to { visibility: visible; } }
-@keyframes struq-fade { to { opacity: 1; } }
-@keyframes struq-open { to { clip-path: inset(0 0 0 0); } }
-
-/* SplitText masks: room for descenders (g, j, p, y) inside each line's clip. */
-.struq-line-mask {
-  padding-block: 0.06em 0.16em;
-  margin-block: -0.06em -0.16em;
-}
-
-/* The custom cursor hides the native one only while it is active. */
-html.has-cursor,
-html.has-cursor * {
-  cursor: none;
+/* STRUQ TOKENS: palette graphite-ivory, type serif-editorial. Written by canon.mjs, the block Struq's lab and struq_richting give. */
+[data-blocks] {
+  --surface-0: #F3F0E8;
+  --surface-1: #E8E1D5;
+  --surface-2: oklch(0.8674 0.0168 81.33);
+  --surface-3: oklch(0.8101 0.0154 81.33);
+  --ink: #272826;
+  --ink-muted: color-mix(in oklab, var(--ink) 66%, var(--surface-0));
+  --accent: #995029;
+  --accent-ink: #F3F0E8;
+  --accent-2: #2B4A56;
+  --line: color-mix(in oklab, var(--ink) 13%, transparent);
+  --on-photo: #F3F0E8;
+  --photo-ground: #272826;
+  --inverse: #272826;
+  --on-inverse: #F3F0E8;
+  --field: #995029;
+  --on-field: #F3F0E8;
+  color-scheme: light;
+  --display-weight: 300;
+  --face-display: "Fraunces";
+  --face-body: "Urbanist";
+  --face-accent: "Fraunces";
 }

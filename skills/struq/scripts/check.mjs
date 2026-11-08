@@ -13,6 +13,8 @@ import { join, relative, resolve, sep } from "node:path";
 import { appendLog } from "./log.mjs";
 import { altFitsBrief, packSignalForBrief } from "./packs.mjs";
 
+const CANON = JSON.parse(readFileSync(new URL("../canon/canon.json", import.meta.url), "utf8"));
+
 const args = process.argv.slice(2);
 const dirFlag = args.indexOf("--dir");
 const root = resolve(dirFlag >= 0 ? args[dirFlag + 1] : process.cwd());
@@ -43,7 +45,15 @@ function walk(dir, acc = []) {
 }
 
 const rel = (p) => relative(root, p).split(sep).join("/");
-const isRecipe = (p) => /(^|\/)components\/struq\/|(^|\/)lib\/(gsap|struq-images)\.ts$/.test(rel(p));
+// A shipped file is one the skill installs under components/struq/ at the same path as in its blocks/ copy (or the
+// images module images.mjs writes); anything else there, a scene or section you added, counts as your own.
+const SHIPPED = new URL("../blocks/", import.meta.url);
+const isRecipe = (p) => {
+  const r = rel(p);
+  if (/(^|\/)lib\/struq-images\.ts$/.test(r)) return true;
+  const m = r.match(/(?:^|\/)components\/struq\/(.+)$/);
+  return Boolean(m && existsSync(new URL(m[1], SHIPPED)));
+};
 const files = walk(root)
   .filter((p) => !/^(scripts|test|tests|e2e)\//.test(rel(p)))
   .map((p) => ({ path: p, rel: rel(p), recipe: isRecipe(p), text: readFileSync(p, "utf8") }));
@@ -195,12 +205,13 @@ const plan = read("STRUQ.md");
 
 /* ------------------------------------------------------------------- TELLS */
 // The combined tell list: Struq's tells (StruqVisual lib/consistentie/tells.ts), the deck-slop-audit
-// patterns and Roy's own rules, as one list. references/anti-patterns.md has the why and the fix for
+// patterns and Roy's own rules, as one list. references/tells.md has the why and the fix for
 // each; this is its executable form. FAIL blocks done; WARN asks for a look.
 {
   const G = "TELLS";
   const tell = (name, pattern, fix, opts = {}) => {
-    const found = hits(pattern, opts);
+    // Your own files only: the blocks under components/struq/ passed Struq's gate as they are.
+    const found = hits(pattern, { scope: own, ...opts });
     if (found.length) add(G, opts.warn ? "WARN" : "FAIL", `${name}: ${fix}`, found);
     else if (!opts.quietPass) add(G, "PASS", `No ${name.toLowerCase()}`);
   };
@@ -265,6 +276,7 @@ const plan = read("STRUQ.md");
   tell("Live dots", /animate-(ping|pulse)/, "no pulsing dot, above all not in a pill.");
   tell("Blue and purple utilities", /\b(text|bg|border|fill|stroke|ring|outline|decoration|shadow|accent)-(blue|indigo|violet|purple|fuchsia|sky)-\d/,
     "the palette tokens carry every colour; blue and purple only when the brand is that, declared in STRUQ.md.");
+  tell("Glow", /shadow-\[0_0_|drop-shadow-\[0_0_|(box|text)-shadow:\s*0(px)?\s+0(px)?\s+\d+px|\bblur-(2xl|3xl)\b/, "no coloured light behind a card or a word; elevation is a surface step.");
   tell("Drop-shadow elevation", /\bshadow-(md|lg|xl|2xl)\b/, "elevation is a tonal surface step plus a hairline.");
   tell("Side-stripe borders", /\bborder-[lr]-([2-9]|\[[2-9])/, "no coloured stripe down a card edge; a hairline or nothing.");
 
@@ -328,85 +340,69 @@ const plan = read("STRUQ.md");
 }
 
 /* ------------------------------------------------------------------ MOTION */
+// The blocks (components/struq/<kind>/) carry their own motion; this checks what the site around them owes them.
+const BLOCK_IMPORT = /from\s*["'][^"']*components\/struq\/(preloaders|page-transitions|headers|heroes|backgrounds|showpieces|transitions|sections|footers)\/([\w-]+)["']/g;
+const usedBlocks = new Set(own.flatMap((f) => [...f.text.matchAll(BLOCK_IMPORT)].map((m) => `${m[1]}/${m[2]}`)));
+const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`));
 {
   const G = "MOTION";
   const all = files.map((f) => f.text).join("\n");
-  const missing = ["gsap", "lenis"].filter((d) => !deps[d]);
-  if (!deps.three && !deps["@react-three/fiber"]) missing.push("three");
+  const missing = ["gsap", "@gsap/react", "lenis"].filter((d) => !deps[d]);
+  const needsThree = usedBlocks.has("showpieces/hero-opener") || own.some((f) => /from\s*["']three["']|HeroCanvas/.test(f.text));
+  if (needsThree && !deps.three) missing.push("three");
   if (missing.length) add(G, "FAIL", `Missing packages: npm install ${missing.join(" ")}`);
-  else add(G, "PASS", "gsap, lenis and three installed");
+  else add(G, "PASS", "The block packages are installed");
 
-  const lenis = /new Lenis\(|ReactLenis/.test(all) && /gsap\.ticker\.add/.test(all) && /lagSmoothing\(0\)/.test(all);
-  const mounted = files.some((f) => /(^|\/)app\/layout\.(tsx|jsx)$/.test(f.rel) && /<SmoothScroll|<ReactLenis/.test(f.text));
-  if (lenis && mounted) add(G, "PASS", "Lenis smooth scroll on the GSAP ticker, mounted in the layout");
-  else add(G, "FAIL", lenis ? "Lenis is not mounted: wrap {children} in <SmoothScroll> in app/layout.tsx." : "No Lenis on gsap.ticker: run recipes.mjs and mount <SmoothScroll> in app/layout.tsx.");
+  const layout = files.find((f) => /(^|\/)app\/layout\.(tsx|jsx)$/.test(f.rel))?.text ?? "";
+  const lenis = /new Lenis\(|ReactLenis/.test(all) && /gsap\.ticker\.add/.test(all);
+  if (lenis && /<SmoothScroll|<ReactLenis/.test(layout)) add(G, "PASS", "Lenis on the GSAP ticker, mounted in the layout");
+  else add(G, "FAIL", lenis ? "Lenis is not mounted: wrap {children} in <SmoothScroll> in app/layout.tsx." : "No Lenis on gsap.ticker: run blocks.mjs init and mount <SmoothScroll> in app/layout.tsx.");
 
-  if (uses(/<SplitHeadline\b|<HeroOpener\b|SplitText\.create|new SplitText/)) add(G, "PASS", "SplitText on the headline");
-  else add(G, "FAIL", "The hero headline is not split: set it with <SplitHeadline as=\"h1\">.");
+  if (/classList\.add\(\s*["']sq-js["']\s*\)/.test(layout) && /data-blocks/.test(layout)) add(G, "PASS", "The motion gate: sq-js before paint, data-blocks on <body>");
+  else add(G, "FAIL", "The motion gate is missing: the layout puts sq-js on <html> in an inline script before paint and data-blocks on <body> (recipes/app/layout.tsx). Without them the blocks lose their tokens and their first frame.");
 
-  // Text reveals: Reveal groups, and the showpieces that reveal their own text on scroll.
-  const reveals = own.reduce((n, f) => n + (f.text.match(/<Reveal\b|<ManifestoScrub\b|<FillRows\b|<ScrubConnector\b|<SplitHeadline\b[^>]*on="scroll"/g) ?? []).length, 0);
-  const masks = uses(/<MediaFrame\b|<ImageToFullbleed\b|<PanelWipe\b|<ProjectStack\b|clipPath|clip-path:\s*inset/);
-  if (reveals >= 2 && masks) add(G, "PASS", `Masked image reveals and ${reveals} staggered text reveals`);
-  else add(G, "FAIL", `Scroll reveals below the floor (${reveals} <Reveal>, masked images: ${masks ? "yes" : "no"}). Wrap text groups in <Reveal> and every image in <MediaFrame>.`);
-
-  if (uses(/<HorizontalGallery\b|<PinnedZoom\b|<ImageToFullbleed\b|<PanelWipe\b|<ScrubConnector\b|<ProjectStack\b|<ManifestoScrub\b/) || own.some((f) => /pin:\s*(true|[a-zA-Z"'])/.test(f.text) && /scrub/.test(f.text))) add(G, "PASS", "A pinned or horizontal showpiece");
-  else add(G, "FAIL", "No showpiece: place the lead toonstuk from the SKILL.md picker (or HorizontalGallery or PinnedZoom) at the act break.");
-
-  const ownGl = own.filter((f) => /WebGLRenderer|<Canvas\b/.test(f.text));
-  if (uses(/<HeroCanvas\b|<HeroOpener\b/)) add(G, "PASS", "WebGL hero layer (HeroCanvas: poster, DPR cap, reduced motion, pause offscreen)");
-  else if (ownGl.length) {
-    const t = ownGl.map((f) => f.text).join("\n");
-    const gaps = [];
-    if (!/setPixelRatio\(\s*Math\.min|dpr=\{?\[/.test(t)) gaps.push("a DPR cap (Math.min(devicePixelRatio, 1.75))");
-    if (!/prefers-reduced-motion/.test(t)) gaps.push("a reduced-motion still frame");
-    if (!/poster|<Image\b|<img\b|fallback/i.test(t)) gaps.push("a poster behind the canvas");
-    if (gaps.length) add(G, "FAIL", `The custom WebGL layer is missing ${gaps.join(", ")}. Or build it inside HeroCanvas as a scene.`, ownGl.map((f) => f.rel));
-    else add(G, "PASS", "Custom WebGL hero layer with poster, DPR cap and reduced motion");
-  } else add(G, "FAIL", "No WebGL hero layer: put <HeroCanvas scene=\"contours\" /> (or ripple, dots, or the MCP background) behind the hero.");
+  if (usedBlocks.size) add(G, "PASS", `${usedBlocks.size} Struq block(s) on the page: ${[...usedBlocks].join(", ")}`);
+  else add(G, "FAIL", "No Struq block on the page: pick the hero, the sections and the footer from blocks/CATALOG.md (or struq_blokken) and install them with blocks.mjs add.");
 
   if (/prefers-reduced-motion/.test(all)) add(G, "PASS", "prefers-reduced-motion respected");
   else add(G, "FAIL", "Nothing reads prefers-reduced-motion.");
-
-  if (uses(/<MagneticButton\b|<Cursor\b|quickTo/)) add(G, "PASS", "Pointer layer (magnetic CTA or cursor)");
-  else add(G, "WARN", "No magnetic CTA or custom cursor. Use <MagneticButton> for the primary CTA unless the genre is a utility.");
 }
 
 /* -------------------------------------------------------------------- TYPE */
 {
   const G = "TYPE";
   const fams = new Set();
-  for (const f of files) {
+  let italicAccent = false;
+  for (const f of own) {
+    for (const m of f.text.matchAll(/fonts\.googleapis\.com\/css2\?family=([A-Za-z0-9+]+)(:[^&"'\s]*)?/g)) {
+      fams.add(m[1].replace(/\+/g, " "));
+      if (/ital@1|ital,wght@1/.test(m[2] ?? "")) italicAccent = true;
+    }
+    for (const m of f.text.matchAll(/api\.fontshare\.com\/v2\/css\?f\[\]=([a-z0-9-]+)/g)) fams.add(m[1]);
     for (const m of f.text.matchAll(/import\s*\{([^}]+)\}\s*from\s*["']next\/font\/google["']/g)) {
-      m[1].split(",").map((s) => s.trim()).filter(Boolean).forEach((s) => fams.add(s));
+      m[1].split(",").map((s) => s.trim()).filter(Boolean).forEach((s) => fams.add(s.replace(/_/g, " ")));
     }
-    if (/from\s*["']next\/font\/local["']/.test(f.text)) {
-      for (const m of f.text.matchAll(/(\w+)\s*=\s*localFont\(/g)) fams.add(`local:${m[1]}`);
-    }
+    if (/from\s*["']next\/font\/local["']/.test(f.text)) for (const m of f.text.matchAll(/(\w+)\s*=\s*localFont\(/g)) fams.add(`local:${m[1]}`);
   }
-  // A canon pairing may add one italic accent face (--face-accent, italic only).
-  const accentFace = files.some((f) => /--face-accent/.test(f.text) && /style:\s*\[\s*"italic"\s*\]/.test(f.text));
-  if (fams.size === 2) add(G, "PASS", `Two faces: ${[...fams].join(" + ")}`);
-  else if (fams.size === 3 && accentFace) add(G, "PASS", `Two faces and one italic accent: ${[...fams].join(" + ")}`);
-  else if (fams.size === 1) add(G, "WARN", `One face (${[...fams][0]}). Two faces (display and text) unless STRUQ.md declares a one-family system.`);
-  else if (fams.size === 0) add(G, "FAIL", "No web fonts loaded: set the pairing in app/fonts.ts with next/font.");
-  else add(G, "FAIL", `${fams.size} faces loaded (${[...fams].join(", ")}). Exactly two: one display, one text.`);
+  if (fams.size === 2 || (fams.size === 3 && italicAccent)) add(G, "PASS", `Faces: ${[...fams].join(" + ")}`);
+  else if (fams.size === 1) add(G, "WARN", `One face (${[...fams][0]}). A display and a text face, unless the pairing is one family.`);
+  else if (fams.size === 0) add(G, "FAIL", "No web fonts loaded: canon.mjs type <pairing> writes app/fonts.ts, and the layout links each URL.");
+  else add(G, "FAIL", `${fams.size} faces loaded (${[...fams].join(", ")}). One display, one text, at most one italic accent.`);
 
   const css = files.filter((f) => f.rel.endsWith(".css")).map((f) => f.text).join("\n");
-  const weight = css.match(/--display-weight:\s*(\d{3})/)?.[1];
+  const ownCss = own.filter((f) => f.rel.endsWith(".css")).map((f) => f.text).join("\n");
+  const weight = (ownCss.match(/--display-weight:\s*(\d{3})/) ?? css.match(/--display-weight:\s*(\d{3})/))?.[1];
+  const typeId = plan.match(/^Type:\s*([\w-]+)/m)?.[1];
+  const poster = CANON.pairings.find((t) => t.id === typeId && String(t.displayScale?.weight) === weight && Number(weight) > 400);
   if (weight && Number(weight) <= 400) add(G, "PASS", `Display runs light (${weight})`);
-  else if (weight) add(G, "FAIL", `Display weight ${weight}: run it at 300 (400 for a face without a 300).`);
-  else if (uses(/font-(light|extralight|thin)/)) add(G, "PASS", "Display runs light");
-  else add(G, "WARN", "No light display weight found (--display-weight: 300 in globals.css).");
+  else if (poster) add(G, "PASS", `Display at ${poster.id}'s poster weight (${weight})`);
+  else if (weight) add(G, "FAIL", `Display weight ${weight}: run it light (300, or 400 for a face that starts there); heavier only at a poster pairing's own weight.`);
+  else add(G, "WARN", "No --display-weight found: the STRUQ TOKENS block sets it (canon.mjs type).");
 
   if (/html\s*\{[^}]*font-size:\s*clamp\(/.test(css)) add(G, "PASS", "One fluid root-rem knob");
   else add(G, "FAIL", "No fluid root font size: html { font-size: clamp(1rem, 0.92rem + 0.2vw, 1.125rem); }");
 
-  if (/--text-display/.test(css) && uses(/text-display/)) add(G, "PASS", "Display role token in use");
-  else add(G, "FAIL", "The headline does not use the display role: font-display text-display.");
-
-  // The hero opener sets the page's h1 itself.
-  const h1 = own.reduce((n, f) => n + (f.text.match(/<h1\b|<HeroOpener\b|<SplitHeadline(?![^>]*as=["'](h2|h3|p)["'])[^>]*>/g) ?? []).length, 0);
+  const h1 = files.reduce((n, f) => n + (f.text.match(/<h1\b|<SplitHeadline(?![^>]*as=["'](h2|h3|p)["'])[^>]*>/g) ?? []).length, 0);
   if (h1 >= 1) add(G, "PASS", "The page has its h1");
   else add(G, "FAIL", "No h1 on the page.");
 }
@@ -419,97 +415,67 @@ const plan = read("STRUQ.md");
     const open = plan.split(/\r?\n/).filter((l) => /^\s*[-*]\s*\[\s\]/.test(l) && !/check\.mjs/.test(l));
     const done = plan.split(/\r?\n/).filter((l) => /^\s*[-*]\s*\[[xX]\]/.test(l)).length;
     if (open.length) add(G, "FAIL", `${open.length} Build checklist item(s) not ticked in STRUQ.md. Do them, then tick them.`, open.map((l) => l.trim()));
-    else if (done >= 8) add(G, "PASS", `Build checklist ticked (${done} items)`);
+    else if (done >= 7) add(G, "PASS", `Build checklist ticked (${done} items)`);
     else add(G, "FAIL", "STRUQ.md has no Build checklist: copy it from SKILL.md and tick each step as you finish it.");
-    const need = ["Palette", "Type", "System", "Images"].filter((k) => !new RegExp(`^${k}:\\s*\\S`, "mi").test(plan));
-    if (need.length) add(G, "FAIL", `STRUQ.md does not record the canon picks: ${need.map((k) => `${k}:`).join(", ")} (canon.mjs prints each line).`);
-    else add(G, "PASS", "Canon picks recorded (palette, type, system, images)");
+    const need = ["Palette", "Type", "Images", "Order"].filter((k) => !new RegExp(`^${k}:\\s*\\S`, "mi").test(plan));
+    if (need.length) add(G, "FAIL", `STRUQ.md does not record: ${need.map((k) => `${k}:`).join(", ")} (SKILL.md, the plan).`);
+    else add(G, "PASS", "Direction and order recorded (palette, type, images, order)");
   }
 }
 
 /* -------------------------------------------------------------------- HERO */
 {
   const G = "HERO";
-  // The hero opener (toonstuk-hero-opener) carries its own photo, WebGL layer, quiet zones and line.
-  const heroFiles = own.filter((f) => /<HeroCanvas\b|<HeroOpener\b/.test(f.text));
-  // The hero is the section around HeroCanvas (or the HeroOpener tag): from the section that opens
-  // before it to the first </section> after it. Photos further down the page do not count.
-  const heroSlice = (text) => {
-    const opener = text.indexOf("<HeroOpener");
-    const at = opener >= 0 ? opener : text.indexOf("<HeroCanvas");
-    if (opener >= 0) return text.slice(at, text.indexOf("/>", at) + 2 || text.length);
-    const open = text.lastIndexOf("<section", at);
-    const close = text.indexOf("</section>", at);
-    return text.slice(open >= 0 ? open : at, close >= 0 ? close : text.length);
-  };
-  // With no fitting pack photo (imageFit none) the opener is typographic or WebGL on purpose.
+  const heroBlock = usesKind("heroes") || usedBlocks.has("showpieces/hero-opener");
   const noFit = /imageFit[^=]*=\s*"none"/.test(read("lib/struq-images.ts") + read("src/lib/struq-images.ts"));
-  const bare = noFit ? [] : heroFiles.filter((f) => !/images\.hero\b|<MediaFrame\b|\bimage=\{/.test(heroSlice(f.text)));
-  if (bare.length) add(G, "FAIL", "Hero without a photo: every pack has hero images, so the hero shows one (HeroOpener, HeroCanvas scene=\"ripple\" image={images.hero[0]}, or a MediaFrame beside the copy). The WebGL field is an atmosphere layer, not the picture.", bare.map((f) => f.rel));
-  else if (heroFiles.length) add(G, "PASS", "The hero carries a photo");
-  const quietless = heroFiles.filter((f) => !/data-quiet|<SplitHeadline\b|<HeroOpener\b/.test(f.text));
-  if (quietless.length) add(G, "FAIL", "The hero copy is not marked: put data-quiet on the headline and the lead (SplitHeadline marks the h1 itself), so the field hushes behind them.", quietless.map((f) => f.rel));
-  // The display line: the opener sets it at 16vw; a hand-built hero needs 10vw or more on desktop.
-  const small = heroFiles.filter((f) => {
-    if (/<HeroOpener\b/.test(f.text)) return false;
-    const slice = heroSlice(f.text);
-    const h1 = slice.match(/<(?:h1|SplitHeadline)\b[^>]*>/g)?.find((tag) => tag.startsWith("<h1") || !/as=["'](h2|h3|p)["']/.test(tag));
-    if (!h1) return false;
-    const vw = [...h1.matchAll(/text-\[(\d+(?:\.\d+)?)vw\]/g)].map((m) => Number(m[1]));
-    return !vw.length || Math.max(...vw) < 10;
-  });
-  if (small.length) add(G, "FAIL", "Hero display line under 10vw: the opener's line runs at 14 to 20vw (text-[19vw] md:text-[16vw]), set across the photo. Use HeroOpener, or size the h1 yourself.", small.map((f) => f.rel));
-  else if (heroFiles.length) add(G, "PASS", "The hero display line runs at poster size");
-  if (own.some((f) => /data-wordmark/.test(f.text))) add(G, "PASS", "A header wordmark (data-wordmark)");
-  else add(G, "FAIL", "No header wordmark: every page has a header with the name as wordmark, marked data-wordmark (references/sections.md, Header).");
-  // The contrast scene: one, at most two, sections on the inverse ground or a full colour field.
-  // Scenes on the page: the class in markup, not its definition in the stylesheet.
+  if (heroBlock) {
+    add(G, "PASS", "A hero block opens the page");
+    const heroUse = own.flatMap((f) => [...f.text.matchAll(/<(Hero[A-Z]\w*)\b[^>]*?\/?>/gs)].map((m) => ({ f, tag: m[0] })));
+    const bare = noFit ? [] : heroUse.filter(({ tag }) => /<Hero(Framed|Split|Index|Still|Poster)\b/.test(tag) && !/\bimages?=\{|\bimage=\{/.test(tag));
+    if (bare.length) add(G, "FAIL", "A photo hero without its photo: pass image={images.hero[0]} (or the client's photo).", bare.map(({ f }) => f.rel));
+  } else {
+    // A hand-built hero: a photo in it and a display line at poster size.
+    const heroFile = own.find((f) => /<h1\b|<SplitHeadline\b/.test(f.text));
+    if (!heroFile) add(G, "FAIL", "No hero: open the page with a hero block (blocks/CATALOG.md, Heroes).");
+    else {
+      const at = heroFile.text.search(/<h1\b|<SplitHeadline\b/);
+      const slice = heroFile.text.slice(Math.max(0, heroFile.text.lastIndexOf("<section", at)), heroFile.text.indexOf("</section>", at) + 1 || undefined);
+      if (!noFit && !/images\.hero\b|<MediaFrame\b|\bimage=\{/.test(slice)) add(G, "FAIL", "Hero without a photo: a hand-built hero shows images.hero[0] (or the client's photo). Or use a hero block.", [heroFile.rel]);
+      const vw = [...(slice.match(/<(?:h1|SplitHeadline)\b[^>]*>/)?.[0] ?? "").matchAll(/text-\[(\d+(?:\.\d+)?)vw\]/g)].map((m) => Number(m[1]));
+      if (!vw.length || Math.max(...vw) < 10) add(G, "FAIL", "Hand-built hero line under 10vw: set it at 12 to 20vw, or use a hero block.", [heroFile.rel]);
+      else add(G, "PASS", "The hand-built hero line runs at poster size");
+    }
+  }
+  if (usesKind("headers") || own.some((f) => /data-wordmark/.test(f.text))) add(G, "PASS", "A header with the wordmark");
+  else add(G, "FAIL", "No header: use header-bar or menu-curtain, or mark your own header's name data-wordmark.");
+  if (usesKind("footers") || usedBlocks.has("showpieces/wordmark-finale")) add(G, "PASS", "A designed footer block closes the page");
+  else add(G, "WARN", "No footer block: close with footer-reveal, footer-contact or wordmark-finale, or design your own as hard as the hero.");
+
   const scenes = own.filter((f) => !f.rel.endsWith(".css")).reduce((n, f) => n + (f.text.match(/\bscene-(inverse|field)\b/g) ?? []).length, 0);
-  if (scenes === 0) add(G, "FAIL", "No contrast scene: wrap one section (the showpiece, the services, the invitation) in scene-inverse or scene-field, so the page does not stay on one ground.");
+  if (scenes === 0) add(G, "FAIL", "No contrast scene: wrap one section in scene-inverse or scene-field, so the page does not stay on one ground.");
   else if (scenes > 2) add(G, "FAIL", `${scenes} contrast scenes: one, at most two, or the contrast stops being a moment.`);
   else add(G, "PASS", `${scenes} contrast scene${scenes > 1 ? "s" : ""}`);
-  // Custom hero scenes live beside the shipped ones; only the shipped files are trusted.
-  const customScenes = files.filter((f) => f.rel.includes("components/struq/scenes/") && !/[/](contours|ripple|dots|types)[.]ts$/.test(f.rel));
-  const geometry = hits(/new\s+THREE\.(Box|Cylinder|Torus|Sphere|Capsule|Cone|Tube|Lathe|Extrude|Tetrahedron|Octahedron|Icosahedron)Geometry\b|<(box|cylinder|torus|sphere|capsule|cone|tube|lathe|extrude)Geometry\b/, { scope: [...own, ...customScenes] });
-  if (geometry.length) add(G, "FAIL", "Hand-built product geometry: never model the client's product from primitives. Use a shared hero scene with the product photography (pack vitrine for a launch).", geometry);
+
+  const geometry = hits(/new\s+THREE\.(Box|Cylinder|Torus|Sphere|Capsule|Cone|Tube|Lathe|Extrude|Tetrahedron|Octahedron|Icosahedron)Geometry\b|<(box|cylinder|torus|sphere|capsule|cone|tube|lathe|extrude)Geometry\b/, { scope: own });
+  if (geometry.length) add(G, "FAIL", "Hand-built product geometry: never model the client's product from primitives. Show the product photography.", geometry);
   else add(G, "PASS", "No product modelled from primitives");
 }
 
 /* --------------------------------------------------------------------- LOG */
-// Every site keeps STRUQ-LOG.md: an entry for each completed checklist step. Step 12 (this check)
-// writes its own entry when this run ends, so it is not required beforehand.
+// Every site keeps STRUQ-LOG.md: an entry for each completed checklist step. Step 8 (this check) writes its own entry
+// when this run ends, so it is not required beforehand.
 {
   const G = "LOG";
   const log = read("STRUQ-LOG.md");
   if (!log) add(G, "FAIL", "No STRUQ-LOG.md. Start it at the first step: node <skill-dir>/scripts/log.mjs \"Step 1 Project\" \"<what>\" \"<why>\".");
   else {
-    const ticked = (plan.match(/^\s*[-*]\s*\[[xX]\]\s*(\d+)/gm) ?? []).map((l) => Number(l.match(/(\d+)\s*$/)[1])).filter((n) => n !== 12);
+    const ticked = (plan.match(/^\s*[-*]\s*\[[xX]\]\s*(\d+)/gm) ?? []).map((l) => Number(l.match(/(\d+)\s*$/)[1])).filter((n) => n !== 8);
     const missing = ticked.filter((n) => !new RegExp(`^## Step ${n}\\b`, "m").test(log));
     const entries = (log.match(/^## /gm) ?? []).length;
     const approval = log.match(/^## Step 2 Approval[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m);
-    if (!approval || !/^Reply:\s*["\u201C\u2018'].+["\u201D\u2019']\s*$/m.test(approval[1])) {
+    if (!approval || !/^Reply:\s*["“‘'].+["”’']\s*$/m.test(approval[1])) {
       add(G, "FAIL", 'No Step 2 Approval entry with the user\'s own reply. The build request is not the approval: stop once, ask "Akkoord? Heb je een logo, foto\'s of echte cijfers, stuur ze nu.", then log the answer word for word: node <skill-dir>/scripts/log.mjs "Step 2 Approval" "Asked: Akkoord? ..." "Reply: \"<their words>\"".');
     } else add(G, "PASS", "The approval stop is logged with the user's reply");
-    // The MCP build line (struq_bouwplan, logged with log.mjs mcp): every arc row gets its
-    // struq_sectiespec, and the one approval stop sits after the bouwplan, before the projectschil.
-    const at = (re) => {
-      const m = re.exec(log);
-      return m ? m.index : -1;
-    };
-    const planAt = at(/^## Step \d+ MCP struq_bouwplan\b/m);
-    if (planAt >= 0) {
-      const planEntry = log.slice(planAt).split(/\n(?=## )/)[0];
-      const rows = Number(planEntry.match(/^Arc rows:\s*(\d+)/m)?.[1] ?? 0);
-      const specRows = new Set([...log.matchAll(/^## Step \d+ MCP struq_sectiespec\b[^\n]*\n(?:(?!## )[^\n]*\n)*?Row:\s*(\d+)/gm)].map((m) => m[1]));
-      if (rows && specRows.size < rows) {
-        add(G, "FAIL", `MCP build line incomplete: ${specRows.size} of ${rows} arc rows have their struq_sectiespec. Call struq_sectiespec for every arc row with the planToken before writing that row, and log it: node <skill-dir>/scripts/log.mjs mcp struq_sectiespec --row <n> --id <arc id>.`);
-      } else if (rows) add(G, "PASS", `MCP build line: struq_sectiespec for all ${rows} arc rows`);
-      const approvalAt = at(/^## Step 2 Approval\b/m);
-      const shellAt = at(/^## Step \d+ MCP struq_projectschil\b/m);
-      if (approvalAt >= 0 && (approvalAt < planAt || (shellAt >= 0 && approvalAt > shellAt))) {
-        add(G, "FAIL", "MCP approval stop out of place: with the MCP, stop once after struq_bouwplan and before struq_projectschil, with the plan and its needs in that one question.");
-      }
-    }
     if (missing.length) add(G, "FAIL", `STRUQ-LOG.md has no entry for ticked step(s) ${missing.join(", ")}. Add one per step with log.mjs: what was done and why.`);
     else add(G, "PASS", `STRUQ-LOG.md has ${entries} entries, one or more for every ticked step`);
   }
@@ -534,7 +500,7 @@ const warns = results.filter((r) => r.status === "WARN").length;
 if (!args.includes("--no-log")) {
   const names = (status) => results.filter((r) => r.status === status).map((r) => `${r.group} ${r.message.split(":")[0].replace(/[.(].*$/, "").trim()}`);
   const passed = results.filter((r) => r.status === "PASS").length;
-  appendLog(root, "Step 12 Check", [
+  appendLog(root, "Step 8 Check", [
     `check.mjs: RESULT ${fails ? "FAIL" : "PASS"}, ${passed} pass, ${fails} fail, ${warns} warn.`,
     ...(fails ? [`Fail: ${names("FAIL").join("; ")}.`] : []),
     ...(warns ? [`Warn: ${names("WARN").join("; ")}.`] : []),

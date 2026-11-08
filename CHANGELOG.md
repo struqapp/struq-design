@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.4.0 (unreleased)
+
+The skill is rebuilt around Struq's admitted block catalogue. The agent sets the direction and the order and writes the copy; the blocks carry the motion.
+
+### Blocks
+- `skills/struq/blocks/`: the 44 admitted blocks from Struq staging 3680053 (4 preloaders, 3 page transitions, 2 headers, 5 heroes, 3 WebGL backgrounds, 9 showpieces, 1 scene transition, 15 sections, 2 footers), each with the files it imports and its three variants, plus the kit. Candidates (the two cursors, before-after) stay out.
+- `blocks/CATALOG.md` and `catalog.json`: slug, kind, title, what it does, variants, packages, exports and files, generated.
+- `scripts/release-blocks.mjs` (repo only, not shipped): copies the admitted set, the kit and the canon from a Struq git ref at release. A copy, never an import.
+- `blocks.mjs list | init | add <slug>` replaces `recipes.mjs`: a block lands in `components/struq/` with everything it imports, in Struq's layout, and its packages are installed. `init` leaves the WebGL hero layer out until a block needs three.
+- The nine 0.3 toonstuk files and the 0.3 recipe components are gone: all nine showpieces were admitted as blocks, and every recipe component lives on in the kit.
+
+### Direction
+- `canon.mjs` works offline from `canon/canon.json` (33 palettes with the sixteen values nudged on 2026-11-08, 10 pairings, each face's real weight range) and writes the token block Struq's lab and `struq_richting` give: the surface ladder held on the ground's hue, oklab mixes, `--photo-ground`, the field and inverse roles, the accent's ink by contrast, the pairing's display weight and faces. `app/fonts.ts` carries the lab's own Google Fonts requests. A test holds the output to the lab's, value for value.
+- The design systems, arcs and niche packets are gone; the order of a studio site is taught in SKILL.md.
+
+### Instructions
+- SKILL.md is rewritten lean: the four MCP tools (`struq_richting`, `struq_blokken`, `struq_blok`, `struq_controle`) beside their offline equivalents, an eight-step checklist, the order of a studio site with the blocks for each slot, how to pick blocks and variants, and the lessons that make the blocks feel high end.
+- `references/craft.md` (clip from numbers, whole pixels, decode before show, scroll-tied and reversing, the `.sq-js` gate with its 3 s fallback, the measured calm side under a light veil, light display weights, real faces measured) and `references/tells.md` (the combined tell list) replace 35 references.
+- Struq Icons is the default; Phosphor light is the one fallback.
+
+### Check
+- `check.mjs` checks what a page owes its blocks: the `sq-js` gate and `data-blocks` scope in the layout, at least one block, a hero with its photo, a header, a footer, one contrast scene, and a heavy display weight only at a poster pairing. Tells scan your own files, not the admitted blocks; glow joins the list. The build line checks are gone.
+
 ## 0.3.0 (2026-11-06)
 
 The skill is rebuilt around one critical path a small model can follow: a Build checklist ticked in STRUQ.md, tested components instead of hand-written plumbing, and scripts that check the result.

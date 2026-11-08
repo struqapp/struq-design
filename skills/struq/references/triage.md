@@ -37,25 +37,25 @@ change its dress.
 ## Fair game: fix freely (this is what you were called for)
 
 - **Layout / structure / IA**: restructure sections, reorder, break the grid, fix the
-  symmetric "SaaS stack." Layout is execution, not identity. ([page-architecture.md](page-architecture.md))
+  symmetric "SaaS stack." Layout is execution, not identity: swap in blocks where the page is weakest (the hero, the work, the footer first).
 - **Spacing rhythm**: kill uniform `py-16`, vary padding by section role.
 - **Type scale + weight**: fix the five-mid-sizes problem, lighten hero weights, enforce
-  the readable floor and contrast minimums ([anti-patterns.md](anti-patterns.md) §12). If the
+  the readable floor and contrast minimums. If the
   brand already owns its typefaces, keep them and change how they are set, not which they are
-  ([typography.md](typography.md)).
+  (their faces go into --face-display and --face-body).
 - **Surfaces / elevation**: replace `shadow-lg` cards with the tonal ladder.
 - **Motion / reveals**: replace opacity-only fades, add transform+stagger, fix easing.
 - **Scaling**: convert px-everything + per-breakpoint size ladders to the fluid root-rem
-  system ([scaling.md](scaling.md)).
+  system ([craft.md](craft.md)).
 - **Icon misuse**: remove Sparkles/Rocket/Zap/emoji, colored chips, decorative filler;
   consolidate to one icon family ([iconography.md](iconography.md)): the brand's own set if it has one, else Struq Icons (`@struq/icons`). A redesign that already uses one coherent non-Lucide family keeps it (preserve by default); one family per site, never mixed.
-- **Everything in [anti-patterns.md](anti-patterns.md)**: that gallery is the fix list.
+- **Everything in [tells.md](tells.md)**: that list is the fix list.
 
 ---
 
 ## Workflow
 
-1. **Scan** with [anti-patterns.md](anti-patterns.md) and collect every tell.
+1. **Scan** with check.mjs (and struq_controle when connected) and [tells.md](tells.md); collect every tell.
 2. **Filter** the findings through the preserve-list above. A "fix" that reassigns brand
    color, rewrites copy, or replaces a component primitive is dropped (or downgraded to a
    *suggestion* the user can opt into), not applied.
@@ -68,4 +68,3 @@ change its dress.
 When unsure whether something is identity or execution, **ask** rather than assume, but
 default to preserving the three categories above.
 
-If the work started from a brief, [brief-router.md](brief-router.md) still runs, with this file's rules overriding it: identity is preserved and the router only re-decides execution.

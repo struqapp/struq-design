@@ -333,7 +333,7 @@ async function main() {
   if (droppedImages.length) console.log(`Left out ${droppedImages.length} photos that do not fit this client (${[...new Set(droppedImages.map((d) => d.reason))].join("; ")}).`);
   console.log("Captions: write them from each photo's alt below. Never name a subject the photo does not show.");
   if (imageFit === "none") {
-    console.log("NONE of this pack's photos fits the brief. Do not use photos: the opener is typographic or the WebGL scene (HeroOpener without image).");
+    console.log("NONE of this pack's photos fits the brief. Use no photos: a background block (aurora, silk, facets) carries the hero's type.");
     console.log("Say so at the approval stop: \"Ik heb geen foto's van je <product>: stuur ze, dan komen ze in de hero.\"");
   } else if (imageFit === "partial") {
     console.log(`Only ${entries.length} photo(s) fit: use them where their alt fits (the material, the city, the street), and nowhere else.`);
@@ -345,7 +345,7 @@ async function main() {
   if (plates > 0) {
     console.log(`\nWARN ${plates} slot(s) use fallback plates. Run this script again when struq.nl answers.`);
   }
-  appendLog(root, "Step 5 Images", [
+  appendLog(root, "Step 4 Images", [
     `images.mjs: pack ${slug} (${why}), ${real} images downloaded and verified, ${plates} fallback plates.`,
     ...(droppedImages.length ? [`Left out ${droppedImages.length} photos that do not fit this client: ${[...new Set(droppedImages.map((d) => d.reason))].join("; ")}.`] : []),
     ...(imageFit !== "full" ? [`Image fit: ${imageFit}${imageFit === "none" ? ", the opener is typographic or WebGL, and the approval stop asks for photos" : ""}.`] : []),

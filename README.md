@@ -2,7 +2,7 @@
 
 **Award-tier web design for your coding agent.**
 
-Struq is a design skill for Claude Code, Codex, Cursor and OpenCode. Give it a brief and it builds a cinematic, agency-grade site: the kind with large light type, a restrained palette, smooth scroll, masked reveals, a pinned showpiece, full-screen page transitions and, where it earns its place, a 3D moment. It ships the decisions an award-winning studio makes, in the order they make them, on the stack they use.
+Struq is a design skill for Claude Code, Codex, Cursor and OpenCode. Give it a brief and it builds a studio-grade site from Struq's catalogue of admitted blocks: preloaders, page transitions, headers, heroes, WebGL backgrounds, showpieces, sections and footers, each judged against an award-tier reference and shipped as real files with three variants. Your agent picks the direction and the order, writes the copy and joins the blocks; the blocks carry the motion.
 
 The icon set the skill uses by default, Struq Icons, is browsable at [struq.nl/iconen](https://struq.nl/iconen).
 
@@ -26,16 +26,7 @@ It finds the AI tools on your machine and installs the skill into each of them. 
 
 ## Same brief, with and without Struq
 
-Three briefs, each built twice by the same model with the same materials: once as a plain coding agent, once with `/struq`. An independent reviewer then scored all six sites **blind**, from screenshots only, without knowing which side used the skill.
-
-| Brief | Without | With Struq | Invented facts (without / with) | Template tells (without / with) |
-|---|---|---|---|---|
-| Ceramicist portfolio, no logo, no photos | 56 | **79** | 14 / 5 | 6 / 3 |
-| E-bike launch, existing brand, wants 3D | 66 | **76** | 11 / 3 | 6 / 3 |
-| Open-source dev-tool landing page | 50 | **76** | 11 / 2 | 10 / 2 |
-| **Average** | **57** | **77** | **36 / 10** | **22 / 8** |
-
-Scored out of 100 on typography, composition, color, concept, motion, content honesty, craft and distinctiveness. "Invented facts" counts claims the brief never gave: quotes, bios, stats, specs, API names.
+Three briefs, each built twice by the same model with the same materials: once as a plain coding agent, once with `/struq`.
 
 **Dev-tool landing page.** Without: the dark developer-tool template, item for item. With: a light page built around a trace waterfall that assembles as you scroll.
 
@@ -59,40 +50,34 @@ Where Struq lost points: craft. The plain builds are less ambitious and break le
 
 ## What you get
 
-**One recipe, fixed on purpose.** The expensive feel comes from these pieces sharing one animation clock, not from any single effect.
-
-| Layer | Tooling |
+| Part | What it is |
 |---|---|
-| Typography | Two faces from the Signature pairing set, set through role tokens. Display runs large and light (300 to 400). A fluid scale, one typographic signature move per site, SplitText choreography. |
-| Palette | Temperature-shifted neutrals, one accent, light and dark surface ladders |
-| Scroll | Lenis on the GSAP ticker, ScrollTrigger scrub, masked reveals, never opacity-only fades |
-| Showpieces | 23 named recipes, each tagged showpiece or system: pinned scrub timelines, horizontal galleries, sticky stacks, path journeys, manifesto fills |
-| SVG | DrawSVG and MorphSVG: self-drawing marks, logo morphs, scroll-drawn paths |
-| Pointer | Magnetic buttons, cursor followers, hover scenes, image distortion |
-| Page flow | Full-screen cover, swap and reveal route transitions, session-gated loaders, Radix overlay menus |
-| 3D | Three.js, React Three Fiber, Drei and postprocessing as lazy islands with poster fallbacks |
-| Direction | A directed mode for full WebGL experiences: chapters, camera shots, handoffs, ownership |
+| Blocks | 44 admitted blocks in `skills/struq/blocks/` ([catalogue](skills/struq/blocks/CATALOG.md)): 4 preloaders, 3 page transitions, 2 headers, 5 heroes, 3 WebGL backgrounds, 9 showpieces, a scene transition, 15 sections and 2 footers, with the kit they stand on. A copy of Struq's own set, refreshed at every release. |
+| Direction | Struq's palettes and type pairings, written as the one token block the blocks read (surface ladder, contrast scenes, the accent's ink) with each face loaded at its real weights. Offline, no account. |
+| Photos | Art-directed CC0 packs from the Struq beeldbank, picked by the brief and filtered to what fits the client. |
+| Craft | The rules that make the blocks feel high end, for the code between them: clips from numbers, whole pixels, decode before show, scroll-tied and reversing, a gate with a 3 s fallback, type on the measured calm side of a photo. |
+| Check | `check.mjs`: the tell list (eyebrows, pills, gradients, glow, mono, Inter, default purple, numbered steps, icon grids, dashes) and what a page owes its blocks. |
+| MCP | With the Struq MCP connected, the same four jobs come from `struq_richting`, `struq_blokken`, `struq_blok` and `struq_controle`. Without it the skill works from its own copy. |
 
-Stack: Next.js App Router and Tailwind by default, Vite supported. It reads the versions your project has installed and adapts to them; nothing is pinned. Every GSAP plugin used is free on npm. Icons: [Struq Icons](https://struq.nl/iconen) (`@struq/icons`, MIT) by default.
+Stack: Next.js App Router and Tailwind v4 (Vite by hand, see `references/stack-targets.md`). Every GSAP plugin used is free on npm. Icons: [Struq Icons](https://struq.nl/iconen) (`@struq/icons`, MIT) by default.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
 | `/struq <brief>` | Plans the site into one `STRUQ.md`, stops once for your approval, builds it, then runs its own check and, with a browser tool, screenshots it and fixes what it sees |
-| `/struq redesign <path>` | Keeps your brand, copy and components; rebuilds the execution |
-| `/struq audit <path-or-url>` | Changes nothing. Returns a score out of 100, every tell with its fix, and the three highest-payoff changes |
+| `/struq redesign <path>` | Keeps your brand, copy and components; swaps in blocks where the page is weakest |
+| `/struq audit <path-or-url>` | Changes nothing. Returns every tell with its fix and the three highest-payoff changes |
 | `/struq direct <brief>` | Directed mode for one continuous 3D experience across chapters |
 
 In Codex, use `$struq` instead of `/struq`; as a Claude Code plugin the command is `/struq:struq`.
 
 ## How a build runs
 
-1. **Plan.** A short plan in `STRUQ.md` with a Build checklist the agent ticks as it goes. It never invents testimonials or stats.
-2. **One stop.** It shows the plan and asks once: approve, and send a logo, photos or real numbers if you have them. A plain yes builds with the canon picks.
-3. **Canon.** Palette, type pairing and section order come from Struq's own canon (`struq.nl/api/assets`), not from the defaults every AI falls back on. The photos come from the matching Struq beeldbank pack, so no frame is ever empty.
-4. **Build.** Tested components do the cinematic floor on every site: Lenis smooth scroll on one GSAP clock, a SplitText hero, masked reveals, one pinned or horizontal showpiece, a WebGL hero layer with a poster fallback, a magnetic CTA.
-5. **Check.** `check.mjs` scans the project for empty frames, the AI tells (eyebrows, gradients, pills, mono, Inter, purple), the motion floor and the typography, and the build is only done when it passes. With a browser tool it also screenshots and fixes what it sees.
+1. **Direction.** A palette, a type pairing and a photo pack from Struq's canon, and the order of the site from the catalogue: arrival, header, hero, manifesto, about, approach, work, closing call to action, footer. All in one `STRUQ.md`. It never invents testimonials or stats.
+2. **One stop.** It shows the plan and asks once: approve, and send a logo, photos or real numbers if you have them.
+3. **Blocks.** It installs each block with everything it imports, writes the tokens and fonts, and composes the page with your real copy.
+4. **Check.** `check.mjs` runs until it passes; with a browser tool it also looks at the page at phone and desktop width and fixes what it sees.
 
 ## Install options
 
@@ -132,11 +117,12 @@ npm install @struq/icons
 
 ## What it fetches and sends
 
-Struq is instructions, reference files, copy-in components and five small Node scripts (`recipes.mjs`, `canon.mjs`, `images.mjs`, `check.mjs`, `log.mjs`) that your agent runs in your project. They read and write files in your project, including a build log, `STRUQ-LOG.md`, and make the public requests below; they collect or send nothing about you or your project.
+Struq is instructions, the block files and five small Node scripts (`blocks.mjs`, `canon.mjs`, `images.mjs`, `check.mjs`, `log.mjs`) that your agent runs in your project. They read and write files in your project, including a build log (`STRUQ-LOG.md`).
 
-- **Canon.** `canon.mjs` reads the public palettes, pairings and design systems at `https://struq.nl/api/assets`, and downloads a Fontshare face from `api.fontshare.com` when a pairing needs one. No account, no key.
-- **Photos, for every slot your own photos do not fill.** The skill has your agent read the public pack list at `https://struq.nl/api/media/packs` and download the chosen images from `https://struq.nl/media/packs/` into your project. These are plain public requests: no account, no key, and nothing from your project goes with them. The images are CC0.
-- **Checks.** The screenshot and performance checks run against your own local dev server, with your agent's own browser tool.
+- **Blocks and canon.** Shipped inside the skill. Nothing is fetched to install a block or write the tokens.
+- **Fonts.** The site links Google Fonts (or Fontshare for a face that lives there) from the visitor's browser, as any site with web fonts does.
+- **Photos, for every slot your own photos do not fill.** `images.mjs` reads the public pack list at `https://struq.nl/api/media/packs` and downloads the chosen images from `https://struq.nl/media/packs/` into your project. Offline it writes plates graded to your palette instead.
+- **The MCP, if you connect it.** Your agent calls Struq's tools with your brief; nothing else leaves your machine.
 - **The installer.** `npx @struq/skill@latest` downloads the package from npm, looks for the AI tools' folders in your home folder and copies the skill into them. It sends nothing.
 
 ## License

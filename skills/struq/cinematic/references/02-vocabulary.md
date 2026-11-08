@@ -138,7 +138,7 @@ Offsetting related elements. A stagger should communicate reading order, directi
 Mapping scroll progress to a timeline playhead.
 
 ### Smoothing
-Reducing abrupt changes in a signal. Lenis smoothing, ScrollTrigger scrub smoothing, and manual damping should be assigned intentionally rather than stacked without control. Pair them the way the main skill does in [`../../references/feel-layer.md`](../../references/feel-layer.md): lower the Lenis lerp, lower the scrub number, and use `scrub: true` for attached layers and a small number for floating ones.
+Reducing abrupt changes in a signal. Lenis smoothing, ScrollTrigger scrub smoothing, and manual damping should be assigned intentionally rather than stacked without control. Pair them: lower the Lenis lerp, lower the scrub number, and use `scrub: true` for attached layers and a small number for floating ones.
 
 ### Easing
 The mathematical shape of a known transition between values.
