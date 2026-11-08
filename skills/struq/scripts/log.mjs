@@ -3,7 +3,7 @@
 // STRUQ.md is the plan and the contract; STRUQ-LOG.md is what happened, in order.
 //
 // From the shell, at every checklist step:
-//   node <skill-dir>/scripts/log.mjs "Step 6 Hero" "Built components/site/Hero.tsx with HeroCanvas contours." "Why: calm, precise brief."
+//   node <skill-dir>/scripts/log.mjs "Step 5 Blocks" "hero-still, variant frame, in app/page.tsx." "Why: one calm photo for an architect."
 //   add --dir <project> to run from elsewhere
 //
 // From a script: import { appendLog } from "./log.mjs"; appendLog(root, "Step 5 Images", ["...", "..."]);
@@ -52,33 +52,16 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const i = args.indexOf("--dir");
   const root = resolve(i >= 0 ? args[i + 1] : process.cwd());
   const rest = i >= 0 ? args.filter((_, j) => j !== i && j !== i + 1) : args;
-  // MCP calls: node log.mjs mcp <tool> [--rows <arc rows>] [--token <planToken>] [--row <n>] [--id <arc id>] [--note "<text>"]
+  // MCP calls: node log.mjs mcp <struq_tool> [--note "<what it returned or what you took from it>"]
   if (rest[0] === "mcp") {
     const tool = rest[1];
-    const opt = (name) => {
-      const k = rest.indexOf(name);
-      return k >= 0 ? rest[k + 1] : undefined;
-    };
-    const STEP = { struq_bouwplan: 2, struq_projectschil: 3, struq_motion: 3, struq_achtergrond: 3, struq_sectiespec: 7 };
+    const k = rest.indexOf("--note");
+    const STEP = { struq_richting: 2, struq_blokken: 2, struq_blok: 5, struq_controle: 8 };
     if (!tool || !/^struq_/.test(tool)) {
-      console.error("Usage: node log.mjs mcp <struq_tool> [--rows <n>] [--token <planToken>] [--row <n>] [--id <arc id>] [--note \"<text>\"]");
+      console.error('Usage: node log.mjs mcp <struq_tool> [--note "<text>"]');
       process.exit(2);
     }
-    if (tool === "struq_bouwplan" && !opt("--rows")) {
-      console.error("Log the bouwplan with its arc length: --rows <number of arc rows>, so the check can count the sectiespec calls.");
-      process.exit(2);
-    }
-    if (tool === "struq_sectiespec" && !opt("--row")) {
-      console.error("Log each sectiespec with the arc row it is for: --row <arc index> --id <arc id>.");
-      process.exit(2);
-    }
-    const lines = [
-      opt("--rows") ? `Arc rows: ${opt("--rows")}` : null,
-      opt("--row") ? `Row: ${opt("--row")}${opt("--id") ? ` (${opt("--id")})` : ""}` : null,
-      opt("--token") ? `Plan token: ${opt("--token")}` : null,
-      opt("--note") ?? (tool === "struq_bouwplan" ? "The plan; the one approval stop comes next, before struq_projectschil." : "Called."),
-    ].filter(Boolean);
-    const file = appendLog(root, `Step ${STEP[tool] ?? 7} MCP ${tool}`, lines);
+    const file = appendLog(root, `Step ${STEP[tool] ?? 5} MCP ${tool}`, [k >= 0 ? rest[k + 1] : "Called."]);
     console.log(`Logged ${tool} in ${file}`);
     process.exit(0);
   }
