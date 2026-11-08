@@ -73,7 +73,7 @@ Key integration responsibilities:
 - Lenis is stopped during states that require scroll lock.
 - native nested scrolling is handled deliberately.
 
-Lenis must be created with `autoRaf: false`. If it keeps its own animation loop it becomes a second clock next to `gsap.ticker`, and scroll, ScrollTrigger and the canvas drift apart by a frame. The canonical setup lives in [`../../references/setup.md`](../../references/setup.md); this is the conceptual shape.
+Lenis must be created with `autoRaf: false`. If it keeps its own animation loop it becomes a second clock next to `gsap.ticker`, and scroll, ScrollTrigger and the canvas drift apart by a frame. The canonical setup is the kit's `SmoothScroll` (`blocks/kit/SmoothScroll.tsx`); this is the conceptual shape.
 
 Conceptual setup:
 
@@ -102,7 +102,7 @@ Do not add CSS `scroll-behavior: smooth` on top of Lenis.
 
 ## R3F frame-loop options
 
-The single-clock rule applies: the canvas is rendered from `gsap.ticker`, the same callback chain that advances Lenis. The exact bridge is documented in [`../../references/webgl-r3f.md`](../../references/webgl-r3f.md) and shown in [`../examples/code/shared/GsapFrameLoop.tsx`](../examples/code/shared/GsapFrameLoop.tsx).
+The single-clock rule applies: the canvas is rendered from `gsap.ticker`, the same callback chain that advances Lenis. The exact bridge is shown in [`../examples/code/shared/GsapFrameLoop.tsx`](../examples/code/shared/GsapFrameLoop.tsx).
 
 ### Ticker-driven loop (default)
 

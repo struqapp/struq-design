@@ -71,7 +71,7 @@ Do not start with a library checklist. Start with the experience, then assign li
 
 Write a one-paragraph **experience thesis** containing what the viewer is doing, what the visual world is doing, how the emotional intensity changes, what makes the experience continuous, and what the final resolution should feel like.
 
-Then define a compact **experience contract**: persistent stage strategy, chapter count and purpose, primary transition language, input ownership, camera character, typography behavior (decided with [`../references/typography.md`](../references/typography.md)), performance class, reduced-motion strategy and prohibited generic patterns.
+Then define a compact **experience contract**: persistent stage strategy, chapter count and purpose, primary transition language, input ownership, camera character, typography behavior (the pairing's faces and display weight), performance class, reduced-motion strategy and prohibited generic patterns.
 
 ### Phase 2: Map chapters
 
@@ -212,7 +212,7 @@ Use these defaults unless the project requires another allocation.
 | Observer | Gesture normalization for wheel, touch, pointer and intent-driven state changes. |
 | CustomEase, CustomWiggle, CustomBounce | Project-specific motion character where standard eases are not enough. |
 
-Do not let GSAP and Motion control the same property on the same element at the same time. Drei helpers, postprocessing and interactive scene patterns are covered in [`../references/webgl-scenes.md`](../references/webgl-scenes.md). Integration detail is in [`references/07-stack-integration.md`](references/07-stack-integration.md).
+Do not let GSAP and Motion control the same property on the same element at the same time. Integration detail is in [`references/07-stack-integration.md`](references/07-stack-integration.md).
 
 ## Response behavior
 

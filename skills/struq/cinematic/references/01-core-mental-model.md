@@ -118,7 +118,7 @@ These transitions should have explicit entry, active, and exit states.
 
 ## One clock, several signals
 
-There is exactly one frame clock. Lenis is advanced from `gsap.ticker`, ScrollTrigger reads from Lenis, and the R3F canvas is advanced from the same ticker (see [`../../references/setup.md`](../../references/setup.md) and [`../../references/webgl-r3f.md`](../../references/webgl-r3f.md)). Nothing in the experience runs its own `requestAnimationFrame` loop. Scroll progress and elapsed time are different signals read on that one clock, not different clocks.
+There is exactly one frame clock. Lenis is advanced from `gsap.ticker`, ScrollTrigger reads from Lenis, and the R3F canvas is advanced from the same ticker (the kit's `SmoothScroll` and [`../examples/code/shared/GsapFrameLoop.tsx`](../examples/code/shared/GsapFrameLoop.tsx)). Nothing in the experience runs its own `requestAnimationFrame` loop. Scroll progress and elapsed time are different signals read on that one clock, not different clocks.
 
 At minimum, distinguish:
 
