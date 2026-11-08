@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "struq": {
+      "type": "http",
+      "url": "https://struq.nl/api/mcp"
+    }
+  }
+}
