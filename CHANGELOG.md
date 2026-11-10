@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.2 (2026-11-10)
+
+Two bugs from the first Haiku build on 0.4.1, both past a passing check.
+
+### Images
+- `images.mjs` no longer keeps a photo another pack left behind. A file is kept only when the last run downloaded it
+  from the same source; slot files the new run did not write are removed. Before, switching packs left old photos
+  under the new pack's alts and captions.
+- `struq-pack.json` records each file's size.
+
+### Check
+- `check.mjs` fails on a photo whose size differs from the one `images.mjs` recorded.
+- New tell: notes to the client on the page ("volgen zodra de studio ze aanlevert", "coming soon", "[telefoon]").
+  Leave the missing fact out and list it under Assumptions. In `references/tells.md` too.
+
 ## 0.4.1 (2026-11-08)
 
 ### Blocks

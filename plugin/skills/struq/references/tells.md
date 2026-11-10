@@ -45,6 +45,9 @@ files; the rest are judged by eye. The fix is beside each.
 - Emoji and the cliche icons (sparkles, rocket, lightning, bulb, wand). Fix: Struq Icons, functional only. (check)
 - Invented facts: testimonials, client logos, stats, awards, prices, addresses, hours, bios, quotes the brief did not
   give. Fix: leave them out and list them under Assumptions.
+- **Notes to the client on the page:** "het e-mailadres volgt zodra de studio het aanlevert", "coming soon", "[telefoon]",
+  "to be confirmed". Honest, but a visitor reads it as an unfinished site. Fix: leave the missing fact out of the page
+  (drop the line, the column or the link) and list it under Assumptions in STRUQ.md. (check)
 
 ## Judged by eye
 

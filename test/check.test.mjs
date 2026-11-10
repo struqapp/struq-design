@@ -187,6 +187,23 @@ test('media captions may be small caps; section eyebrows may not', () => {
   assert.ok(fails(run(fixture({ extra: { 'components/Eye.tsx': eyebrow } })), 'Eyebrows'));
 });
 
+test('a photo left by an earlier pack fails under this pack\'s caption', () => {
+  const photo = 'x'.repeat(9000);
+  const pack = (bytes) => JSON.stringify({ pack: 'datum', images: [{ file: 'public/images/band-2.webp', slot: 'band', source: 'https://struq.nl/media/packs/datum/b.webp', bytes }] });
+  const stale = { 'public/images/band-2.webp': photo, 'public/images/struq-pack.json': pack(12345) };
+  assert.ok(fails(run(fixture({ extra: stale })), 'not the ones their alt and caption describe'));
+  const fresh = { 'public/images/band-2.webp': photo, 'public/images/struq-pack.json': pack(photo.length) };
+  assert.ok(!fails(run(fixture({ extra: fresh })), 'not the ones their alt and caption describe'));
+});
+
+test('a note to the client never reaches the page', () => {
+  const note = 'export const F = () => <footer><p>Het e-mailadres en telefoonnummer volgen zodra de studio ze aanlevert.</p></footer>;\n';
+  assert.ok(fails(run(fixture({ extra: { 'components/F.tsx': note } })), 'Notes to the client'));
+  const bracket = 'export const F = () => <footer><a href="tel:">[telefoon]</a></footer>;\n';
+  assert.ok(fails(run(fixture({ extra: { 'components/F.tsx': bracket } })), 'Notes to the client'));
+  assert.ok(!fails(run(fixture()), 'Notes to the client'));
+});
+
 test('manifesto chips show a subject, never a texture', () => {
   const texture = 'export const M = () => <ManifestoScrub text="a {0} b" images={[images.detail[0], images.card[1]]} />;\n';
   assert.ok(fails(run(fixture({ extra: { 'components/M.tsx': texture } })), 'Inline manifesto photo'));

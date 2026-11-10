@@ -18,8 +18,10 @@
 // 4. If struq.nl cannot be reached, or a file fails its check, it writes a graded fallback plate
 //    in the site palette for that slot instead, so no frame is ever empty, and says so.
 //
-// Node 18 or later, no dependencies. Safe to run again: valid files are kept.
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+// Node 18 or later, no dependencies. Safe to run again: a file is kept only when the last run
+// downloaded it from the same source (struq-pack.json records each one); a file from another pack
+// is replaced, and a slot file the new pack no longer fills is removed.
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { appendLog } from "./log.mjs";
 import { fitImages, packForBrief, packReason } from "./packs.mjs";
@@ -201,6 +203,28 @@ ${body}
   return file;
 }
 
+/** file -> source from the last run's struq-pack.json; empty when there was no run or it is unreadable. */
+function readManifest(outDir) {
+  try {
+    const data = JSON.parse(readFileSync(join(outDir, "struq-pack.json"), "utf8"));
+    return new Map((data.images ?? []).map((i) => [i.file, i.source]));
+  } catch {
+    return new Map();
+  }
+}
+
+/**
+ * Removes the slot files (hero-1.webp, card-3.svg, ...) this run did not write, so a photo or plate
+ * from an earlier pack can never sit under this pack's caption. Other files in public/images stay.
+ */
+function removeStale(outDir, manifest) {
+  const written = new Set(manifest.map((m) => m.file.split("/").pop()));
+  const slotFile = new RegExp(`^(${SLOTS.join("|")})-\\d+\\.(webp|svg)$`);
+  for (const name of readdirSync(outDir)) {
+    if (slotFile.test(name) && !written.has(name)) unlinkSync(join(outDir, name));
+  }
+}
+
 async function list() {
   const index = await getJson(API);
   console.log(`${index.packCount} packs, ${index.totalImages} images, ${index.license}\n`);
@@ -220,6 +244,7 @@ async function main() {
   const outDir = join(root, "public", "images");
   mkdirSync(outDir, { recursive: true });
   const palette = readPalette();
+  const previous = readManifest(outDir);
 
   let pack = null;
   let droppedImages = [];
@@ -268,7 +293,9 @@ async function main() {
       while (cursor < jobs.length) {
         const job = jobs[cursor++];
         const target = join(outDir, `${job.name}.webp`);
-        const ok = fileIsImage(target) || (await download(imageUrl(job.img), target));
+        const source = imageUrl(job.img);
+        const kept = previous.get(`public/images/${job.name}.webp`) === source && fileIsImage(target);
+        const ok = kept || (await download(source, target));
         if (ok) {
           real++;
           entries.push({
@@ -282,7 +309,8 @@ async function main() {
             description: job.img.description ?? "",
             negativeSpace: job.img.negativeSpace ?? "",
           });
-          manifest.push({ file: `public/images/${job.name}.webp`, id: job.img.id, slot: job.img.slot, source: imageUrl(job.img) });
+          // bytes lets check.mjs tell this file from one an earlier pack left under the same name.
+          manifest.push({ file: `public/images/${job.name}.webp`, id: job.img.id, slot: job.img.slot, source, bytes: statSync(target).size });
         } else {
           plates++;
           const size = [job.img.width ?? FALLBACK_SIZE[job.img.slot][0], job.img.height ?? FALLBACK_SIZE[job.img.slot][1]];
@@ -326,6 +354,7 @@ async function main() {
   }
 
   entries.sort((a, b) => SLOTS.indexOf(a.slot) - SLOTS.indexOf(b.slot) || a.order - b.order);
+  removeStale(outDir, manifest);
   writeFileSync(join(outDir, "struq-pack.json"), JSON.stringify({ pack: slug, images: manifest }, null, 2) + "\n");
   const module = writeModule(entries, slug, !pack, imageFit);
 
