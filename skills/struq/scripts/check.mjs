@@ -154,6 +154,22 @@ const plan = read("STRUQ.md");
   }
   if (brokenPhotos.length) add(G, "FAIL", "These image files are not real images (an error page saved as .webp?). Delete them and run images.mjs again.", brokenPhotos.map(rel));
 
+  // A file whose size differs from the one images.mjs recorded is not the photo its alt and caption
+  // describe: a run of another pack, or a hand copy, left it under the same name.
+  const manifestFile = join(pub, "images", "struq-pack.json");
+  if (existsSync(manifestFile)) {
+    let recorded = [];
+    try {
+      recorded = JSON.parse(readFileSync(manifestFile, "utf8")).images ?? [];
+    } catch {
+      add(G, "WARN", "public/images/struq-pack.json is not readable JSON. Run images.mjs again.");
+    }
+    const mismatched = recorded
+      .filter((m) => typeof m.bytes === "number" && existsSync(join(root, m.file)) && statSync(join(root, m.file)).size !== m.bytes)
+      .map((m) => m.file);
+    if (mismatched.length) add(G, "FAIL", "These photos are not the ones their alt and caption describe (left by an earlier pack or copied by hand). Run images.mjs again with the pack you chose.", mismatched);
+  }
+
   // Each pack reference (images.card[2], images.card.slice(0, 5)) or own image tag counts once.
   const used = own.reduce((n, f) => n + (f.text.match(/images\.(hero|band|card|column|detail|backdrop)\b|<img\b|src=["'{`]\/images\//g) ?? []).length, 0);
   const total = Object.values(slotCount).reduce((a, b) => a + b, 0);
@@ -216,6 +232,11 @@ const plan = read("STRUQ.md");
     else if (!opts.quietPass) add(G, "PASS", `No ${name.toLowerCase()}`);
   };
   const ownOnly = { scope: own };
+
+  // Copy
+  tell("Notes to the client on the page",
+    /volg(?:t|en) zodra|zodra (?:de studio|de klant|je|jullie|we)\b[^"'<>]{0,40}(?:aanlever|doorgeef|doorgeven|binnen)|nog aan te leveren|wordt nog aangevuld|lorem ipsum|\bcoming soon\b|to be confirmed|\bTBC\b|\[(?:naam|adres|telefoon|e-?mail|name|phone|address)\]/i,
+    "a line written to the client or the developer is not copy. Leave a missing fact out of the page and list it under Assumptions: in STRUQ.md.");
 
   // Type and labels
   tell("Eyebrows and uppercase labels", /\buppercase\b|text-transform:\s*uppercase|\b(eyebrow|kicker|overline)\b/i,
