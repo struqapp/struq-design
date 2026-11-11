@@ -14,6 +14,7 @@ import { approvedProject } from './treatment.mjs';
 const BLOCKS_DIR = fileURLToPath(new URL('../skills/struq/blocks/', import.meta.url));
 const CLI = fileURLToPath(new URL('../skills/struq/scripts/blocks.mjs', import.meta.url));
 const CHECK = fileURLToPath(new URL('../skills/struq/scripts/check.mjs', import.meta.url));
+const SKILL = fileURLToPath(new URL('../skills/struq/SKILL.md', import.meta.url));
 const film = JSON.parse(readFileSync(join(BLOCKS_DIR, 'film.json'), 'utf8'));
 const LANGUAGES = film.FILM_LANGUAGES.map((l) => l.id);
 
@@ -67,6 +68,75 @@ test('film.json carries the three languages and an arc for each, as arcs.ts expo
       assert.ok(s.blocks.length || s.own, `${arc.language} ${s.name} has no block and no own scene`);
     }
   }
+});
+
+// why: SKILL.md keeps one short arc per language for the agent that never runs `arc`. Written by hand, it drifted from
+// the data before: a block the data had dropped stayed in the prose, and a small model built from the prose.
+/** SKILL.md's arc for a language: its numbered lines under the bold `**<language>.**` line. */
+function skillArc(language, text = readFileSync(SKILL, 'utf8')) {
+  const lines = text.split(/\r?\n/);
+  const at = lines.findIndex((l) => l.startsWith(`**${language}.**`));
+  if (at < 0) return [];
+  const arc = [];
+  for (const line of lines.slice(at + 1)) {
+    if (/^\d+\.\s/.test(line)) arc.push(line);
+    else if (/^\s+\S/.test(line) && arc.length) arc[arc.length - 1] += ` ${line.trim()}`;
+    else break;
+  }
+  return arc;
+}
+
+/** The backticked names on an arc line, a bare `:variant` read against the slug before it. */
+function namesOn(line) {
+  const names = [];
+  for (const [, token] of line.matchAll(/`([^`]+)`/g)) {
+    const last = names.at(-1);
+    names.push(token.startsWith(':') && last ? `${last.split(':')[0]}${token}` : token);
+  }
+  return names;
+}
+
+/** Every way a hand-written arc departs from film.json's arc for that language, as readable lines. */
+function arcProblems(language, lines) {
+  const arc = film.FILM_ARCS.find((a) => a.language === language);
+  if (lines.length !== arc.scenes.length) return [`${language}: ${lines.length} scenes, film.json has ${arc.scenes.length}`];
+  const known = new Set(arc.scenes.flatMap((s) => [...s.blocks, ...(s.footer ?? []), ...(s.kit ? [s.kit] : [])]));
+  const bases = new Set([...known].map((b) => b.split(':')[0]));
+  const problems = [];
+  arc.scenes.forEach((scene, i) => {
+    const line = lines[i];
+    if (!new RegExp(`^${i + 1}\\. ${scene.name} \\(${scene.tag}\\b`).test(line)) problems.push(`${language}: line ${i + 1} is not ${scene.name} (${scene.tag})`);
+    const names = namesOn(line);
+    for (const name of names) {
+      if (!(known.has(name) || (!name.includes(':') && bases.has(name)))) problems.push(`${language} ${scene.name}: ${name} is not in film.json's ${language} arc`);
+    }
+    // The scene's own picks keep the order arc prints: blocks first, or the kit scene first where the data says so.
+    const own = scene.own && scene.kit ? [scene.kit] : [];
+    const options = scene.own && (scene.ownFirst || !scene.blocks.length) ? [...own, ...scene.blocks] : [...scene.blocks, ...own];
+    const picks = names.filter((n) => options.includes(n));
+    if (picks[0] !== options[0]) problems.push(`${language} ${scene.name}: the first pick is ${options[0]} in film.json, not ${picks[0]}`);
+    if (picks.join() !== options.filter((o) => picks.includes(o)).join()) problems.push(`${language} ${scene.name}: picks out of film.json's order`);
+    for (const footer of scene.footer ?? []) if (!names.includes(footer)) problems.push(`${language} ${scene.name}: footer ${footer} missing`);
+  });
+  return problems;
+}
+
+test('every block and kit scene a SKILL.md arc names is in that language\'s arc in film.json, in its order', () => {
+  for (const language of LANGUAGES) {
+    const lines = skillArc(language);
+    assert.ok(lines.length, `SKILL.md has no **${language}.** arc`);
+    assert.deepEqual(arcProblems(language, lines), [], language);
+  }
+});
+
+test('the arc comparison fails a block the language\'s arc does not hold, a swapped default and a dropped scene', () => {
+  const weight = skillArc('weight');
+  const foreign = weight.map((l, i) => (i === 0 ? l.replace('`preloader-stack`', '`preloader-gate`') : l));
+  assert.match(arcProblems('weight', foreign).join('\n'), /preloader-gate is not in film\.json's weight arc/);
+  const swapped = weight.map((l, i) => (i === 4 ? '5. Approach (quiet): `Rows` or `approach:schuif`.' : l));
+  assert.match(arcProblems('weight', swapped).join('\n'), /the first pick is approach:schuif/);
+  assert.match(arcProblems('weight', weight.slice(1)).join('\n'), /7 scenes, film\.json has 8/);
+  assert.deepEqual(namesOn('`hero-framed:wand` or `:portret`'), ['hero-framed:wand', 'hero-framed:portret']);
 });
 
 test('arc with no language lists the three with their sectors', () => {
