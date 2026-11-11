@@ -50,6 +50,23 @@ test('the catalogue lists only admitted blocks, each with its files, and CATALOG
   for (const out of ['before-after', 'cursor-dot-ring', 'cursor-label']) assert.ok(!blocks.some((b) => b.slug === out), out);
 });
 
+// why: every live clock is off until a prop turns it on; the film check counts a clock only where the page passes that
+// prop, so the catalogue must carry which prop it is and CATALOG.md must say it on the film line.
+test('a block with a live clock names the prop that turns it on, in catalog.json and on its CATALOG.md film line', () => {
+  const md = readFileSync(join(BLOCKS, 'CATALOG.md'), 'utf8');
+  const clocked = blocks.filter((b) => b.clockProp);
+  assert.ok(clocked.length >= 3);
+  assert.equal(blocks.find((b) => b.slug === 'wordmark-finale').clockProp, 'timeZone');
+  for (const b of blocks) {
+    assert.ok(b.clockProp === null || ['clock', 'timeZone'].includes(b.clockProp), b.slug);
+    const line = md.split(`### ${b.slug}\n`)[1].split('\n')[0];
+    if (b.clockProp) assert.ok(line.endsWith(` · clock by prop ${b.clockProp}`), line);
+    else assert.ok(!line.includes('clock by prop'), line);
+  }
+  // The film check that reads clockProp ships with it.
+  assert.match(readFileSync(new URL('../skills/struq/scripts/film-check.mjs', import.meta.url), 'utf8'), /clockProp/);
+});
+
 test('every block carries its film role, and blocks.mjs list prints the film facts on its row', () => {
   for (const b of blocks) assert.ok(['frame', 'opening', 'centerpiece', 'pattern'].includes(b.role), `${b.slug} has no film role`);
   const r = spawnSync(process.execPath, [CLI, 'list'], { encoding: 'utf8' });
