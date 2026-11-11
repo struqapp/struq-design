@@ -135,7 +135,9 @@ run `struq_controle`'s detectors on your files until nothing fails.
 
 One film, not a showreel: every frame from one language, one arc, one centerpiece, one motif seen at the arrival,
 the opening, the centerpiece and the close. A loud scene moves with the scroll (a pin, a scrub, a reveal to full
-bleed); a quiet scene is type and a photo that enter once and sit still.
+bleed); a quiet scene is type and a photo that enter once and sit still. Two tags only: `(loud)` when the block's
+energy in the catalogue is 2 or more, `(quiet)` at 1 or less or for an own scene (your type and photo with the kit's
+`Reveal`, `SplitHeadline` and `MediaFrame`, entering once).
 
 | Language | For | Feel | Frames: preloader, page transition, menu | Motif |
 |---|---|---|---|---|
@@ -143,36 +145,40 @@ bleed); a quiet scene is type and a photo that enter once and sit still.
 | cut | fashion, agencies, portfolios, music | hard cuts, short masks, no fades, short holds | `preloader-slices`, `page-transition-slices`, `menu-curtain:slices` | cut or word |
 | curtain | campaigns, launches, events, culture | a light line, panels part, a long hold before the reveal | `preloader-wordmark:split`, `page-transition-gate`, `menu-curtain:gate` | line or aperture |
 
-The idea may pick another motif of the six. `preloader-gate` is a fixed film leader (a dial counting 3, 2, 1): film
-clients only. The header is `header-bar:quiet` or `:settle`; sections say their ground with `data-bar-tone`.
+Pick the language by the client's sector in the For column. Another language only when the brief asks for that feel
+in its own words; then quote those words on the `Language:` line. The idea may pick another motif of the six.
+`preloader-gate` is a film leader (a dial counting 3, 2, 1): film clients only. The header is `header-bar:quiet` or
+`:settle`; sections say their ground with `data-bar-tone`. Each arc is loud only at the opening, the centerpiece and
+at most one gentle scene with a quiet scene on each side. The Statement is the first type moment: an own scene, one
+sentence at 12 to 16vw with `SplitHeadline`, still.
 
 **weight.** Paper throughout, ink at the centerpiece.
 1. Arrival (frame): `preloader-stack`; the print lands on the hero photo.
-2. Opening (loud, a short hold): `hero-still:still` or `hero-framed`.
-3. Statement (quiet): one sentence set very large and still: `manifesto:quote`, or an own scene with `SplitHeadline`.
-4. About (quiet): `about-studio:wandeling` or an own scene (`:plaat` counts as a full-bleed reveal).
-5. Approach (quiet): `approach:draad` (it draws a line) or hairline rows of your own.
-6. Centerpiece (loud, ink): `grid-assembly`, `image-to-fullbleed`, `zoom-through`, or `project-stack` (real projects).
-7. Release (quiet): one plain scene, a photo and a short text, no pin, no scrub.
-8. Close (quiet): echoes the opening, type only after a full-bleed centerpiece. Footer: `wordmark-finale`.
+2. Opening (loud, short hold): `hero-framed:wand` or `:portret`, `hero-still:frame`; calmer, `hero-still:still` (quiet).
+3. Statement (quiet): own scene.
+4. About (loud, the gentle one): `about-studio:wandeling` (`:plaat` is a full-bleed reveal), or a quiet own scene.
+5. Approach (quiet): `approach:schuif`, or an own scene of hairline rows.
+6. Centerpiece (loud, ink): `image-to-fullbleed`, `grid-assembly`, `zoom-through`, or `project-stack` (real projects).
+7. Release (quiet): own scene, a photo and a short text.
+8. Close (quiet): own scene echoing the opening, type only after a full-bleed centerpiece. Footer: `wordmark-finale`.
 
 **cut.** Paper and ink in hard alternation, never a fade.
 1. Arrival (frame): `preloader-slices`, its caption from the lexicon.
-2. Opening (loud): `hero-poster`, `hero-index:lijst` or `:venster`, `hero-split:naad` or `:liggend`; poster type.
+2. Opening (loud): `hero-poster` in poster type; quiet: `hero-index:lijst`, `:venster`, `hero-split:naad`, `:liggend`.
 3. Work (quiet): `hover-list` or `image-trail`; after `hero-index`, already a list, `reveals:clip`.
-4. Statement (quiet): `reveals:lines` or `manifesto:quote`.
+4. Statement (quiet): own scene.
 5. Centerpiece (loud, ink): `split-pair`, `panel-wipe`, `project-stack`, `fanned-cards`, `film-strip` (film clients).
-6. Release (quiet): `fill-rows` or hairline rows of your own.
-7. Close (quiet): `cta-closing:marquee` (the page's only marquee) or type only. Footer: `footer-contact`.
+6. Release (quiet): `fill-rows`, or an own scene of hairline rows.
+7. Close (quiet): type only in an own scene, or `cta-closing:pointer`. Footer: `footer-contact`.
 
 **curtain.** Field or ink at the opening, paper between, ink at the centerpiece.
 1. Arrival (frame): `preloader-wordmark:split`; the name parts on its line onto the opening.
-2. Opening (loud): `hero-opener`, a background block with the line at poster scale, or `hero-still:horizon`.
-3. Statement (quiet): `reveals:lines` or `manifesto:quote`.
-4. Details (quiet): `sticky-chapters` or `panel-accordion`: the programme, places and dates the brief gave.
-5. Build (quiet): `about-studio:wandeling` or `:plaat`, or an own scene.
-6. Centerpiece (loud, ink): `zoom-through`, `scrub-connector`, `manifesto-scrub` or `panel-wipe`.
-7. Release (quiet): one plain scene, a photo and a short text.
+2. Opening (loud): `hero-opener` or a background block, the line at poster scale; calmer, `hero-still:horizon` (quiet).
+3. Statement (quiet): own scene.
+4. Details (loud, the gentle one): `sticky-chapters`, or quiet `panel-accordion`: the programme, places and dates given.
+5. Build (quiet): own scene, who makes it.
+6. Centerpiece (loud, ink): `scrub-connector`, `zoom-through`, `manifesto-scrub` or `panel-wipe`.
+7. Release (quiet): own scene, a photo and a short text.
 8. Close (quiet): `cta-closing:pointer`, the line returning. Footer `footer-reveal`, the curtain closing.
 
 **Budgets.** Hard rules: a storyboard that breaks one is rewritten before the stop.
@@ -184,12 +190,15 @@ clients only. The header is `header-bar:quiet` or `:settle`; sections say their 
   `approach:zin`, `manifesto:writes` and `:split`.
 - Never two loud scenes side by side. At least four in ten scenes are quiet.
 - Every frame from the site's language. A page transition only when the site has more than one route.
+- Install only what the storyboard names, plus the header and the language's menu.
 - One motif on the page. At most two full-bleed photo reveals, built the same way: `hero-framed:wand` and `:portret`,
   `hero-poster`, `hero-still:frame`, `image-to-fullbleed`, `zoom-through`, `grid-assembly`, `about-studio:plaat` and
   `cta-closing:photo` each count one.
-- At most one live clock, one marquee and one custom cursor. Clocks: `hero-still` (its caption), `footer-contact`,
-  `header-bar:split`, `menu-curtain`, `wordmark-finale` given a `timeZone`. Marquees: `cta-closing:marquee`,
-  `velocity-type`. An accent face, if loaded, sets one word of the h1 and returns in the close.
+- At most one marquee (`cta-closing:marquee`, `velocity-type`) and one custom cursor. An accent face, if loaded, sets
+  one word of the h1 and returns in the close.
+- A block with a live clock goes without it unless the lexicon is about time: `wordmark-finale` without `timeZone`,
+  `header-bar:quiet` or `:settle`, never `:split`. `hero-still`, `footer-contact` and `menu-curtain` always tick: at
+  most one of them on the page, and it is the one clock.
 - Two or three type moments at poster scale (12 to 20vw) on the page; everything else from the scale.
 - Labels: no eyebrows above headings, no mono, no uppercase labels, no numbered steps. A small sentence-case label in
   the body face may sit beside a headline in the margin column or under a photo, in words from the lexicon.
