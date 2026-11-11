@@ -12,12 +12,16 @@
 // The line is the display face at poster size, with at most one italic accent word. The flat scrim
 // keeps the copy at 4.5:1; never a gradient. Reduced motion and phones: the composed still, no pin.
 // The section after the opener slides over it: globals.css gives it a ground and a higher layer.
+//
+// The entrance (the line rising through its masks, the split words, the lead and the CTA) waits for
+// any preloader or page transition to start leaving (whenUncovered, from the helper the frames share),
+// and plays at once when nothing covers the page.
 import { useRef } from "react";
 import { HeroCanvas } from "../kit/HeroCanvas";
 import { MagneticButton } from "../kit/MagneticButton";
-import { SplitHeadline } from "../kit/SplitHeadline";
-import { gsap, useGSAP } from "../kit/gsap";
+import { SplitText, gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
+import { whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 type Props = {
   /** The beeldbank or client photo. Without one (imageFit "none"), the opener is typographic on the inverse ground over the dots scene. */
@@ -53,12 +57,48 @@ export function HeroOpener({ image, title, accent, split, lead, cta, header, scr
       const el = stage.current;
       if (!el) return;
       const q = gsap.utils.selector(el);
+      const title = q("[data-opener-title]")[0] as HTMLElement | undefined;
       const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        if (!title) return;
+        title.dataset.ready = "1";
+        gsap.from(title, { autoAlpha: 0, duration: 0.6 });
+      });
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        // Every part is set in its start state now and the whole entrance plays once nothing covers the page.
+        let uncovered = false;
+        const intro = gsap.timeline({ paused: true });
         if (split) {
-          gsap.from(q("[data-split-word]"), { yPercent: 110, duration: 1.4, ease: "expo.out", stagger: 0.12, delay: 0.25 });
+          intro.from(q("[data-split-word]"), { yPercent: 110, duration: 1.4, ease: "expo.out", stagger: 0.12 }, 0.25);
         }
-        gsap.from(q("[data-opener-copy] > *"), { y: 32, autoAlpha: 0, duration: 1, ease: "expo.out", stagger: 0.1, delay: 0.7 });
+        intro.from(q("[data-opener-copy] > *"), { y: 32, autoAlpha: 0, duration: 1, ease: "expo.out", stagger: 0.1 }, 0.7);
+        // The poster line rises line by line through its masks, cut again when the width or the face changes (a cut
+        // after the entrance carries its progress over, so it never replays).
+        let lines: gsap.core.Timeline | null = null;
+        const cut = title
+          ? SplitText.create(title, {
+              type: "lines",
+              mask: "lines",
+              linesClass: "struq-line",
+              autoSplit: true,
+              onSplit(self) {
+                lines = gsap
+                  .timeline({ paused: !uncovered })
+                  .from(self.lines, { yPercent: 115, duration: 1.25, ease: "expo.out", stagger: 0.09 }, 0.15);
+                return lines;
+              },
+            })
+          : null;
+        if (title) title.dataset.ready = "1";
+        const stop = whenUncovered(() => {
+          uncovered = true;
+          intro.play();
+          lines?.play();
+        });
+        return () => {
+          stop();
+          cut?.revert();
+        };
       });
       mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
         // The handover: the opener holds, then scales down and darkens under the next section.
@@ -75,7 +115,9 @@ export function HeroOpener({ image, title, accent, split, lead, cta, header, scr
 
   // At poster size the words need air of their own: tight tracking pulls the letters together, and
   // word spacing in em keeps the gap in step with the size for any face.
-  const poster = "font-display block text-[19vw] leading-[0.92] tracking-[-0.045em] [word-spacing:0.09em] md:text-[16vw]";
+  // The size sits on each word's mask too: the shared mask's room for accents and descenders is in its own em.
+  const size = "text-[19vw] md:text-[16vw]";
+  const poster = `font-display block ${size} leading-[0.92] tracking-[-0.045em] [word-spacing:0.09em]`;
   return (
     <section ref={stage} data-showpiece="hero-opener" className={`relative h-svh overflow-hidden ${image ? "bg-black text-on-photo" : "scene-inverse"} ${className}`}>
       <div data-opener-inner="" className="absolute inset-0 origin-top">
@@ -84,9 +126,9 @@ export function HeroOpener({ image, title, accent, split, lead, cta, header, scr
         <div data-opener-dim="" aria-hidden className="absolute inset-0 bg-black opacity-0" />
         {header ? <div className="absolute inset-x-0 top-0 z-20">{header}</div> : null}
         {split ? (
-          <h1 aria-label={split.join(" ")} className="absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 justify-between px-6 md:px-[3vw]">
+          <h1 aria-label={split.join(" ")} className="absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 justify-between px-sheet-margin">
             {split.map((word) => (
-              <span key={word} className="block overflow-hidden pb-[0.06em]">
+              <span key={word} className={`struq-line-mask block ${size}`}>
                 <span data-split-word="" data-quiet="" className={poster}>
                   {word}
                 </span>
@@ -94,7 +136,7 @@ export function HeroOpener({ image, title, accent, split, lead, cta, header, scr
             ))}
           </h1>
         ) : null}
-        <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-[3vh] px-6 pb-[3vh] md:px-[3vw]">
+        <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-[3vh] px-sheet-margin pb-[3vh]">
           <div data-opener-copy="" className={`flex flex-col gap-6 md:flex-row md:items-end md:justify-between ${side === "right" ? "md:flex-row-reverse md:text-right" : ""}`}>
             {side === "none" ? (
               <p data-quiet="" className="relative isolate max-w-[30ch] text-h3">
@@ -111,7 +153,7 @@ export function HeroOpener({ image, title, accent, split, lead, cta, header, scr
             </div>
           </div>
           {!split && title ? (
-            <SplitHeadline as="h1" className={poster}>
+            <h1 data-opener-title="" data-split="" data-quiet="" className={poster}>
               {title}
               {accent ? (
                 <>
@@ -119,7 +161,7 @@ export function HeroOpener({ image, title, accent, split, lead, cta, header, scr
                   <em className="font-accent font-light italic tracking-[-0.02em] [word-spacing:0.09em]">{accent}</em>
                 </>
               ) : null}
-            </SplitHeadline>
+            </h1>
           ) : null}
         </div>
       </div>

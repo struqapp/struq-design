@@ -1248,7 +1248,7 @@ export function BackgroundFacets({ variant = "shard", lines, lead, link, classNa
   }, [variant]);
 
   const mask = (child: React.ReactNode, key?: number) => (
-    <span key={key} className="struq-line-mask block overflow-hidden pb-[0.06em]">
+    <span key={key} className="struq-line-mask block">
       <span data-rise="" className="block">
         {child}
       </span>

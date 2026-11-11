@@ -73,6 +73,13 @@ const EM_PER_CHAR = 0.66;
 const LEADING = 0.84;
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+/** The poster's side margin as laid out: the sheet margin on its padded box ([data-hp-sheet]), read in px. */
+const sideOf = (el: HTMLElement) => {
+  const pad = el.querySelector<HTMLElement>("[data-hp-sheet]");
+  return pad ? parseFloat(getComputedStyle(pad).paddingLeft) || 0 : 0;
+};
+/** The width the script-free estimates fit into: the screen inside the sheet margin on both sides. */
+const INSIDE = "(100vw - 2 * var(--spacing-sheet-margin))";
 
 export function HeroPoster({ variant = "window", ...rest }: Props) {
   if (variant === "column") return <PosterColumn {...rest} />;
@@ -113,7 +120,7 @@ function PosterWindow({ image, lines, place, link, className = "" }: Inner) {
         const W = el.clientWidth;
         const H = el.clientHeight;
         const wide = W >= 768;
-        const room = W - (wide ? W * 0.08 : 48);
+        const room = W - 2 * sideOf(el);
         const widthOf = (w: HTMLElement) => {
           const c = w.cloneNode(true) as HTMLElement;
           Object.assign(c.style, { position: "absolute", left: "0", top: "0", visibility: "hidden", fontSize: "100px" });
@@ -324,13 +331,13 @@ function PosterWindow({ image, lines, place, link, className = "" }: Inner) {
   // The script-free estimate per line: the width over its characters, and on wide screens a height cap so two lines
   // and a window always fit. Phones stack one word per line, so the longest word sets it.
   const est = (i: 0 | 1) =>
-    `min(18vw, calc(92vw / ${(lines[i].length * EM_PER_CHAR).toFixed(2)}), 30svh)`;
-  const estPhone = (i: 0 | 1) => `calc((100vw - 48px) / ${(longest(words[i]) * EM_PER_CHAR).toFixed(2)})`;
+    `min(18vw, calc(${INSIDE} / ${(lines[i].length * EM_PER_CHAR).toFixed(2)}), 30svh)`;
+  const estPhone = (i: 0 | 1) => `calc(${INSIDE} / ${(longest(words[i]) * EM_PER_CHAR).toFixed(2)})`;
 
   // The line's box is LEADING of its size per row; the mask carries the descender room in the display em.
   const word = "font-display block w-fit whitespace-nowrap leading-[0.84] tracking-[-0.045em] text-ink";
-  const mask = "block overflow-hidden pb-[0.24em] -mb-[0.24em]";
-  const small = "block overflow-hidden pb-[0.15em] -mb-[0.15em]";
+  const mask = "struq-line-mask block";
+  const small = "struq-line-mask block";
   // Inline, because the kit balances display type (text-wrap), which would let a poster line wrap; and no transition,
   // or a page that transitions every property hands the fit a size from mid-change.
   const nowrap = { whiteSpace: "nowrap", textWrap: "nowrap", transition: "none" } as React.CSSProperties;
@@ -360,7 +367,7 @@ function PosterWindow({ image, lines, place, link, className = "" }: Inner) {
       <h1 className="sr-only">{`${lines[0]} ${lines[1]}`}</h1>
 
       {/* The poster: line, window, line, foot. The lines stand above the photo as it opens past them. */}
-      <div className="relative flex h-full flex-col px-6 pb-6 pt-8 md:px-[4vw] md:pb-[3svh] md:pt-[4svh]">
+      <div data-hp-sheet="" className="relative flex h-full flex-col px-sheet-margin pb-6 pt-8 md:pb-[3svh] md:pt-[4svh]">
         <div data-hp-top="" className="relative z-10 will-change-transform">
           <p aria-hidden className="m-0">
             <span
@@ -384,7 +391,7 @@ function PosterWindow({ image, lines, place, link, className = "" }: Inner) {
           >
             <div
               data-stack-photo=""
-              className="absolute inset-0 md:inset-auto md:left-[-4vw] md:top-[calc(-4svh_-_0.84_*_var(--hp-s1,var(--hp-e1))_-_1.2svh)] md:h-svh md:w-screen"
+              className="absolute inset-0 md:inset-auto md:-left-sheet-margin md:top-[calc(-4svh_-_0.84_*_var(--hp-s1,var(--hp-e1))_-_1.2svh)] md:h-svh md:w-screen"
             >
               <Image
                 src={image.src}
@@ -509,8 +516,8 @@ const faceReady = () =>
   Promise.race([document.fonts?.ready ?? Promise.resolve(), new Promise((r) => setTimeout(r, FONT_WAIT))]);
 
 const WORD = "font-display block w-fit whitespace-nowrap leading-[0.84] tracking-[-0.045em]";
-const MASK = "block overflow-hidden pb-[0.24em] -mb-[0.24em]";
-const SMALL = "block overflow-hidden pb-[0.15em] -mb-[0.15em]";
+const MASK = "struq-line-mask block";
+const SMALL = "struq-line-mask block";
 // Inline, because the kit balances display type (text-wrap), which would let a poster line wrap; and no transition,
 // or a page that transitions every property hands the fit a size from mid-change.
 const NOWRAP = { whiteSpace: "nowrap", textWrap: "nowrap", transition: "none" } as React.CSSProperties;
@@ -586,7 +593,7 @@ function PosterColumn({ image, lines, place, link, className = "" }: Inner) {
         const W = el.clientWidth;
         const H = el.clientHeight;
         const wide = W >= 768;
-        const room = W - (wide ? W * 0.08 : 48);
+        const room = W - 2 * sideOf(el);
         const sizes = lineWords.map((w) => {
           const width = widthAt100(w, !wide);
           return width > 0 ? (100 * room) / width : 100;
@@ -750,8 +757,8 @@ function PosterColumn({ image, lines, place, link, className = "" }: Inner) {
     { scope: stage, dependencies: [lines[0], lines[1]] },
   );
 
-  const est = (i: 0 | 1) => `min(18vw, calc(92vw / ${(lines[i].length * EM_PER_CHAR).toFixed(2)}), 26svh)`;
-  const estPhone = (i: 0 | 1) => `calc((100vw - 48px) / ${(longest(words[i]) * EM_PER_CHAR).toFixed(2)})`;
+  const est = (i: 0 | 1) => `min(18vw, calc(${INSIDE} / ${(lines[i].length * EM_PER_CHAR).toFixed(2)}), 26svh)`;
+  const estPhone = (i: 0 | 1) => `calc(${INSIDE} / ${(longest(words[i]) * EM_PER_CHAR).toFixed(2)})`;
   // The space stands between the words, outside them: a space at the end of an inline block is dropped.
   const parts = (ps: string[]) =>
     ps.map((part, i) => (
@@ -781,7 +788,8 @@ function PosterColumn({ image, lines, place, link, className = "" }: Inner) {
     <div
       data-hp-layer={copy ? "copy" : "ground"}
       aria-hidden={copy || undefined}
-      className={`absolute inset-0 flex flex-col px-6 pb-6 pt-8 md:px-[4vw] md:pb-[3svh] md:pt-[4svh] ${copy ? "text-on-photo" : "text-ink"}`}
+      data-hp-sheet=""
+      className={`absolute inset-0 flex flex-col px-sheet-margin pb-6 pt-8 md:pb-[3svh] md:pt-[4svh] ${copy ? "text-on-photo" : "text-ink"}`}
     >
       <div className="flex-1" />
       <div data-hp-l1="" className="will-change-transform">
@@ -873,7 +881,7 @@ function PosterStack({ image, lines, place, link, className = "" }: Inner) {
         const W = el.clientWidth;
         const H = el.clientHeight;
         const wide = W >= 768;
-        const room = W - (wide ? W * 0.08 : 48);
+        const room = W - 2 * sideOf(el);
         const widest = Math.max(1, ...wordEls.map((w) => widthAt100(w, false)));
         const free = H - (foot?.offsetHeight ?? 0) - (wide ? H * 0.1 : 72) - m * H * (wide ? 0.075 : 0.08);
         return [Math.floor(Math.min((100 * room) / widest, free / (LEADING * n)))];
@@ -1022,8 +1030,8 @@ function PosterStack({ image, lines, place, link, className = "" }: Inner) {
 
   // The script-free estimate: the longest word over the width, capped so the rows and their windows fit the height.
   const per = (longest * EM_PER_CHAR).toFixed(2);
-  const est = `min(calc(92vw / ${per}), calc((90svh - 2rem - ${m} * 7.5svh) / ${(n * LEADING).toFixed(2)}))`;
-  const estPhone = `min(calc((100vw - 48px) / ${per}), calc((100svh - 7rem - ${m} * 8svh) / ${(n * LEADING).toFixed(2)}))`;
+  const est = `min(calc(${INSIDE} / ${per}), calc((90svh - 2rem - ${m} * 7.5svh) / ${(n * LEADING).toFixed(2)}))`;
+  const estPhone = `min(calc(${INSIDE} / ${per}), calc((100svh - 7rem - ${m} * 8svh) / ${(n * LEADING).toFixed(2)}))`;
 
   return (
     <section
@@ -1035,7 +1043,7 @@ function PosterStack({ image, lines, place, link, className = "" }: Inner) {
       style={{ "--hp-e": est, "--hp-p": estPhone } as React.CSSProperties}
     >
       <h1 className="sr-only">{`${lines[0]} ${lines[1]}`}</h1>
-      <div className="relative flex h-full flex-col px-6 pb-6 pt-8 md:px-[4vw] md:pb-[3svh] md:pt-[4svh]">
+      <div data-hp-sheet="" className="relative flex h-full flex-col px-sheet-margin pb-6 pt-8 md:pb-[3svh] md:pt-[4svh]">
         {rows.map((w, i) => (
           <div key={i} className="contents">
             <div data-hp-row="" className="relative z-10 will-change-transform">

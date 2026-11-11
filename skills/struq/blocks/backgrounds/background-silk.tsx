@@ -24,14 +24,16 @@
 // sheen. That measure is taken once (and again on a resize or a palette switch), at three moments of the wandering
 // light, and the cloth eases toward it.
 //
-// Entrance: the canvas is hidden until its first frame is drawn, then fades in while the folds rise from a flat sheet;
-// the type rises through masks. Performance: device pixel ratio capped at 1.5, the field drawn at 0.9 of that on a 1x
+// Entrance: the canvas is hidden until its first frame is drawn, then fades in; the folds rise from a flat sheet and the
+// type rises through masks once nothing covers the page (whenUncovered: a preloader or page transition has started to
+// leave, or there is none). Performance: device pixel ratio capped at 1.5, the field drawn at 0.9 of that on a 1x
 // screen and two thirds on a dense one (half on phones, with fewer noise octaves), paused off screen and in a hidden
 // tab, everything disposed on
 // unmount, context loss survived. Reduced motion: one still frame, held. No WebGL: the plain ground with the type.
 // No scripts: the composed hero on the plain ground (blocks.css, "--- background-silk ---").
 import { useRef } from "react";
 import { gsap, useGSAP } from "../kit/gsap";
+import { whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 export const SILK_VARIANTS = [
   { id: "fold", title: "Plooi" },
@@ -435,7 +437,9 @@ function silkField(
 
   // State the loop owns.
   let time = reduce ? STILL_T : 0;
-  let introAt = 0;
+  /** When the folds started to rise; -1 while a cover is still over the page, so the sheet waits flat under it. */
+  let introAt = -1;
+  let stopRise = () => {};
   let last = 0;
   let raf = 0;
   let onScreen = true;
@@ -545,6 +549,7 @@ function silkField(
 
   const intro = () => {
     if (reduce) return 1;
+    if (introAt < 0) return 0;
     const x = Math.min(1, Math.max(0, (time - introAt) / INTRO));
     return 1 - Math.pow(1 - x, 3);
   };
@@ -779,12 +784,16 @@ function silkField(
       resizeObserver.observe(holder);
       io.observe(el);
       document.fonts?.ready.then(onFonts);
-      introAt = time;
+      // The folds rise once nothing covers the page: at once, or as a preloader or page transition starts to leave.
+      stopRise = whenUncovered(() => {
+        introAt = time;
+      });
       if (reduce) still();
       else kick();
     },
     dispose() {
       disposed = true;
+      stopRise();
       cancelAnimationFrame(raf);
       cancelAnimationFrame(colourFrame);
       resizeObserver.disconnect();
@@ -831,15 +840,21 @@ export function BackgroundSilk({ variant = "fold", lines, lead, link, className 
       gsap.set(rise, { y: 0, yPercent: shown ? 0 : 115 });
       el.dataset.ready = "";
 
-      let played = false;
       const play = contextSafe(() => {
-        if (played) return;
-        played = true;
         if (!shown) gsap.to(rise, { yPercent: 0, duration: 1.2, ease: "expo.out", stagger: 0.08, delay: 0.25 });
       });
+      // The type rises with the first frame of the cloth, and only once nothing covers the page (a preloader or page
+      // transition starting to leave, or none at all).
+      let asked = false;
+      let stop = () => {};
+      const ready = () => {
+        if (asked) return;
+        asked = true;
+        stop = whenUncovered(play);
+      };
       // The type never waits long on a slow shader compile.
-      const failsafe = window.setTimeout(play, 1400);
-      const field = silkField(el, holder, variant, reduce, play);
+      const failsafe = window.setTimeout(ready, 1400);
+      const field = silkField(el, holder, variant, reduce, ready);
       field.start();
 
       // The hand-over: the type leaves first; on fold and ripple the cloth drifts slower than the page, on drape it
@@ -857,6 +872,7 @@ export function BackgroundSilk({ variant = "fold", lines, lead, link, className 
 
       return () => {
         window.clearTimeout(failsafe);
+        stop();
         field.dispose();
       };
     },
@@ -864,7 +880,7 @@ export function BackgroundSilk({ variant = "fold", lines, lead, link, className 
   );
 
   const mask = (child: React.ReactNode, key?: number) => (
-    <span key={key} className="struq-line-mask block overflow-hidden pb-[0.06em]">
+    <span key={key} className="struq-line-mask block">
       <span data-rise="" className="block">
         {child}
       </span>
@@ -884,7 +900,7 @@ export function BackgroundSilk({ variant = "fold", lines, lead, link, className 
       className={`relative h-svh min-h-[34rem] overflow-hidden bg-surface-0 text-ink ${className}`}
     >
       <div data-field="" aria-hidden="true" className="absolute inset-0" />
-      <div className={`relative flex h-full flex-col px-6 pb-[9vh] pt-[12vh] md:px-[5vw] md:pb-[11vh] ${place}`}>
+      <div className={`relative flex h-full flex-col px-sheet-margin pb-[9vh] pt-[12vh] md:pb-[11vh] ${place}`}>
         <div data-copy="" className="max-w-[min(100%,40rem)]">
           <h1 data-head="" className="font-display text-[clamp(2.75rem,12.5vw,4.5rem)] leading-[0.98] tracking-[-0.03em] md:text-[clamp(3.75rem,6.6vw,7.5rem)]">
             {lines.map((line, i) => mask(line, i))}

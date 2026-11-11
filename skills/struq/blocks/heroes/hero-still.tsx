@@ -1,13 +1,18 @@
 "use client";
 // hero-still (Struq hero recipe)
-// A film still with a title. One photograph edge to edge, held with a very slow push-in (six percent over twenty
-// seconds); the headline rises line by line through masks at display size on the photo's calm side; under the still,
-// on the page ground like a film's caption strip, a quiet bar with three facts on one line: the studio's place, the
-// live local time, one link. On scroll
-// the photograph moves slower than the page and the headline leaves first, so the hero hands over with depth.
+// A photograph with a title. One photograph edge to edge, held with a very slow push-in (six percent over twenty
+// seconds); the headline rises line by line through masks at display size on the photo's calm side; under the photo,
+// on the page ground, a quiet caption bar with its facts on one line: the place, an optional middle fact, one link.
+// On scroll the photograph moves slower than the page and the headline leaves first, so the hero hands over with depth.
 //
 // <HeroStill image={images.hero[0]} lines={["Ruimte die", "blijft."]} place="Noord, Rotterdam"
-//   timeZone="Europe/Amsterdam" link={{ href: "/werk", label: "Bekijk het werk" }} />
+//   link={{ href: "/werk", label: "Bekijk het werk" }} />
+//
+// The caption's words are the client's own. `note` fills the middle with one fact from the client's trade (a scale, a
+// year, a plot number); without it the caption is the place and the link, one either side. A live local clock is
+// there only when asked: `clock` puts the time in `timeZone` in the middle (with `clockLabel` after it, "lokale tijd"
+// by default) in place of the note. The time is never read during render: the slot holds its width empty on the server
+// and the first paint, and the real time arrives after mount, renewed on the minute.
 //
 // The photo's box carries data-stack-target, so preloader-stack and page-transition-stack land on it exactly, and the
 // entrance starts only when the cover lifts (whenUncovered), at once when there is none. The push-in never re-rasters:
@@ -64,9 +69,16 @@ type Inner = {
   lines: string[];
   /** The studio's place, the caption's first fact. */
   place: string;
-  /** IANA zone for the live local time, the caption's second fact. */
+  /** The caption's middle fact, in the client's own words (a scale, a year, a plot number). Left out, the caption is
+   * the place and the link alone. A clock takes its place. */
+  note?: string;
+  /** A live local clock in the caption's middle. Off unless asked: one clock per site at most. */
+  clock?: boolean;
+  /** IANA zone for the clock. */
   timeZone?: string;
-  /** The caption's third fact: one link. */
+  /** The words after the clock's time. */
+  clockLabel?: string;
+  /** The caption's last fact: one link. */
   link: { href: string; label: string };
   /** Where the headline stands. Left out, the block reads the photo and takes the side that needs the weaker veil
    * (the photo's negativeSpace breaks a tie); the first paint, and a page without scripts, use negativeSpace. */
@@ -128,7 +140,7 @@ function veilFor(under: number, ink: number, veilS: number, ratio: number): numb
   return hi;
 }
 
-/** The time in a zone as HH:MM, the same five characters at every minute. */
+/** The time in a zone as HH:MM, the same five characters at every minute. Only ever called after mount. */
 function timeIn(zone: string) {
   return new Intl.DateTimeFormat("nl-NL", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: zone }).format(
     new Date(),
@@ -183,24 +195,12 @@ export function inkOver(img: HTMLImageElement, frame: PhotoBox, boxes: PhotoBox[
 export function HeroStill({ variant = "still", ...rest }: Props) {
   if (variant === "frame") return <StillFrame {...rest} />;
   if (variant === "horizon") return <StillHorizon {...rest} />;
-  return <StillFilm {...rest} />;
+  return <StillBleed {...rest} />;
 }
 
-function StillFilm({ image, lines, place, timeZone = "Europe/Amsterdam", link, side, className = "" }: Inner) {
+function StillBleed({ image, lines, side, className = "", ...caption }: Inner) {
   const root = useRef<HTMLElement>(null);
   const first = side ?? (image.negativeSpace === "right" ? "right" : "left");
-  const [time, setTime] = useState(() => timeIn(timeZone));
-
-  // The clock: renewed on each minute, in tabular figures, so nothing around it ever moves.
-  useEffect(() => {
-    let tick = 0;
-    const next = () => {
-      setTime(timeIn(timeZone));
-      tick = window.setTimeout(next, 60_000 - (Date.now() % 60_000) + 50);
-    };
-    next();
-    return () => window.clearTimeout(tick);
-  }, [timeZone]);
 
   useGSAP(
     (_, contextSafe) => {
@@ -346,7 +346,7 @@ function StillFilm({ image, lines, place, timeZone = "Europe/Amsterdam", link, s
   );
 
   const mask = (child: React.ReactNode, key?: number) => (
-    <span key={key} className="struq-line-mask block overflow-hidden">
+    <span key={key} className="struq-line-mask block">
       <span data-rise="" className="block">
         {child}
       </span>
@@ -384,7 +384,7 @@ function StillFilm({ image, lines, place, timeZone = "Europe/Amsterdam", link, s
 
       <div
         data-head=""
-        className="absolute inset-x-0 bottom-[5vh] px-6 group-data-[side=right]/hs:flex group-data-[side=right]/hs:justify-end group-data-[side=right]/hs:text-right md:bottom-[6vh] md:px-[4vw]"
+        className="absolute inset-x-0 bottom-[5vh] px-sheet-margin group-data-[side=right]/hs:flex group-data-[side=right]/hs:justify-end group-data-[side=right]/hs:text-right md:bottom-[6vh]"
       >
         <h1 className="font-display text-[clamp(3rem,13.5vw,4.75rem)] leading-[0.92] tracking-[-0.035em] md:text-[clamp(3.5rem,8vw,9.5rem)]">
           {lines.map((line, i) => mask(line, i))}
@@ -392,35 +392,20 @@ function StillFilm({ image, lines, place, timeZone = "Europe/Amsterdam", link, s
       </div>
       </div>
 
-      {/* The caption bar, on the page ground under the still like a film's caption strip: three facts on one line (two
-          on phones), the clock in tabular figures at a fixed width. On the ground its ink holds on any photograph. */}
-      <div data-bar="" className="text-small relative bg-surface-0 px-6 pb-4 pt-3.5 text-ink md:px-[4vw] md:pb-5 md:pt-4">
-        <div>
-          {mask(
-            <span className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 md:grid-cols-[1fr_auto_1fr]">
-              <span>{place}</span>
-              <span className="tabular-nums lining-nums md:text-center">
-                <time suppressHydrationWarning className="inline-block min-w-[5ch] text-right">
-                  {time}
-                </time>{" "}
-                lokale tijd
-              </span>
-              <a href={link.href} className="col-span-2 underline decoration-1 underline-offset-4 md:col-span-1 md:justify-self-end">
-                {link.label}
-              </a>
-            </span>,
-          )}
-        </div>
-      </div>
+      <Caption {...caption} />
     </section>
   );
 }
 
-// The frame and the horizon share what follows: the clock, the caption strip, the line masks and the entrance.
+// All three variants share what follows: the clock, the caption strip, the line masks; the frame and the horizon
+// share the entrance.
 
-function useClock(timeZone: string) {
-  const [time, setTime] = useState(() => timeIn(timeZone));
+/** The time in `timeZone` as HH:MM, only when `on`: empty on the server and the first paint, set after mount and
+ * renewed on each minute. */
+function useClock(on: boolean, timeZone: string) {
+  const [time, setTime] = useState("");
   useEffect(() => {
+    if (!on) return;
     let tick = 0;
     const next = () => {
       setTime(timeIn(timeZone));
@@ -428,33 +413,46 @@ function useClock(timeZone: string) {
     };
     next();
     return () => window.clearTimeout(tick);
-  }, [timeZone]);
+  }, [on, timeZone]);
   return time;
 }
 
 const lineMask = (child: React.ReactNode, key?: number) => (
-  <span key={key} className="struq-line-mask block overflow-hidden">
+  <span key={key} className="struq-line-mask block">
     <span data-rise="" className="block">
       {child}
     </span>
   </span>
 );
 
-/** The caption strip on the page ground, as the still has it: place, the live local time, one link. */
-function Caption({ place, time, link }: { place: string; time: string; link: Inner["link"] }) {
+type CaptionProps = Pick<Inner, "place" | "note" | "clock" | "timeZone" | "clockLabel" | "link">;
+
+/**
+ * The caption strip on the page ground: the place, a middle fact (the clock when asked, else the note), one link, on
+ * one line (two on phones). The clock is in tabular figures at a fixed width, so nothing around it ever moves. With no
+ * middle fact the place and the link stand at either end. On the ground its ink holds on any photograph.
+ */
+function Caption({ place, note, clock = false, timeZone = "Europe/Amsterdam", clockLabel = "lokale tijd", link }: CaptionProps) {
+  const time = useClock(clock, timeZone);
+  const middle = clock ? (
+    <span className="tabular-nums lining-nums md:text-center">
+      <time className="inline-block min-w-[5ch] text-right">{time}</time>
+      {clockLabel ? ` ${clockLabel}` : null}
+    </span>
+  ) : note ? (
+    <span className="md:text-center">{note}</span>
+  ) : null;
   return (
-    <div data-bar="" className="text-small relative bg-surface-0 px-6 pb-4 pt-3.5 text-ink md:px-[4vw] md:pb-5 md:pt-4">
+    <div data-bar="" className="text-small relative bg-surface-0 px-sheet-margin pb-4 pt-3.5 text-ink md:pb-5 md:pt-4">
       <div>
         {lineMask(
-          <span className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 md:grid-cols-[1fr_auto_1fr]">
+          <span className={`grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 ${middle ? "md:grid-cols-[1fr_auto_1fr]" : ""}`}>
             <span>{place}</span>
-            <span className="tabular-nums lining-nums md:text-center">
-              <time suppressHydrationWarning className="inline-block min-w-[5ch] text-right">
-                {time}
-              </time>{" "}
-              lokale tijd
-            </span>
-            <a href={link.href} className="col-span-2 underline decoration-1 underline-offset-4 md:col-span-1 md:justify-self-end">
+            {middle}
+            <a
+              href={link.href}
+              className={`underline decoration-1 underline-offset-4 ${middle ? "col-span-2 md:col-span-1 md:justify-self-end" : "justify-self-end"}`}
+            >
               {link.label}
             </a>
           </span>,
@@ -546,9 +544,8 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
  * preloader lands on the frame with the photo laid as the still, and opening the frame on the first scroll is a clip
  * from whole-pixel numbers to the full bleed, never a scale. The headline leaves upward ahead of the opening edge.
  */
-function StillFrame({ image, lines, place, timeZone = "Europe/Amsterdam", link, className = "" }: Inner) {
+function StillFrame({ image, lines, className = "", ...caption }: Inner) {
   const root = useRef<HTMLElement>(null);
-  const time = useClock(timeZone);
 
   useGSAP(
     (_, contextSafe) => {
@@ -670,14 +667,14 @@ function StillFrame({ image, lines, place, timeZone = "Europe/Amsterdam", link, 
         </div>
         <div
           data-head=""
-          className="absolute inset-x-6 bottom-[4svh] z-10 will-change-transform md:bottom-[3svh] md:left-[4vw] md:right-auto md:max-w-[34vw]"
+          className="absolute inset-x-sheet-margin bottom-[4svh] z-10 will-change-transform md:bottom-[3svh] md:right-auto md:max-w-[34vw]"
         >
           <h1 className="font-display text-[clamp(3rem,13.5vw,4.75rem)] leading-[0.92] tracking-[-0.035em] md:text-[clamp(3rem,5.4vw,7.5rem)]">
             {lines.map((line, i) => lineMask(line, i))}
           </h1>
         </div>
       </div>
-      <Caption place={place} time={time} link={link} />
+      <Caption {...caption} />
     </section>
   );
 }
@@ -688,9 +685,8 @@ function StillFrame({ image, lines, place, timeZone = "Europe/Amsterdam", link, 
  * when the photo cannot be read). Each half takes the ink that needs the weaker veil over what is under its own
  * glyphs, over its own veil band that ends at the horizon; the side is measured the same way unless it is given.
  */
-function StillHorizon({ image, lines, place, timeZone = "Europe/Amsterdam", link, side, horizon, className = "" }: Inner) {
+function StillHorizon({ image, lines, side, horizon, className = "", ...caption }: Inner) {
   const root = useRef<HTMLElement>(null);
-  const time = useClock(timeZone);
   const first = side ?? (image.negativeSpace === "right" ? "right" : "left");
   const up = lines.slice(0, Math.ceil(lines.length / 2));
   const down = lines.slice(up.length);
@@ -810,7 +806,7 @@ function StillHorizon({ image, lines, place, timeZone = "Europe/Amsterdam", link
   );
 
   const head =
-    "absolute inset-x-6 font-display text-[clamp(3rem,13.5vw,4.75rem)] leading-[0.92] tracking-[-0.035em] group-data-[side=right]/hs:text-right md:inset-x-[4vw] md:text-[clamp(3.5rem,8vw,9.5rem)]";
+    "absolute inset-x-sheet-margin font-display text-[clamp(3rem,13.5vw,4.75rem)] leading-[0.92] tracking-[-0.035em] group-data-[side=right]/hs:text-right md:text-[clamp(3.5rem,8vw,9.5rem)]";
 
   return (
     <section
@@ -856,7 +852,7 @@ function StillHorizon({ image, lines, place, timeZone = "Europe/Amsterdam", link
           ) : null}
         </div>
       </div>
-      <Caption place={place} time={time} link={link} />
+      <Caption {...caption} />
     </section>
   );
 }

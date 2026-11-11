@@ -460,8 +460,9 @@ export function GridAssembly({ tiles, hero, title, text, heading, line, classNam
       "--r": `${cell.r} / span ${cell.rs}`,
     }) as React.CSSProperties;
   // Desktop: the board's cell. Phones: two columns, tall prints over two rows.
-  const tileClass = (tall: boolean, wide: boolean) =>
-    `relative overflow-hidden bg-surface-2 will-change-transform md:[grid-column:var(--c)] md:[grid-row:var(--r)] ${
+  // The type cell does not clip: its lines clip in their own masks, with room for accents and descenders.
+  const tileClass = (tall: boolean, wide: boolean, clip = true) =>
+    `relative ${clip ? "overflow-hidden" : ""} bg-surface-2 will-change-transform md:[grid-column:var(--c)] md:[grid-row:var(--r)] ${
       wide ? "col-span-2" : ""
     } ${tall ? "row-span-2" : ""}`;
   const ink = "text-on-photo group-data-[tone=dark]/ga:text-[var(--ga-dark)]";
@@ -474,7 +475,7 @@ export function GridAssembly({ tiles, hero, title, text, heading, line, classNam
     >
       <h3 className={`m-0 text-[clamp(2.75rem,1rem_+_5.4vw,8rem)] ${display}`}>
         {heading.map((h) => (
-          <span key={h} className="block overflow-hidden pb-[0.1em] -mb-[0.1em]">
+          <span key={h} className="struq-line-mask block">
             <span data-rise={rise ? "" : undefined} className="block">
               {h}
             </span>
@@ -482,9 +483,11 @@ export function GridAssembly({ tiles, hero, title, text, heading, line, classNam
         ))}
       </h3>
       {line ? (
-        <p className="m-0 mt-6 overflow-hidden text-lead">
-          <span data-rise={rise ? "" : undefined} className="block max-w-[34ch] group-data-[side=right]/ga:ml-auto">
-            {line}
+        <p className="m-0 mt-6 text-lead">
+          <span className="struq-line-mask block">
+            <span data-rise={rise ? "" : undefined} className="block max-w-[34ch] group-data-[side=right]/ga:ml-auto">
+              {line}
+            </span>
           </span>
         </p>
       ) : null}
@@ -513,20 +516,22 @@ export function GridAssembly({ tiles, hero, title, text, heading, line, classNam
           {/* The type cell: the section's line, standing up as the grid locks. */}
           <div
             data-tile="t"
-            className={`${tileClass(false, true)} flex flex-col justify-between bg-transparent py-1 md:py-0`}
+            className={`${tileClass(false, true, false)} flex flex-col justify-between bg-transparent py-1 md:py-0`}
             style={{ ...place(CELLS.t), ...({ "--sx": "0px", "--sy": "0px", "--sr": "0deg", "--sd": "0" } as React.CSSProperties) }}
           >
             <h2 className={`m-0 text-[clamp(2.25rem,1rem_+_2.9vw,5rem)] text-ink ${display}`}>
-              <span className="block overflow-hidden pb-[0.1em] -mb-[0.1em]">
+              <span className="struq-line-mask block">
                 <span data-ga-line="" className="block">
                   {title}
                 </span>
               </span>
             </h2>
             {text ? (
-              <p className="m-0 overflow-hidden text-small text-ink-muted">
-                <span data-ga-line="" className="block max-w-[32ch]">
-                  {text}
+              <p className="m-0 text-small text-ink-muted">
+                <span className="struq-line-mask block">
+                  <span data-ga-line="" className="block max-w-[32ch]">
+                    {text}
+                  </span>
                 </span>
               </p>
             ) : null}

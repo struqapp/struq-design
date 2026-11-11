@@ -40,7 +40,7 @@ export const FILM_RULES = [
     id: 'one-clock',
     severity: 'fail',
     title: 'At most one live clock',
-    fix: 'Keep one live clock: pick a variant or block without one for the others, or leave out the timeZone where the clock depends on it.',
+    fix: 'Keep one live clock: leave out the prop that turns the others on (clock, or timeZone on wordmark-finale); every clock is off without it.',
   },
   {
     id: 'one-marquee',
@@ -121,6 +121,12 @@ export const FILM_RULES = [
     fix: 'Build the storyboard\'s blocks in its order, or rewrite the storyboard to match the page that was built.',
   },
   {
+    id: 'own-scene-unmarked',
+    severity: 'warn',
+    title: 'Every quiet own scene on the storyboard is marked on the page',
+    fix: "Build the quiet scenes with the kit's Statement, PhotoText, Rows and Close, or put data-scene=\"<name>\" (and data-energy when it is not 1) on the root of each own scene, so the check can see it.",
+  },
+  {
     id: 'easing-values',
     severity: 'warn',
     title: 'At most two cubic-bezier curves',
@@ -130,13 +136,21 @@ export const FILM_RULES = [
 
 const RULE = new Map(FILM_RULES.map((rule, order) => [rule.id, { ...rule, order }]));
 
-const FIELDS = ['role', 'home', 'motif', 'metaphor', 'energy', 'pins', 'scroll', 'fullBleed', 'interactions'];
+const FIELDS = ['role', 'home', 'motif', 'metaphor', 'energy', 'pins', 'scroll', 'fullBleed', 'interactions', 'clockProp'];
 
 /**
  * Interactions that only run when the page passes a prop. The catalogue tags the block with the interaction it can
- * have; wordmark-finale starts its clock only when it is given a timeZone.
+ * have and names the prop that turns its clock on (`clockProp`: `clock`, or `timeZone` for wordmark-finale). This
+ * table is the fallback for a catalogue from before that field.
  */
 const PROP_GATED = { 'wordmark-finale': { clock: 'timeZone' } };
+
+/**
+ * The kit's composed quiet scenes. On a page they count only when imported from a path ending in kit/quiet or
+ * kit/quiet/<Name>; on a storyboard their name stands where a block's slug would.
+ */
+const KIT_SCENES = ['Statement', 'PhotoText', 'Rows', 'Close'];
+const KIT_NAME = /^[^A-Za-z0-9]*(Statement|PhotoText|Rows|Close)(?![A-Za-z0-9-])/;
 
 const PINNED_CAP = 4.5;
 const OPENING_CAP = 1.5;
@@ -211,6 +225,7 @@ function resolveItem(item, variant) {
     scroll: typeof film.scroll === 'number' ? film.scroll : 0,
     fullBleed: film.fullBleed === true,
     interactions: Array.isArray(film.interactions) ? film.interactions.slice() : [],
+    clockProp: typeof film.clockProp === 'string' && film.clockProp ? film.clockProp : null,
   };
 }
 
@@ -274,37 +289,51 @@ export function readTreatment(plan) {
 
 const SLUG_TOKEN = /(?<![A-Za-z0-9-])([a-z0-9]+(?:-[a-z0-9]+)*)(?::([a-z0-9]+(?:-[a-z0-9]+)*))?(?![A-Za-z0-9-])/g;
 
-/** One storyboard line: an own scene, or the block it names (looked for after the `(tone)` group first). */
+/** The kit quiet scene a line names first after its `(tone)` tag, such as `Statement`, or null. */
+function kitAfterTag(head) {
+  const tag = TONE_TAG.exec(head);
+  if (!tag) return null;
+  const match = KIT_NAME.exec(head.slice(tag.index + tag[0].length));
+  return match ? match[1] : null;
+}
+
+/**
+ * One storyboard line: an own scene, a kit quiet scene named after its `(tone)` tag, or the block it names (looked
+ * for after the `(tone)` group first).
+ */
 function readScene(text, index) {
   const head = text.split('|')[0];
   const own = /\bown scene\b/i.test(head);
-  if (own) return { own, item: null, variant: null };
+  if (own) return { own, kit: null, item: null, variant: null };
+  const kit = kitAfterTag(head);
+  if (kit) return { own, kit, item: null, variant: null };
   const close = head.lastIndexOf(')');
   const zones = close >= 0 ? [head.slice(close + 1), head] : [head];
   for (const zone of zones) {
     for (const match of zone.matchAll(SLUG_TOKEN)) {
       const item = index.get(match[1]);
-      if (item) return { own, item, variant: match[2] || null };
+      if (item) return { own, kit: null, item, variant: match[2] || null };
     }
   }
-  return { own, item: null, variant: null };
+  return { own, kit: null, item: null, variant: null };
 }
 
 const TONE_TAG = /\(([^)]*)\)/;
 const OWN_SCENE = /^[^A-Za-z0-9]*own scene\b/i;
 const FOOTER = /\bfooter\s*:([^|]*)/i;
-const TIME_ZONE = /timezone/gi;
+/** A clock asked for in words: a timeZone, or the word clock or klok (never a variant id such as footer-contact:clock). */
+const CLOCK_ASK = /timezone|(?<![:\w-])(?:clock|klok)\b/gi;
 const NEGATED = /\b(?:zonder|geen|no|not|without)\s+(?:(?:a|an|the|een|de)\s+)?$/i;
 
-/** True when the line asks for a timeZone, and not as "zonder timeZone" or "no timeZone". */
-function asksTimeZone(text) {
-  for (const match of text.matchAll(TIME_ZONE)) if (!NEGATED.test(text.slice(0, match.index))) return true;
+/** True when the line asks for a clock, and not as "zonder timeZone", "geen klok" or "no clock". */
+function asksClock(text) {
+  for (const match of text.matchAll(CLOCK_ASK)) if (!NEGATED.test(text.slice(0, match.index))) return true;
   return false;
 }
 
 /**
  * One storyboard line as the plan check reads it, strictly: the scene's name before the `(tone)` tag, the tone, and
- * the first slug after the tag (or `own scene`); the block after `footer:` comes along as a second block. A line with
+ * the first slug after the tag (or `own scene`, or a kit quiet scene such as `Statement`); the block after `footer:` comes along as a second block. A line with
  * no tag falls back to the first slug the catalogue knows, as the page check reads it.
  */
 function readPlanLine(text) {
@@ -314,8 +343,10 @@ function readPlanLine(text) {
   const tone = tag ? tag[1].trim().toLowerCase() : null;
   const after = tag ? head.slice(tag.index + tag[0].length) : head;
   const own = OWN_SCENE.test(after);
+  const kitMatch = own ? null : KIT_NAME.exec(after);
+  const kit = kitMatch ? kitMatch[1] : null;
   let block = null;
-  if (!own) {
+  if (!own && !kit) {
     const match = after.match(new RegExp(SLUG_TOKEN.source));
     if (match) block = { slug: match[1], variant: match[2] || null };
   }
@@ -325,7 +356,7 @@ function readPlanLine(text) {
     const match = footerAt[1].match(new RegExp(SLUG_TOKEN.source));
     if (match) footer = { slug: match[1], variant: match[2] || null };
   }
-  return { name, tone, tagged: Boolean(tag), own, block, footer, clock: asksTimeZone(text) };
+  return { name, tone, tagged: Boolean(tag), own, kit, block, footer, clock: asksClock(text) };
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -386,8 +417,67 @@ function tagEnd(source, from) {
 }
 
 const VARIANT_PROP = /(?:^|\s)variant\s*=\s*(?:"([^"]*)"|'([^']*)'|\{\s*(?:"([^"]*)"|'([^']*)'|`([^`$]*)`)\s*\})/;
-const PROP_NAME = /(?:^|\s)([A-Za-z_$][\w$-]*)\s*=(?![=>])/g;
 const JSX_TAG = /(?<![\w$.])<([A-Z][A-Za-z0-9]*)(?=[\s/>])/g;
+const PROP_START = /[A-Za-z_$]/;
+const PROP_CHAR = /[\w$-]/;
+
+/** The end of a quoted string that starts at `from`. */
+function stringEnd(text, from) {
+  const quote = text[from];
+  for (let at = from + 1; at < text.length; at++) {
+    if (text[at] === '\\') at++;
+    else if (text[at] === quote) return at + 1;
+  }
+  return text.length;
+}
+
+/** The end of a `{...}` group that starts at `from`, strings inside it skipped. */
+function braceEnd(text, from) {
+  let depth = 0;
+  for (let at = from; at < text.length; at++) {
+    const char = text[at];
+    if (char === '"' || char === "'" || char === '`') at = stringEnd(text, at) - 1;
+    else if (char === '{') depth++;
+    else if (char === '}' && --depth === 0) return at + 1;
+  }
+  return text.length;
+}
+
+/**
+ * The props a tag passes: `name=...` and a bare `name` (true). `name={false}` is left out, and a spread cannot be
+ * read, so it adds nothing. Words inside string and expression values are never read as props.
+ */
+function propNames(attributes) {
+  const names = new Set();
+  let at = 0;
+  while (at < attributes.length) {
+    const char = attributes[at];
+    if (char === '{') {
+      at = braceEnd(attributes, at);
+      continue;
+    }
+    if (!PROP_START.test(char)) {
+      at++;
+      continue;
+    }
+    let end = at;
+    while (end < attributes.length && PROP_CHAR.test(attributes[end])) end++;
+    const name = attributes.slice(at, end);
+    at = end;
+    while (at < attributes.length && /\s/.test(attributes[at])) at++;
+    if (attributes[at] !== '=') {
+      names.add(name);
+      continue;
+    }
+    at++;
+    while (at < attributes.length && /\s/.test(attributes[at])) at++;
+    const from = at;
+    if (attributes[at] === '"' || attributes[at] === "'") at = stringEnd(attributes, at);
+    else if (attributes[at] === '{') at = braceEnd(attributes, at);
+    if (!/^\{\s*false\s*\}$/.test(attributes.slice(from, at))) names.add(name);
+  }
+  return names;
+}
 
 function readVariant(attributes) {
   const match = VARIANT_PROP.exec(attributes);
@@ -396,32 +486,102 @@ function readVariant(attributes) {
   return value ? value.trim() : null;
 }
 
-/** Every block tag in the ordered files, in source order; components that are not blocks are ignored. */
+const IMPORT_FROM = /\bimport\s+(?!type\b)([\w$]+\s*,?\s*)?(?:\{([^}]*)\})?\s*from\s*["']([^"']+)["']/g;
+const KIT_PATH = /(?:^|\/)kit\/quiet(?:\/(Statement|PhotoText|Rows|Close))?(?:\/index)?(?:\.(?:tsx|ts|jsx|js))?$/;
+const ANY_TAG = /(?<![\w$.])<([A-Za-z][\w.]*)(?=[\s/>])/g;
+const DATA_SCENE = /(?:^|\s)data-scene\s*=\s*(?:"([^"]*)"|'([^']*)'|\{\s*(?:"([^"]*)"|'([^']*)'|`([^`$]*)`|([^}]*))\s*\})/;
+const DATA_ENERGY = /(?:^|\s)data-energy\s*=\s*(?:"\s*(\d+(?:\.\d+)?)\s*"|'\s*(\d+(?:\.\d+)?)\s*'|\{\s*["'`]?\s*(\d+(?:\.\d+)?)\s*["'`]?\s*\})/;
+
+/**
+ * The local names a file gives the kit's quiet scenes, mapped to the kit name: a named import from a path ending in
+ * kit/quiet or kit/quiet/<Name> (aliases followed), or a default import from kit/quiet/<Name>.
+ */
+function kitImports(source) {
+  const local = new Map();
+  for (const match of source.matchAll(IMPORT_FROM)) {
+    const path = KIT_PATH.exec(match[3]);
+    if (!path) continue;
+    const fallback = match[1] ? match[1].replace(/[\s,]/g, '') : '';
+    if (fallback && path[1]) local.set(fallback, path[1]);
+    for (const part of (match[2] || '').split(',')) {
+      const names = /^\s*(?:type\s+)?([\w$]+)(?:\s+as\s+([\w$]+))?\s*$/.exec(part);
+      if (!names || /^\s*type\s/.test(part)) continue;
+      const kit = names[1];
+      if (KIT_SCENES.includes(kit) && (!path[1] || path[1] === kit)) local.set(names[2] || kit, kit);
+    }
+  }
+  return local;
+}
+
+function firstGroup(match) {
+  return match ? match.slice(1).find((group) => group !== undefined) : undefined;
+}
+
+/**
+ * Every scene tag in the ordered files, in source order: block tags, the kit's quiet scenes where the file imports
+ * them from the kit, and any element that marks itself with `data-scene`. Other components are ignored.
+ */
 function findBlocks(ordered, components) {
   const found = [];
   for (const file of ordered) {
     if (!SCRIPT_FILE.test(file.path)) continue;
     const source = stripComments(file.text);
-    JSX_TAG.lastIndex = 0;
+    const kits = kitImports(source);
+    ANY_TAG.lastIndex = 0;
     let match;
-    while ((match = JSX_TAG.exec(source))) {
-      const item = components.get(match[1]);
-      if (!item) continue;
+    while ((match = ANY_TAG.exec(source))) {
+      const name = match[1];
+      const item = /^[A-Z]/.test(name) ? components.get(name) : undefined;
+      const kit = item ? null : kits.get(name) || null;
       const start = match.index + match[0].length;
+      if (item || kit) {
+        const end = tagEnd(source, start);
+        const attributes = source.slice(start, end);
+        if (item) found.push({ item, file: file.path, variant: readVariant(attributes), props: propNames(attributes) });
+        else found.push({ marked: { slug: `quiet:${kit}`, energy: 1 }, file: file.path });
+        ANY_TAG.lastIndex = end;
+        continue;
+      }
+      // Any other tag is a scene only when it carries data-scene; otherwise the scan goes on inside it.
       const end = tagEnd(source, start);
       const attributes = source.slice(start, end);
-      const props = new Set([...attributes.matchAll(PROP_NAME)].map((prop) => prop[1]));
-      found.push({ item, file: file.path, variant: readVariant(attributes), props });
-      JSX_TAG.lastIndex = end;
+      const scene = DATA_SCENE.exec(attributes);
+      if (!scene) continue;
+      const value = (firstGroup(scene) || '').trim() || 'scene';
+      const energy = Number(firstGroup(DATA_ENERGY.exec(attributes)) ?? 1);
+      found.push({ marked: { slug: `own:${value}`, energy: Number.isFinite(energy) ? energy : 1 }, file: file.path });
+      ANY_TAG.lastIndex = end;
     }
   }
   return found;
+}
+
+/** A scene the page marks itself (a kit quiet scene or a `data-scene` element), shaped like a resolved block. */
+function markedScene({ slug, energy }) {
+  return {
+    slug,
+    variant: null,
+    kind: 'own-scene',
+    role: energy <= 1 ? 'quiet' : 'scene',
+    home: null,
+    motif: null,
+    metaphor: null,
+    energy,
+    pins: false,
+    scroll: 0,
+    fullBleed: false,
+    interactions: [],
+    clockProp: null,
+    own: true,
+    marked: true,
+  };
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 // The check
 
 function label(block) {
+  if (block.own && block.slug) return block.slug;
   if (block.own) return block.name ? `own scene (${block.name})` : 'own scene';
   return block.variant ? `${block.slug}:${block.variant}` : block.slug;
 }
@@ -464,7 +624,8 @@ function missingTreatment(treatment) {
 
 /** Drop the interactions that only run when a prop is passed and the prop is not among `props`. */
 function gateInteractions(block, props) {
-  const gates = PROP_GATED[block.slug] || {};
+  const gates = { ...(PROP_GATED[block.slug] || {}) };
+  if (block.clockProp) gates.clock = block.clockProp;
   block.interactions = block.interactions.filter((interaction) => !gates[interaction] || props.has(gates[interaction]));
   return block;
 }
@@ -595,19 +756,23 @@ function holdBudgets(add, { used, scenes, extraOwn, treatment, planned, routes, 
 /**
  * Check one site against the film grammar.
  * `plan` is the text of STRUQ.md, `files` the site's own source files (never components/struq/**), `catalog` the
- * block catalogue. Returns the findings in rule order and every block found on the page, in page order.
+ * block catalogue. Returns the findings in rule order and every block found on the page, in page order, with the
+ * scenes the page marks itself between them: the kit's quiet scenes as `quiet:<Name>` (Statement, PhotoText, Rows,
+ * Close, imported from kit/quiet) and any element with `data-scene="<name>"` as `own:<name>`, energy 1 unless its
+ * `data-energy` says otherwise.
  */
 export function filmCheck({ plan, files, catalog } = {}) {
   const index = indexCatalog(catalog);
   const components = new Map([...index.values()].map((item) => [pascal(item.slug), item]));
   const { own, ordered, routes } = orderFiles(files);
 
-  const used = findBlocks(ordered, components).map(({ item, file, variant, props }) => {
-    const block = gateInteractions(resolveItem(item, variant), props);
+  const used = findBlocks(ordered, components).map(({ item, marked, file, variant, props }) => {
+    const block = marked ? markedScene(marked) : gateInteractions(resolveItem(item, variant), props);
     block.file = file;
     return block;
   });
   const scenes = used.filter((block) => block.role && block.role !== 'frame');
+  const markedOnPage = scenes.filter((block) => block.marked);
 
   const treatment = readTreatment(plan);
   const planned = treatment.hasLanguage && treatment.storyboard !== null;
@@ -616,23 +781,50 @@ export function filmCheck({ plan, files, catalog } = {}) {
   const findings = [];
   const add = collector(findings);
   if (!planned) add('no-treatment', 1, missingTreatment(treatment));
-  const extraOwn = storyboard.filter((scene) => scene.own).length;
+  // Own and kit scenes the storyboard plans but the page does not mark still count as quiet; marked ones are scenes.
+  const plannedOwn = storyboard.filter((scene) => scene.own || scene.kit).length;
+  const extraOwn = Math.max(0, plannedOwn - markedOnPage.length);
   holdBudgets(add, { used, scenes, extraOwn, treatment, planned, routes, where: 'page' });
 
   if (planned) {
-    const story = storyboard
-      .filter((scene) => scene.item)
-      .map((scene) => resolveItem(scene.item, scene.variant))
-      .filter((block) => block.role && block.role !== 'frame')
-      .map((block) => block.slug);
-    const page = scenes.map((block) => block.slug);
+    // A block or a kit scene must stand at its place; a plain own scene matches a marked scene there, and is passed
+    // over when the page marks none (own-scene-unmarked says so).
+    const story = [];
+    for (const scene of storyboard) {
+      if (scene.own) story.push({ key: 'own scene', any: true });
+      else if (scene.kit) story.push({ key: `quiet:${scene.kit}`, any: false });
+      else if (scene.item) {
+        const block = resolveItem(scene.item, scene.variant);
+        if (block.role && block.role !== 'frame') story.push({ key: block.slug, any: false });
+      }
+    }
+    const page = scenes.map((block) => ({ key: block.slug, marked: block.marked === true }));
     let differ = 0;
-    for (let at = 0; at < Math.max(story.length, page.length); at++) if (story[at] !== page[at]) differ++;
+    for (let s = 0, p = 0; s < story.length || p < page.length; ) {
+      const want = story[s];
+      const have = page[p];
+      if (want && want.any && !(have && have.marked)) {
+        s++;
+        continue;
+      }
+      if (!want || !have || (!want.any && want.key !== have.key)) differ++;
+      s++;
+      p++;
+    }
     if (differ) {
       add(
         'storyboard-matches-page',
         differ,
-        `Storyboard scenes: ${story.join(', ') || 'none'}. Page scenes: ${page.join(', ') || 'none'}.`,
+        `Storyboard scenes: ${story.map((scene) => scene.key).join(', ') || 'none'}. Page scenes: ${page.map((scene) => scene.key).join(', ') || 'none'}.`,
+      );
+    }
+
+    if (plannedOwn > markedOnPage.length) {
+      const shown = markedOnPage.length ? ` (${list(markedOnPage)})` : '';
+      add(
+        'own-scene-unmarked',
+        plannedOwn - markedOnPage.length,
+        `The storyboard has ${plural(plannedOwn, 'quiet own or kit scene')}; the page marks ${markedOnPage.length}${shown}.`,
       );
     }
   }
@@ -678,7 +870,8 @@ function quieterVariant(item) {
 /**
  * Check a storyboard before anything is built: the same budgets as `filmCheck`, read from the numbered Storyboard
  * lines of STRUQ.md alone. Each line gives the first block after its `(tone)` tag (or an own scene: quiet, energy 1,
- * no block) and the block after `footer:`. `routes` is the number of routes the site will have. Returns the findings
+ * no block; or a kit quiet scene, Statement, PhotoText, Rows or Close, read as `quiet:<Name>` with energy 1) and the
+ * block after `footer:`. `routes` is the number of routes the site will have. Returns the findings
  * in rule order and the scenes the rules read, in storyboard order.
  */
 export function planCheck({ plan, catalog, routes = 1 } = {}) {
@@ -723,7 +916,8 @@ export function planCheck({ plan, catalog, routes = 1 } = {}) {
     const scene = at + 1;
     const line = readPlanLine(text);
     const where = `scene ${scene}${line.name ? ` (${line.name})` : ''}`;
-    const props = new Set(line.clock ? ['timeZone'] : []);
+    // A line that asks for a clock (a timeZone, clock or klok) passes whichever prop turns its block's clock on.
+    const props = new Set(line.clock ? ['timeZone', 'clock'] : []);
     const place = (named) => {
       const item = index.get(named.slug);
       const shown = named.variant ? `${named.slug}:${named.variant}` : named.slug;
@@ -747,10 +941,21 @@ export function planCheck({ plan, catalog, routes = 1 } = {}) {
       // No tag: read the line the way the page check does and name nothing as unknown.
       const loose = readScene(text, index);
       if (loose.own) line.own = true;
+      else if (loose.kit) line.kit = loose.kit;
       else if (loose.item) main = place({ slug: loose.item.slug, variant: loose.variant });
-    } else if (!line.own) {
+    } else if (!line.own && !line.kit) {
       if (line.block) main = place(line.block);
       else unknown.push(`${where} names no block and is not an own scene`);
+    }
+    if (line.kit) {
+      // A kit quiet scene: a known own scene, composed from the kit, energy 1.
+      used.push({
+        ...markedScene({ slug: `quiet:${line.kit}`, energy: 1 }),
+        scene,
+        tone: line.tone,
+        name: line.name,
+        marked: false,
+      });
     }
     if (line.own) {
       used.push({

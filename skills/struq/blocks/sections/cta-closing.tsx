@@ -611,7 +611,7 @@ export function CtaClosing({ variant = "photo", lines, link, image, caption, cla
   const head = (extra = "", rise = true) => (
     <h2 id={titleId} data-cc-rise={rise ? "" : undefined} data-cc-head="" className={`font-display ${extra}`}>
       {lines.map((line, i) => (
-        <span key={i} data-cc-mask="" className="struq-line-mask block overflow-hidden">
+        <span key={i} data-cc-mask="" className="struq-line-mask block">
           <span data-cc-line="" className="block">
             <span data-cc-text="" className="inline-block">
               {line}
@@ -667,7 +667,8 @@ export function CtaClosing({ variant = "photo", lines, link, image, caption, cla
         </div>
         {/* The band: decoration, the backdrop the link stands in front of. */}
         <div aria-hidden className="pointer-events-none absolute inset-0 flex items-center motion-reduce:hidden">
-          <div className="struq-line-mask w-full overflow-hidden">
+          {/* The mask carries the band's size, so its room (blocks.css) is measured in the band's em. */}
+          <div className="struq-line-mask w-full text-[30vw] md:text-[min(19vw,18rem)]">
             <div data-cc-bandrow="" data-cc-rise="">
               <div data-cc-band="" className="flex w-max">
                 {Array.from({ length: COPIES }, (_, c) => (

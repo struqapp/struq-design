@@ -500,7 +500,7 @@ export function SplitPair({ images, word, line, captions, place, className = "" 
     { scope: stage, dependencies: [named, place] },
   );
 
-  const mask = "block overflow-hidden pb-[0.15em] -mb-[0.15em]";
+  const mask = "struq-line-mask block";
 
   // The word and the line under it, laid out once and rendered on the ground and on each photo. Only the ground
   // copy is the real text; the copies on the photos are pictures of it.
@@ -509,8 +509,9 @@ export function SplitPair({ images, word, line, captions, place, className = "" 
       <div
         className="absolute inset-x-0 top-[calc(var(--sp-y)*100%)] flex -translate-y-1/2 justify-center text-[length:min(calc(var(--sp-base)*var(--sp-fit,1)),34svh)]"
       >
-        {/* The mask the word rises out of, with room for accents above and descenders below. */}
-        <span className="-mx-[0.1em] -mb-[0.24em] -mt-[0.08em] block overflow-hidden px-[0.1em] pb-[0.24em] pt-[0.08em]">
+        {/* The mask the word rises out of: the shared line mask, with room for accents above and descenders below
+            and the sides left open for an italic's overhang. */}
+        <span className="struq-line-mask block">
           <span
             data-word=""
             className="font-display block w-fit whitespace-nowrap leading-[0.82] tracking-[-0.045em] [word-spacing:0.08em]"

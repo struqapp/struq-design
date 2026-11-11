@@ -121,26 +121,27 @@ const LAYOUT: Record<HeroFramedVariant, { vars: Record<string, string>; frame: s
     frame:
       "md:absolute md:left-[calc(50%_-_var(--hf-fw)/2)] md:top-[calc(50%_-_var(--hf-fh)/2)] md:mx-0 md:aspect-auto md:h-[var(--hf-fh)] md:w-[var(--hf-fw)]",
     photo: "md:left-[calc(var(--hf-fw)/2_-_50vw)] md:top-[calc(var(--hf-fh)/2_-_50svh)]",
-    label: "md:absolute md:bottom-[calc(50%_-_var(--hf-fh)/2)] md:left-[calc(50%_+_var(--hf-fw)/2_+_3vw)] md:right-[4vw] md:mt-0",
+    label: "md:absolute md:bottom-[calc(50%_-_var(--hf-fh)/2)] md:left-[calc(50%_+_var(--hf-fw)/2_+_3vw)] md:right-sheet-margin md:mt-0",
     name: "clamp(2.25rem, 1rem + 2.4vw, 3.5rem)",
   },
   portret: {
     // A 3:4 portrait, about three quarters of the screen's height, hung a little high at the right edge.
     vars: { "--hf-fw": "min(36vw, 57svh)", "--hf-fh": "calc(var(--hf-fw) / 0.75)" },
     frame:
+      // sheet-allow: the print hangs 6vw in from the wall's edge, its own distance; the registration below follows it
       "md:absolute md:right-[6vw] md:top-[calc(50%_-_var(--hf-fh)/2_-_3svh)] md:z-[1] md:mx-0 md:aspect-auto md:h-[var(--hf-fh)] md:w-[var(--hf-fw)]",
     photo: "md:left-[calc(var(--hf-fw)_+_6vw_-_100vw)] md:top-[calc(var(--hf-fh)/2_+_3svh_-_50svh)]",
     label:
-      "md:absolute md:bottom-[calc(50%_-_var(--hf-fh)/2_+_3svh)] md:left-[6vw] md:right-[calc(10vw_+_var(--hf-fw))] md:mt-0",
+      "md:absolute md:bottom-[calc(50%_-_var(--hf-fh)/2_+_3svh)] md:left-sheet-margin md:right-[calc(10vw_+_var(--hf-fw))] md:mt-0",
     name: "clamp(4.5rem, 1rem + 11vw, 16rem)",
   },
   passe: {
     // The print inside a thin mat of the ground, the mat wider at the foot where the label sits. It steps back to a
     // 4:5 portrait (--hf-tw by --hf-th) at the left, standing in the middle of the screen's height.
     vars: { "--hf-tw": "min(30vw, 52svh)", "--hf-th": "calc(var(--hf-tw) * 1.25)" },
-    frame: "md:absolute md:inset-x-[4vw] md:bottom-[18svh] md:top-[5svh] md:mx-0 md:aspect-auto md:w-auto",
-    photo: "md:-left-[4vw] md:-top-[5svh]",
-    label: "md:absolute md:bottom-[3svh] md:right-[4vw] md:mt-0 md:w-[34vw] md:text-right",
+    frame: "md:absolute md:inset-x-sheet-margin md:bottom-[18svh] md:top-[5svh] md:mx-0 md:aspect-auto md:w-auto",
+    photo: "md:-left-sheet-margin md:-top-[5svh]",
+    label: "md:absolute md:bottom-[3svh] md:right-sheet-margin md:mt-0 md:w-[34vw] md:text-right",
     name: "clamp(1.75rem, 0.8rem + 1.6vw, 2.75rem)",
   },
 };
@@ -445,7 +446,7 @@ export function HeroFramed({ variant = "wand", image, name, line, place, caption
     { scope: stage, dependencies: [name, image.src, variant] },
   );
 
-  const mask = "block overflow-hidden pb-[0.18em] -mb-[0.18em]";
+  const mask = "struq-line-mask block";
   const grade = "object-cover [filter:saturate(0.92)_contrast(1.04)]";
   // Inline: the kit balances display type, which must not wrap the label's name; no transition, so the fit reads a
   // settled size.
@@ -486,10 +487,11 @@ export function HeroFramed({ variant = "wand", image, name, line, place, caption
       data-hf-copy={overlay ? "" : undefined}
       className={
         overlay
-          ? `absolute bottom-[10svh] max-w-[44rem] px-[5vw] group-data-[pos=top]/hf:bottom-auto group-data-[pos=top]/hf:top-[10svh] ${ink} group-data-[side=right]/hf:right-0 group-data-[side=right]/hf:text-right group-data-[side=left]/hf:left-0`
+          ? `absolute bottom-[10svh] max-w-[44rem] px-sheet-margin group-data-[pos=top]/hf:bottom-auto group-data-[pos=top]/hf:top-[10svh] ${ink} group-data-[side=right]/hf:right-0 group-data-[side=right]/hf:text-right group-data-[side=left]/hf:left-0`
           : at === "wall"
-            ? "absolute left-[calc(12vw_+_var(--hf-tw))] right-[6vw] top-1/2 -translate-y-1/2 text-ink"
-            : "px-6 pb-20 pt-6 text-ink md:px-[8vw] md:pb-[14svh]"
+            ? // sheet-allow: beside the stepped-back print, mirroring its 6vw from the wall
+              "absolute left-[calc(12vw_+_var(--hf-tw))] right-[6vw] top-1/2 -translate-y-1/2 text-ink"
+            : "px-sheet-margin pb-20 pt-6 text-ink md:pb-[14svh]"
       }
     >
       <h2 className="m-0 font-display text-[clamp(2.5rem,1rem_+_4.4vw,6.5rem)] leading-[0.95] tracking-[-0.03em]">
@@ -502,12 +504,14 @@ export function HeroFramed({ variant = "wand", image, name, line, place, caption
         ))}
       </h2>
       {lead ? (
-        <p className="m-0 mt-6 overflow-hidden text-lead">
-          <span
-            data-hf-copy-rise={moves ? "" : undefined}
-            className={`block max-w-[36ch] ${overlay ? "group-data-[side=right]/hf:ml-auto group-data-[strong]/hf:text-[1.2em] group-data-[strong]/hf:font-medium" : "text-ink-muted"}`}
-          >
-            {lead}
+        <p className="m-0 mt-6 text-lead">
+          <span className="struq-line-mask block">
+            <span
+              data-hf-copy-rise={moves ? "" : undefined}
+              className={`block max-w-[36ch] ${overlay ? "group-data-[side=right]/hf:ml-auto group-data-[strong]/hf:text-[1.2em] group-data-[strong]/hf:font-medium" : "text-ink-muted"}`}
+            >
+              {lead}
+            </span>
           </span>
         </p>
       ) : null}
@@ -539,7 +543,7 @@ export function HeroFramed({ variant = "wand", image, name, line, place, caption
         <span data-ink="dark" className="text-[var(--hf-dark)]" />
       </span>
 
-      <div data-hf-wall="" className="relative px-6 pb-14 pt-[12svh] md:h-svh md:overflow-hidden md:p-0">
+      <div data-hf-wall="" className="relative px-sheet-margin pb-14 pt-[12svh] md:h-svh md:overflow-hidden md:p-0">
         {/* The frame: the box a stack preloader lands on, the photograph inside it registered to the screen. */}
         <div
           data-hf-frame=""
@@ -577,6 +581,7 @@ export function HeroFramed({ variant = "wand", image, name, line, place, caption
           <div
             data-hf-to=""
             aria-hidden
+            // sheet-allow: the stepped-back print hangs 6vw in from the wall's edge, a composition offset
             className="pointer-events-none invisible absolute left-[6vw] top-[calc(50%_-_var(--hf-th)/2)] hidden h-[var(--hf-th)] w-[var(--hf-tw)] md:block"
           />
         ) : null}

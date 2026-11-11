@@ -518,7 +518,7 @@ export function HeroSplit({ name, lead, items, line, link, photo = "right", vari
   );
 
   const mask = (child: React.ReactNode, key?: number | string) => (
-    <span key={key} className="struq-line-mask block overflow-hidden">
+    <span key={key} className="struq-line-mask block">
       <span data-rise="" className="block">
         {child}
       </span>
@@ -535,7 +535,7 @@ export function HeroSplit({ name, lead, items, line, link, photo = "right", vari
         `${copy}-lead`,
       )}
       {mask(
-        <span data-fit="" className="struq-line-mask inline-grid overflow-hidden whitespace-nowrap align-top">
+        <span data-fit="" className="struq-line-mask inline-grid whitespace-nowrap align-top">
           {items.map((item, i) => (
             <span
               key={item.word}
@@ -556,7 +556,7 @@ export function HeroSplit({ name, lead, items, line, link, photo = "right", vari
   // Lying down the headline stands on the seam (58% down) and the seam cuts the cycling word through its middle.
   const headClass = `font-display absolute ${
     flat ? "top-[calc(58%-1.45em)]" : "bottom-[calc(5vh+5.5rem)]"
-  } leading-[0.92] tracking-[-0.035em] text-[length:var(--hsp-size,9vw)] px-[4vw] left-0`;
+  } leading-[0.92] tracking-[-0.035em] text-[length:var(--hsp-size,9vw)] px-sheet-margin left-0`;
 
   const grid = flat
     ? "md:grid-cols-1 md:grid-rows-[58fr_42fr]"
@@ -612,7 +612,7 @@ export function HeroSplit({ name, lead, items, line, link, photo = "right", vari
           Lying down, the name, the line and the link share one row at the foot. */}
       <div
         data-type=""
-        className={`row-start-2 flex flex-col justify-between gap-8 px-6 pb-8 pt-7 md:px-[4vw] md:pb-[5vh] md:pt-[4vh] ${
+        className={`row-start-2 flex flex-col justify-between gap-8 px-sheet-margin pb-8 pt-7 md:pb-[5vh] md:pt-[4vh] ${
           flat ? "md:col-start-1 md:row-start-2 md:flex-row md:items-end" : `md:row-start-1 ${left ? "md:col-start-2" : "md:col-start-1"}`
         }`}
       >

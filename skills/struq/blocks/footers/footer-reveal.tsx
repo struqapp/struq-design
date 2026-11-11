@@ -257,7 +257,7 @@ export function FooterReveal({
         className={iris ? "scene-inverse" : "bg-surface-1 text-ink"}
       >
         {variant === "fold" ? <div data-fr-shade="" aria-hidden /> : null}
-        <div className="relative flex min-h-svh flex-col px-6 pb-6 pt-[max(4rem,11svh)] md:px-[3vw] md:pt-[max(4.5rem,13svh)]">
+        <div className="relative flex min-h-svh flex-col px-sheet-margin pb-6 pt-[max(4rem,11svh)] md:pt-[max(4.5rem,13svh)]">
           <div className={iris ? "flex flex-col items-center text-center" : ""}>
             <h2
               id={titleId}

@@ -343,13 +343,16 @@ export function PreloaderStack({ photos, hero, target = "[data-stack-target]", n
           </div>
           {/* Parsed right after the frame: the first print shows (blocks.css) only once it is loaded and decoded. */}
           <script dangerouslySetInnerHTML={{ __html: FIRST }} />
-          {/* The caption, in a mask it leaves through as the frame starts to grow. */}
-          <div className="mt-3 overflow-hidden pb-[0.15em] md:mt-4">
-            <div data-caption="" className="flex items-baseline justify-between gap-4">
-              {name ? <p className="font-display text-h3 leading-none">{name}</p> : <span />}
-              {/* The count is one number, --stack-n, shown by blocks.css: its CSS clock runs from the first paint and
-                  the script takes the same number over when it hydrates. */}
-              <p data-count="" className="text-small tabular-nums lining-nums text-ink-muted" />
+          {/* The caption, in a mask it leaves through as the frame starts to grow: the shared line mask, at the
+              name's size so its room is the name's. */}
+          <div className="mt-3 md:mt-4">
+            <div className="struq-line-mask text-h3">
+              <div data-caption="" className="flex items-baseline justify-between gap-4">
+                {name ? <p className="font-display text-h3 leading-none">{name}</p> : <span />}
+                {/* The count is one number, --stack-n, shown by blocks.css: its CSS clock runs from the first paint
+                    and the script takes the same number over when it hydrates. */}
+                <p data-count="" className="text-small tabular-nums lining-nums text-ink-muted" />
+              </div>
             </div>
           </div>
           {/* Parsed right after the caption: it shows (blocks.css) only once its own faces are in, never in a fallback. */}

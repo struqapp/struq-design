@@ -12,8 +12,9 @@
 //           its place in the bar, and the links fade in beside it as it lands (a phone's "Menu" stays). The ground
 //           comes in only once it fits the bar. Scrolling back sets it large again. Hover draws a line from the side
 //           the pointer came in.
-//   split   three parts: wordmark left, the links centred, and the studio's place and live local time on the right;
-//           one line glides under the hovered link, and a thin rule under the bar fills with the page's progress.
+//   split   three parts: wordmark left, the links centred, and the studio's place on the right (with `clock`, its live
+//           local time beside it); one line glides under the hovered link, and a thin rule under the bar fills with
+//           the page's progress. The clock is off unless asked: one live clock per site at most.
 //
 // The bar turns its ink with what is under it, exactly at the edge, per pixel: it is drawn three times (ink for the
 // page ground, on-photo, on-inverse), each copy clipped to the stretches of the bar its own sections cover. Sections
@@ -88,6 +89,7 @@ type FaceProps = {
   menuHref: string;
   onMenu?: () => void;
   place: string;
+  clock: boolean;
   time: string | null;
   /** The copy's ground, for the copies only. */
   tone?: BarTone;
@@ -99,7 +101,7 @@ function Letters({ text }: { text: string }) {
   return (
     <>
       {Array.from(text).map((c, k) => (
-        <span key={k} data-hb-ch="" style={{ "--i": k } as CSSProperties}>
+        <span key={k} data-hb-ch="" className="struq-char-mask" style={{ "--i": k } as CSSProperties}>
           <span>{c}</span>
           <span>{c}</span>
         </span>
@@ -112,7 +114,7 @@ function Letters({ text }: { text: string }) {
  * The bar's face. Drawn once for real (links, transparent text once the copies show) and as aria-hidden copies in every
  * ink, so all of them lay out alike to the pixel.
  */
-function Face({ real = false, tone = "ground", variant, name, homeHref, links, action, menuHref, onMenu, place, time, bind }: FaceProps) {
+function Face({ real = false, tone = "ground", variant, name, homeHref, links, action, menuHref, onMenu, place, clock, time, bind }: FaceProps) {
   const n = links.length;
   const split = variant === "split";
   // Where the full bar starts: split needs the room for three parts.
@@ -147,7 +149,7 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
   };
 
   const word = (
-    <span data-hb-wmask="" className="block">
+    <span data-hb-wmask="" className="struq-line-mask block">
       <span data-hb-wroll="" className="relative block">
         <span className="block">{name}</span>
         <span aria-hidden="true" className="absolute left-0 block">
@@ -181,7 +183,7 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
   return (
     <div
       data-hb-face=""
-      className={`relative h-[var(--hb-h)] items-center gap-6 px-6 md:px-[3vw] ${split ? "grid grid-cols-[1fr_auto_1fr]" : "flex justify-between"}`}
+      className={`relative h-[var(--hb-h)] items-center gap-6 px-sheet-margin ${split ? "grid grid-cols-[1fr_auto_1fr]" : "flex justify-between"}`}
     >
       {real ? null : <div data-hb-ground="" aria-hidden="true" className={`absolute inset-0 ${TONE_GROUND[tone]}`} />}
       {real ? (
@@ -201,10 +203,15 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
           </Nav>
           <div data-hb-fade="" className={`relative flex items-center gap-8 justify-self-end ${wide}`}>
             <span className="whitespace-nowrap text-small leading-none">
-              <span data-hb-place="">{place}</span>{" "}
-              <time data-hb-time="" data-pending={time ? undefined : ""} className="tabular-nums">
-                {time ?? "00:00"}
-              </time>
+              <span data-hb-place="">{place}</span>
+              {clock ? (
+                <>
+                  {" "}
+                  <time data-hb-time="" data-pending={time ? undefined : ""} className="tabular-nums">
+                    {time ?? "00:00"}
+                  </time>
+                </>
+              ) : null}
             </span>
             {act}
           </div>
@@ -265,6 +272,7 @@ export function HeaderBar({
   menuHref = "#menu",
   onMenu,
   place = "Rotterdam",
+  clock = false,
   timeZone = "Europe/Amsterdam",
   startTone = "ground",
 }: {
@@ -280,15 +288,18 @@ export function HeaderBar({
   menuHref?: string;
   /** Opens the site's menu (the menu curtain); the phone's "Menu" is then a button. */
   onMenu?: () => void;
-  /** split: the place whose local time the bar keeps. */
+  /** split: the studio's place, on the right of the bar. */
   place?: string;
+  /** split: the place's live local time beside it. Off unless asked: one live clock per site at most. */
+  clock?: boolean;
+  /** IANA zone for the clock. */
   timeZone?: string;
   /** The ground under the bar on the first paint, before the script measures it (the hero's, usually "photo"). */
   startTone?: BarTone;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const api = useRef<{ hot: (i: number, on: boolean, from?: "left" | "right") => void; focus: (on: boolean) => void } | null>(null);
-  const time = useWallTime(variant === "split", timeZone);
+  const time = useWallTime(variant === "split" && clock, timeZone);
 
   const bind = (i: number) => ({
     onPointerEnter: (e: PointerEvent<HTMLElement>) => {
@@ -618,7 +629,7 @@ export function HeaderBar({
     { scope: root, dependencies: [variant, links.length] },
   );
 
-  const face = { variant, name, homeHref, links, action, menuHref, onMenu, place, time };
+  const face = { variant, name, homeHref, links, action, menuHref, onMenu, place, clock, time };
 
   return (
     <div ref={root} data-header-bar={variant} data-start={startTone} style={{ "--hb-adv": advanceEm(name).toFixed(3) } as CSSProperties}>

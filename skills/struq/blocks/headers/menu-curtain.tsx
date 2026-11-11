@@ -3,7 +3,7 @@
 // A minimal bar: the wordmark on the left, one button on the right that reads "Menu" and rolls to "Sluiten". The menu
 // opens as a curtain in the language of one of the page transitions, the links rise in a stagger through their masks,
 // the hovered or focused link shows its photo on the menu's calm side, and a foot line carries the contact line and
-// the studio's local time. It closes the same way, reversed: every part moves from where it is to where it is going,
+// the studio's place (with `clock`, its live local time; off unless asked, one live clock per site at most). It closes the same way, reversed: every part moves from where it is to where it is going,
 // so a close overtaken by an open turns round instead of starting over.
 //
 //   gate    a line draws from the middle of the screen and the menu opens from it, two edges parting up and down;
@@ -125,7 +125,7 @@ function BarFace({
     </>
   );
   return (
-    <div className="flex h-[var(--menu-bar-h)] items-center justify-between gap-6 px-6 md:px-[3vw]">
+    <div className="flex h-[var(--menu-bar-h)] items-center justify-between gap-6 px-sheet-margin">
       {real ? (
         <a href={homeHref} className={word}>
           {name}
@@ -169,6 +169,7 @@ export function MenuCurtain({
   items,
   contact,
   place = "Rotterdam",
+  clock = false,
   timeZone = "Europe/Amsterdam",
   startTone = "ground",
 }: {
@@ -180,8 +181,11 @@ export function MenuCurtain({
   items: MenuItem[];
   /** The foot line's contact: a mailto, a phone or a page. */
   contact: { label: string; href: string };
-  /** The place whose local time the foot line keeps. */
+  /** The studio's place, on the foot line. */
   place?: string;
+  /** The place's live local time beside it. Off unless asked: one live clock per site at most. */
+  clock?: boolean;
+  /** IANA zone for the clock. */
   timeZone?: string;
   /** The ground under the bar on the first paint, before the script measures it (the hero's, usually "photo"). */
   startTone?: BarTone;
@@ -198,13 +202,15 @@ export function MenuCurtain({
   const [time, setTime] = useState("");
   const menuId = useId();
 
+  // The clock, only when asked: empty on the server and the first paint, set after mount.
   useEffect(() => {
+    if (!clock) return;
     const fmt = new Intl.DateTimeFormat("nl-NL", { hour: "2-digit", minute: "2-digit", timeZone });
     const tick = () => setTime(fmt.format(new Date()));
     tick();
     const id = window.setInterval(tick, 15000);
     return () => window.clearInterval(id);
-  }, [timeZone]);
+  }, [clock, timeZone]);
 
   /** Holds the page still and inert while the menu is open; the undo runs on every way out, unmount included. */
   const hold = useCallback(() => {
@@ -642,10 +648,10 @@ export function MenuCurtain({
   const face = { name, homeHref, items };
   const frameBox =
     variant === "gate"
-      ? "right-[3vw] top-1/2 aspect-[4/5] h-[min(58svh,40vw)] -translate-y-1/2"
+      ? "right-sheet-margin top-1/2 aspect-[4/5] h-[min(58svh,40vw)] -translate-y-1/2"
       : variant === "slices"
-        ? "bottom-[4.5rem] right-[3vw] top-[var(--menu-bar-h)] left-[calc(75cqw+1.5rem)]"
-        : "right-[13vw] top-1/2 aspect-[4/5] h-[min(46svh,30vw)] -translate-y-1/2";
+        ? "bottom-[4.5rem] right-sheet-margin top-[var(--menu-bar-h)] left-[calc(75cqw+1.5rem)]"
+        : "right-[13vw] top-1/2 aspect-[4/5] h-[min(46svh,30vw)] -translate-y-1/2"; // sheet-allow: the stack frame floats inside the page, a composition offset
   const frameSizes = variant === "gate" ? "32vw" : "24vw";
   const frameStart = variant === "gate" ? "inset(50% 0px 50% 0px)" : EMPTY;
 
@@ -724,7 +730,8 @@ export function MenuCurtain({
         <nav aria-label="Menu" className="absolute inset-0">
           <ul
             data-menu-list=""
-            className={`absolute bottom-[4.5rem] left-6 top-[var(--menu-bar-h)] m-0 flex list-none flex-col justify-end p-0 pb-[4svh] md:left-[3vw] md:justify-center md:pb-0 ${variant === "slices" ? "md:right-[calc(25cqw+1.5rem)]" : "md:right-[45vw]"}`}
+            // sheet-allow: the list's right bound at 45vw leaves the frame its side, a composition offset
+            className={`absolute bottom-[4.5rem] left-sheet-margin top-[var(--menu-bar-h)] m-0 flex list-none flex-col justify-end p-0 pb-[4svh] md:justify-center md:pb-0 ${variant === "slices" ? "md:right-[calc(25cqw+1.5rem)]" : "md:right-[45vw]"}`}
           >
             {items.map((item, i) => (
               <li key={item.label}>
@@ -736,7 +743,7 @@ export function MenuCurtain({
                   onClick={onLink}
                   className="inline-block font-display text-[min(15.5vw,9svh)] leading-[1.02] tracking-[-0.03em] md:text-[min(7.2vw,11svh)]"
                 >
-                  <span className="struq-line-mask block overflow-hidden">
+                  <span className="struq-line-mask block">
                     <span data-rise="" className="block" style={{ transform: "translate3d(0, 110%, 0)" }}>
                       {item.label}
                     </span>
@@ -768,14 +775,20 @@ export function MenuCurtain({
 
           <div
             data-foot=""
-            className="absolute inset-x-0 bottom-0 flex items-baseline justify-between gap-6 px-6 pb-5 text-small text-[var(--on-menu-muted)] md:px-[3vw] md:pb-6"
+            className="absolute inset-x-0 bottom-0 flex items-baseline justify-between gap-6 px-sheet-margin pb-5 text-small text-[var(--on-menu-muted)] md:pb-6"
             style={{ opacity: 0 }}
           >
             <a href={contact.href} className="underline-offset-4 hover:underline">
               {contact.label}
             </a>
             <span>
-              {place} <span className="tabular-nums">{time}</span>
+              {place}
+              {clock ? (
+                <>
+                  {" "}
+                  <span className="tabular-nums">{time}</span>
+                </>
+              ) : null}
             </span>
           </div>
         </nav>
