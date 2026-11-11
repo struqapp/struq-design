@@ -1,9 +1,10 @@
 // Struq beeldbank: which pack fits a brief, and which photos inside a pack fit this client.
 //
 // The pack rule mirrors Struq's MCP (public canon logic), in order:
-//   1. A sector word in the brief picks that sector's pack, matched as whole words (neighbouring
-//      words are also tried joined, so "e-bike" matches "ebike"). Most matches wins; table order
-//      breaks a tie.
+//   1. A sector word in the brief picks that sector's pack. A stem of four letters or more also
+//      matches its inflections and the compounds that hold it (architectenstudio, boetiekhotel);
+//      a shorter one only matches whole. Neighbouring words are also tried joined, so "e-bike"
+//      matches "ebike". Most matches wins; table order breaks a tie.
 //   2. No sector word, but the brief launches or sells a product: vitrine (product photography),
 //      and the hero scene carries the product.
 //   3. Anything else: halide, because a wrong photograph is worse than an abstract one.
@@ -24,9 +25,10 @@ export function normalize(text) {
 }
 
 export const PACK_SIGNALS = [
-  ["proof", ["restaurant", "restaurants", "visrestaurant", "bistro", "brasserie", "eetcafe", "horeca", "keuken", "chef", "kok", "koken", "kookt", "bakkerij", "bakker", "patisserie", "lunchroom", "koffiebar", "bakery", "cafe", "wine", "wijnbar", "pizzeria", "catering", "kitchen", "dining"]],
+  ["proof", ["restaurant", "restaurants", "visrestaurant", "bistro", "brasserie", "eetcafe", "horeca", "keuken", "chef", "kok", "koken", "kookt", "bakkerij", "bakker", "patisserie", "lunchroom", "koffiebar", "koffie", "bakery", "cafe", "wine", "wijnbar", "pizzeria", "catering", "kitchen", "dining"]],
   ["datum", ["architect", "architecten", "architectenbureau", "architectuur", "architectuurbureau", "woningbouw", "fabriekspand", "fabriekspanden", "stedenbouw", "vastgoed", "makelaar", "makelaardij", "projectontwikkelaar", "architects", "architecture", "realestate", "property"]],
-  ["mortar", ["bouw", "bouwbedrijf", "aannemer", "aannemersbedrijf", "renovatie", "verbouwing", "timmerman", "dakdekker", "loodgieter", "installateur", "installatiebedrijf", "elektricien", "construction", "contractor", "builder", "plumber", "renovation"]],
+  // No bare "bouw": nearly every brief opens with it as a verb ("Bouw een website voor ...").
+  ["mortar", ["bouwbedrijf", "aannemer", "aannemersbedrijf", "renovatie", "verbouwing", "timmerman", "dakdekker", "loodgieter", "installateur", "installatiebedrijf", "elektricien", "construction", "contractor", "builder", "plumber", "renovation"]],
   ["portico", ["hotel", "hotels", "resort", "vakantie", "vakantiehuis", "vakantiepark", "gastenverblijf", "reisbureau", "reizen", "travel", "holiday", "villa"]],
   ["transit", ["logistiek", "logistieke", "vracht", "vrachtvervoer", "distributie", "distributiecentrum", "transport", "transportbedrijf", "transporteur", "expeditie", "magazijn", "container", "containers", "depot", "pallets", "logistics", "freight", "warehouse", "haulage", "shipping"]],
   ["cadence", ["sport", "sportschool", "sportclub", "gym", "fitness", "crossfit", "boksen", "atletiek", "hardlopen", "wielrennen", "running", "boxing", "athletics"]],
@@ -48,14 +50,49 @@ export const PACK_SIGNALS = [
 
 export const PRODUCT_LAUNCH_WORDS = ["lancering", "lanceren", "lanceert", "gelanceerd", "productlancering", "launch", "launches", "launching", "introductie", "product", "producten", "products"];
 
+// Endings that only inflect a word (architect-en, verbouwing-en, renovatie-s, makelaar-s).
+const INFLECTIONS = new Set(["s", "e", "n", "en", "es", "er", "ers", "ing", "ingen", "ies"]);
+
+/**
+ * True when a brief word is a sector stem, an inflection of it or a compound that holds it.
+ * A stem under four letters only matches whole (so "art" never matches "smart"). A longer stem
+ * matches at the start of the word when the rest is an inflection or a word of its own (five
+ * letters or more: architect-enstudio, mode-label, keramiek-atelier, but not mode-rn), and at the
+ * end when a modifier of three letters or more comes before it (boetiek-hotel, tandarts-praktijk).
+ */
+export function wordMatches(word, stem) {
+  if (word === stem) return true;
+  if (stem.length < 4) return false;
+  if (word.startsWith(stem)) {
+    const rest = word.slice(stem.length);
+    return INFLECTIONS.has(rest) || rest.length >= 5;
+  }
+  return word.endsWith(stem) && word.length - stem.length >= 3;
+}
+
+/**
+ * A matcher for one brief: its words match by stem, neighbours joined only whole ("e bike" reads
+ * as "ebike", but "modern design" never reads as a compound of "mode").
+ */
+function briefMatcher(brief) {
+  const words = normalize(brief).split(" ").filter(Boolean);
+  const joined = new Set();
+  for (let i = 0; i < words.length - 1; i++) joined.add(`${words[i]}${words[i + 1]}`);
+  return (stem) => joined.has(stem) || words.some((w) => wordMatches(w, stem));
+}
+
+/** True when the brief says one of this pack's sector words (the pack shows the client's world). */
+export function packMatchesBrief(pack, brief) {
+  const says = briefMatcher(brief);
+  return (PACK_SIGNALS.find(([p]) => p === pack)?.[1] ?? []).some(says);
+}
+
 /** The pack a brief's own sector words point at, or null. */
 export function packSignalForBrief(brief) {
-  const words = normalize(brief).split(" ").filter(Boolean);
-  const tokens = new Set(words);
-  for (let i = 0; i < words.length - 1; i++) tokens.add(`${words[i]}${words[i + 1]}`);
+  const says = briefMatcher(brief);
   let best = null;
   for (const [pack, signals] of PACK_SIGNALS) {
-    const score = signals.filter((s) => tokens.has(s)).length;
+    const score = signals.filter(says).length;
     if (score > 0 && (!best || score > best.score)) best = { pack, score };
   }
   return best?.pack ?? null;
@@ -118,7 +155,7 @@ export function altFitsBrief(alt, brief) {
  * Keep the photos that fit this client, best fit first per slot.
  * images: [{ slot, alt, description, ... }]. Returns { keep, dropped, fit } in slot order.
  *
- * When the brief's own sector words point at this pack, its photos show the client's world and
+ * When the brief names one of this pack's sector words, its photos show the client's world and
  * only off-subject ones are left out (fit "full"). When they do not (a product launch handed
  * vitrine, a pack named by hand), a photo is kept only if its alt names something the brief is
  * about: the material, the city, the street. Otherwise none: an off-topic photo is worse than no
@@ -126,7 +163,10 @@ export function altFitsBrief(alt, brief) {
  */
 export function fitImages(pack, brief, images) {
   const b = words(brief);
-  const strict = packSignalForBrief(brief) !== pack;
+  const says = briefMatcher(brief);
+  // Strict only when the brief names none of this pack's sector words: a pack named by hand for
+  // an architect is the client's world even when another sector scores higher.
+  const strict = !packMatchesBrief(pack, brief);
   const rules = IMAGE_RULES[pack] ?? [];
   const keep = [];
   const dropped = [];
@@ -135,7 +175,7 @@ export function fitImages(pack, brief, images) {
     // Dutch compounds carry the subject inside them (meelsporen, broodkorst), so a term counts
     // when an alt word contains it; the brief's own words still have to match whole.
     const names = (t) => [...altWords].some((w) => w.includes(t));
-    const offSubject = rules.find((r) => r.terms.some(names) && !r.unless.some((u) => b.has(u)));
+    const offSubject = rules.find((r) => r.terms.some(names) && !r.unless.some(says));
     if (offSubject) dropped.push({ ...img, reason: `shows ${offSubject.subject}, which the brief does not name` });
     else if (strict && !altFitsBrief(img.alt, brief)) dropped.push({ ...img, reason: "shows nothing this brief is about" });
     else keep.push(img);
