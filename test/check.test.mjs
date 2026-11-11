@@ -228,6 +228,37 @@ test('a display heading never sits in an overflow-hidden box', () => {
   assert.ok(!fails(run(fixture()), 'Display heading clipped'));
 });
 
+// why: Roy's second gate build clipped descenders in many places. The kit's masks keep them now, so what is left is the
+// agent's own heading: a clip on it, or on a box held to its line, cuts g, j, p and y with no error anywhere.
+test('a heading of your own that clips its descenders fails, with SplitHeadline as the fix', () => {
+  const cuts = (tsx) => fails(run(fixture({ extra: { 'components/Scene.tsx': tsx } })), 'Heading that cuts descenders');
+  const out = run(fixture({ extra: { 'components/Scene.tsx': 'export const S = () => <h3 className="leading-tight overflow-hidden">Glazuur</h3>;\n' } }));
+  assert.ok(fails(out, 'Heading that cuts descenders'), out);
+  assert.match(out, /SplitHeadline or the \.struq-line-mask class/);
+  assert.match(out, /components\/Scene\.tsx:1 /);
+  assert.ok(cuts('export const S = () => <SplitHeadline as="h2" className="overflow-clip" text="Gegroeid" />;\n'));
+  assert.ok(cuts('export const S = () => (\n  <div className="h-[1.1em] overflow-hidden">\n    <h2 className="text-h3">Jaargang</h2>\n  </div>\n);\n'));
+  assert.ok(cuts('export const S = () => <span className="block overflow-hidden leading-none"><h4>Oven</h4></span>;\n'));
+  // A clip on a tall box is no cut: a full-screen hero leaves its heading room. A clip on a plain box is the clipped
+  // check's business, not this one's, and a box held to the line without a clip cuts nothing.
+  assert.ok(!cuts('export const S = () => <section className="relative h-screen overflow-hidden"><h1 className="text-h3">Zout</h1></section>;\n'));
+  assert.ok(!cuts('export const S = () => <div className="h-[100vh] overflow-hidden"><h1 className="text-h3">Zout</h1></div>;\n'));
+  assert.ok(!cuts('export const S = () => <div className="overflow-hidden"><h3 className="text-h3">Glazuur</h3></div>;\n'));
+  assert.ok(!cuts('export const S = () => <div className="h-12 leading-none"><h3>Glazuur</h3></div>;\n'));
+  assert.ok(!cuts('export const S = () => <header className="h-16 overflow-hidden"><a href="/">Zout</a></header>;\n'));
+  // The kit is never scanned: its SplitHeadline clips on purpose, inside a mask that leaves room under the baseline.
+  const kit = 'export const SplitHeadline = () => <h2 className="overflow-hidden">x</h2>;\n';
+  assert.ok(!fails(run(fixture({ extra: { 'components/struq/kit/SplitHeadline.tsx': kit } })), 'Heading that cuts descenders'));
+  assert.ok(!fails(run(fixture()), 'Heading that cuts descenders'));
+});
+
+test('a heading of your own set under a leading of 0.9 warns', () => {
+  const leading = (value) => run(fixture({ extra: { 'components/Scene.tsx': `export const S = () => <h1 className="text-display leading-[${value}]">Gevlochten</h1>;\n` } }));
+  for (const value of ['0.8', '0.85', '.88']) assert.ok(warns(leading(value), 'Heading leading under 0.9'), value);
+  for (const value of ['0.9', '0.95', '1']) assert.ok(!warns(leading(value), 'Heading leading under 0.9'), value);
+  assert.ok(!warns(run(fixture()), 'Heading leading under 0.9'));
+});
+
 test('an image reference past the pack fails', () => {
   const mod = moduleWith('partial', [{ src: '/images/hero-1.webp', alt: 'Bakfiets in de stad' }]);
   const past = 'import { images } from "@/lib/struq-images";\nexport const M = () => <ManifestoScrub text="a {0} b" images={[images.hero[0], images.card[3]]} />;\n';

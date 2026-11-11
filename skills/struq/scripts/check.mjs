@@ -303,6 +303,31 @@ const plan = read("STRUQ.md");
       }
     }
     if (clipped.length) add(G, "FAIL", "Display heading clipped: a large heading sits in an overflow-hidden box (or on top of an image box) and loses its letters. Give it its own grid cell beside the image, never under or behind it.", clipped);
+
+    // A heading of your own that cuts its descenders: overflow hidden or clip on the heading itself, or on the element
+    // that wraps it directly when that box is held to the line (a fixed height or leading-none). A tall wrapper such as
+    // a full-screen hero (h-screen, h-full, h-[100vh]) leaves the heading room and is not counted. Headings the clipped
+    // check above already names are left to it, so one heading is reported once.
+    const CLIPS = /\boverflow-(?:hidden|clip)\b|overflow:\s*["']?(?:hidden|clip)\b/;
+    const HELD = /(?:^|[\s"'`{])(?:h-(?:\d+(?:\.\d+)?|px)|h-\[(?![^\]]*(?:vh|vw|%))[^\]]+\]|leading-none)(?=[\s"'`}]|$)/;
+    const TIGHT = /\bleading-\[0?\.[0-8]\d*\]/;
+    const named = new Set(clipped.map((c) => c.split("  ")[0]));
+    const cut = [];
+    const tight = [];
+    for (const f of own.filter((x) => !x.rel.endsWith(".css"))) {
+      for (const m of f.text.matchAll(/<(h[1-6]|SplitHeadline)\b[^>]*>/g)) {
+        const tag = m[0];
+        const before = f.text.slice(0, m.index);
+        const where = `${f.rel}:${before.split("\n").length}`;
+        const open = before.slice(before.lastIndexOf("<")).replace(/\s+$/, "");
+        const wrapper = /^<[A-Za-z]/.test(open) && open.endsWith(">") && !open.endsWith("/>") ? open : "";
+        const cuts = CLIPS.test(tag) || (wrapper && CLIPS.test(wrapper) && HELD.test(wrapper));
+        if (cuts && !named.has(where)) cut.push(`${where}  ${(CLIPS.test(tag) ? tag : `${wrapper} ${tag}`).replace(/\s+/g, " ").slice(0, 110)}`);
+        if (TIGHT.test(tag)) tight.push(`${where}  ${tag.match(TIGHT)[0]}`);
+      }
+    }
+    if (cut.length) add(G, "FAIL", "Heading that cuts descenders: overflow-hidden or overflow-clip on a heading of your own (or on a box held to its line by a fixed height or leading-none) cuts g, j, p and y. Drop the clip, and set big type with SplitHeadline or the .struq-line-mask class, whose mask leaves room under the baseline.", cut);
+    if (tight.length) add(G, "WARN", "Heading leading under 0.9: descenders of one line run into the next line's capitals. Keep a leading of 1 in a serif, 0.95 in a sans, and look at a line with a g and a j.", tight);
   }
   tell("Numbered sections", />\s*0[1-9]\s*[<./]|['"`]0[1-9]['"`]|`0\$\{/,
     "01, 02, 03 stamped on sections or rows is a tell; keep at most one deliberate oversized numeral.", ownOnly);
