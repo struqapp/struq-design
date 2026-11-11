@@ -83,10 +83,10 @@ one scene; a block the user names goes in first) and write the treatment at the 
 ```
 # STRUQ.md: <name>
 Brief: <one line: what, for whom, where>
-Idea: <one sentence the whole site is about>
+Idea: <a point of view in one sentence, never a description of the client: what a visitor believes when they leave>
 Language: <weight | cut | curtain>
 Motif: <line | frame | aperture | cut | word | field>: <what it is in this client's world and how it changes down the page>
-Lexicon: <three to five words or numbers from the client's own world; every label, counter and caption uses these, never film or studio jargon the client does not own>
+Lexicon: <three to five working words of the client's trade (a material, a part, a tool, a unit), never the brief repeated; every label, counter and caption uses these, no film or studio jargon the client does not own>
 Palette: <id> (<mood>)
 Type: <pairing id>: <display> + <body>
 Images: pack <slug> (or the client's photos, then pack <slug>)

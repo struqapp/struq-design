@@ -9,6 +9,11 @@ them filled in. Read it once before you write your first treatment.
 storyboard. It is the script of the site. Every block you install answers to a line of it; a block no line asks for
 does not go on the page.
 
+**Idea.** A point of view, not a description. "Duin is a small hotel behind the dunes" describes the client and
+gives the site nothing to do. "Hier hoor je de zee voordat je haar ziet" is an idea: it tells you what the opening
+withholds and what the centerpiece gives. Test it: if the sentence could open the client's Wikipedia page, it is a
+description.
+
 **Language.** How the whole site moves: the preloader, the page transition and the menu come from one family, so
 every cut between scenes is made the same way. weight is slow and photographic, cut is hard and short, curtain parts
 and holds. Pick it by the client's world, not by the block you like best.
@@ -18,9 +23,15 @@ the client's world: the window frame of a canal house, the seam of a knitted gar
 night. It shows at four places (arrival, opening, centerpiece, close) and changes a little each time, so the visitor
 feels the page is about one thing.
 
-**Lexicon.** Three to five words or numbers from the client's own world. Every label, counter, caption and margin
-note on the site is written with them. A preloader counts in the client's units, never in film frames; a caption
-names the client's material, never "Scene 01". Numbers come from the brief only.
+**Lexicon.** Three to five working words of the client's trade: a material, a part, a tool, a unit. Not the brief
+repeated: "twaalf kamers, Bergen aan Zee" are facts for the copy, while "helmgras, zout, vloed, sleutel" is a
+lexicon for a hotel behind the dunes. Every label, counter, caption and margin note on the site is written with
+them. A caption names the client's material, never "Scene 01". Trade words are not facts, so they need no source;
+numbers still come from the brief only.
+
+The three treatments below are examples of the form. Their palettes, pairings, packs and centerpieces belong to
+those clients: pick yours from the canon and the arc by your own brief, and pick the language by the client's
+world (a fashion label is cut, not weight, unless the brief says slow).
 
 **Arc.** The order of scenes for a language, with the loud and quiet beats already placed. You cast the brief into
 it: each scene gets this client's content. You may swap one scene for another of the same energy, never add a second
