@@ -146,8 +146,7 @@ in its own words; then quote those words on the `Language:` line. The idea may p
 `preloader-gate` and `page-transition-gate` show a neutral hairline ring; the film leader (a dial counting 3, 2, 1)
 only for a film client, through `dial="leader"` and `marks`. The header is `header-bar:quiet` or `:settle`; sections
 say their ground with `data-bar-tone`. Each arc is loud only at the opening, the centerpiece and at most one gentle
-scene with a quiet scene on each side. The arcs below are what `blocks.mjs arc` prints, in short; the first pick is
-the default.
+scene with a quiet scene on each side. The arcs below are the printed arcs in short; the first pick is the default.
 
 **Quiet scenes** are the kit's four, imported from `@/components/struq/kit/quiet` (props in each file's header):
 - `Statement`: the one sentence and the page's first type moment, with an `accent` word and a margin `label` or a
@@ -156,7 +155,7 @@ the default.
 - `Rows`: three to six hairline rows, a term and one sentence each, never numbered.
 - `Close`: the closing line and its one link, echoing the opening; `frame` when the motif is the frame.
 - An own scene only when none of the four fits: your type beside a photo with `SplitHeadline`, `MediaFrame` and
-  `Reveal`, entering once, its root marked `data-scene="<name>"` (check.mjs warns `own-scene-unmarked` without it).
+  `Reveal`, entering once, its root marked `data-scene="<name>"` (the check warns `own-scene-unmarked` without it).
 
 **weight.** Paper throughout, ink at the centerpiece.
 1. Arrival (frame): `preloader-stack`; the print lands on the hero photo.
