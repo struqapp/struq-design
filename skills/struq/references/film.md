@@ -34,8 +34,8 @@ those clients: pick yours from the canon and the arc by your own brief, and pick
 world (a fashion label is cut, not weight, unless the brief says slow).
 
 **Arc.** The order of scenes for a language, with the loud and quiet beats already placed. You cast the brief into
-it: each scene gets this client's content. You may swap one scene for another of the same energy, never add a second
-loud one.
+it: each scene gets this client's content. You may swap one scene for another with the same tag; the loud scenes are
+the opening, the centerpiece and at most one gentle one, never side by side.
 
 ## How a motif travels
 
@@ -74,15 +74,16 @@ Storyboard:
 1. Arrival   (frame)  preloader-stack, "Atelier Sloot" under the frame | lands on: the hero print
 2. Opening   (loud)   hero-framed:wand | on screen: one bowl as a small print, its label "Kom, mat glazuur", the h1 "Gemaakt om te gebruiken." | enters: the line rises beside the print | hands over: the first scroll walks up to the print until it fills the screen
 3. Statement (quiet)  own scene, SplitHeadline | on screen: "Eerst de hand, dan de oven." at 14vw on paper | enters: lines rise once | hands over: plain scroll
-4. About     (quiet)  about-studio:wandeling | on screen: who makes it and where, as the brief says, beside two columns of objects | enters: once | hands over: plain scroll
-5. Approach  (quiet)  own hairline rows | on screen: draaien, drogen, glazuren, stoken, one sentence each, no numbers | enters: each row once | hands over: plain scroll
+4. About     (loud)   about-studio:wandeling | on screen: who makes it and where, as the brief says, beside two columns of objects | enters: the columns drift with the scroll | hands over: plain scroll
+5. Approach  (quiet)  own scene, hairline rows | on screen: draaien, drogen, glazuren, stoken, one sentence each, no numbers | enters: each row once | hands over: plain scroll
 6. Centerpiece (loud) image-to-fullbleed | on screen: one bowl on stone, from print to full screen, with "Op ware grootte." | enters: pinned 2.2 screens | hands over: the photo lets go and scrolls away whole
 7. Release   (quiet)  own scene | on screen: a photo of the drying rack and two sentences on ordering a series | enters: once | hands over: plain scroll
 8. Close     (quiet)  own scene | echoes the opening: an empty hairline frame the size of the arrival print round "Vraag een serie aan." and the mail link | footer: wordmark-finale
 ```
 
 Budgets: pins 1.5 + 2.2 = 3.7 screens; full-bleed reveals two, built the same way (a print growing to the screen);
-clocks none, so no `timeZone` on the finale; five of eight scenes quiet. `approach:draad` was left out: it draws a
+clocks none, so no `timeZone` on the finale; four of the seven scenes after the arrival quiet, and the one gentle
+loud scene (the walk past the objects) has a quiet scene on each side. `approach:draad` was left out: it draws a
 line, and this site's motif is a frame.
 
 ## cut: Vaar, a knitwear label
@@ -106,7 +107,7 @@ Storyboard:
 4. Statement (quiet)  reveals:clip | on screen: a photo opening from a slit, "Elke trui heeft één naad." | enters: once | hands over: plain scroll
 5. Centerpiece (loud) split-pair | on screen: the word "Naad", two photos meeting on it | enters: pinned 3 screens | hands over: the halves leave at their own speeds
 6. Release   (quiet)  fill-rows | on screen: the three yarns, a detail on hover | enters: once | hands over: a hard cut to paper
-7. Close     (quiet)  type only | echoes the opening: "Uit deze oplage, zolang hij er is." cut off at the seam line, a link to the shop | footer: footer-contact:address
+7. Close     (quiet)  own scene, type only | echoes the opening: "Uit deze oplage, zolang hij er is." cut off at the seam line, a link to the shop | footer: footer-contact:address
 ```
 
 Budgets: pins 1.5 + 3 = 4.5; one full-bleed reveal; one clock (the footer); no marquee, so the close is type only.
@@ -129,14 +130,15 @@ Storyboard:
 1. Arrival   (frame)  preloader-wordmark:split, "Nachtwerk" | lands on: the field, the halves parting on its middle line
 2. Opening   (loud)   background-aurora:horizon | on screen: "Drie nachten aan zee." at 16vw on the calm side, a low band of light along the foot | enters: lines rise as the band brightens | hands over: the band rises as the hero scrolls away
 3. Statement (quiet)  reveals:lines | on screen: one sentence on why the festival starts at dusk, a photo of an empty stage | enters: once | hands over: plain scroll
-4. Details   (quiet)  sticky-chapters | on screen: the three nights as chapters, with the places the brief names | enters: each chapter once | hands over: plain scroll
-5. Build     (quiet)  about-studio:plaat | on screen: who makes it, the plate of the pier | enters: the plate opens once | hands over: plain scroll
+4. Details   (loud)   sticky-chapters | on screen: the three nights as chapters, with the places the brief names | enters: one photo holds while the nights scroll past, each night's photo rising over the last | hands over: plain scroll
+5. Build     (quiet)  own scene | on screen: who makes it, a photo of the pier | enters: once | hands over: plain scroll
 6. Centerpiece (loud) scrub-connector | on screen: "Eb" and "Vloed" | enters: pinned 3 screens | hands over: the joined pair scrolls away whole
 7. Release   (quiet)  own scene | on screen: one photo of the boulevard, the dates and place from the brief | enters: once | hands over: plain scroll
 8. Close     (quiet)  cta-closing:pointer | echoes the opening: the line drawn under "Kom kijken als het donker wordt." | footer: footer-reveal:lift
 ```
 
-Budgets: pins 3 screens; one full-bleed reveal (the plate); no clock; two contrast scenes (the field and the ink).
+Budgets: pins 3 screens; no full-bleed reveal; no clock; two contrast scenes (the field and the ink); the chapters
+are the one gentle loud scene, a quiet scene on each side.
 `preloader-gate` was left out: its film leader counts 3, 2, 1, and this client is not a film.
 
 ## Before the stop
