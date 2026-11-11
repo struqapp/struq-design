@@ -4,8 +4,11 @@
 //
 //   node <skill-dir>/scripts/blocks.mjs list [kind]          the catalogue, one line per block with its variants
 //   node <skill-dir>/scripts/blocks.mjs init                 the kit, the app shell (on a starter) and the base packages
-//   node <skill-dir>/scripts/blocks.mjs add <slug> [<slug>]  a block and every file it imports, plus its packages
+//   node <skill-dir>/scripts/blocks.mjs add <slug>[:<variant>] [...]  a block and every file it imports, plus its packages
 //   flags: --dir <project>, --force (replace files you already have), --no-install
+//
+// add refuses, installing nothing, until STRUQ.md passes the plan check and STRUQ-LOG.md holds the user's reply to the
+// treatment, and then takes only blocks the storyboard names, in the site's language (gate.mjs). list and init never ask.
 //
 // Everything lands under components/struq/ in the layout of Struq's blocks/ (kit/, heroes/, sections/ ...), so the
 // relative imports between them hold. A layout or stylesheet you wrote yourself is never overwritten.
@@ -13,6 +16,7 @@ import { spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { addRefusal, refuse } from "./gate.mjs";
 import { appendLog } from "./log.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -123,13 +127,24 @@ const commands = {
   },
 
   add() {
-    if (!rest.length) throw new Error("Usage: blocks.mjs add <slug> [<slug> ...]. The slugs: blocks.mjs list");
-    const deps = project();
-    const wanted = new Set();
-    const added = [];
-    for (const slug of rest) {
+    if (!rest.length) throw new Error("Usage: blocks.mjs add <slug>[:<variant>] [...]. The slugs: blocks.mjs list");
+    const requests = rest.map((arg) => {
+      const [slug, variant = null] = arg.split(":");
       const b = CATALOG.find((x) => x.slug === slug);
       if (!b) throw new Error(`Unknown block "${slug}". Run: blocks.mjs list`);
+      if (variant && !b.variants.some((v) => v.id === variant)) {
+        throw new Error(`${slug} has no variant "${variant}". Its variants: ${b.variants.map((v) => v.id).join(", ") || "none"}.`);
+      }
+      return { slug, variant };
+    });
+    const deps = project();
+    // The one stop: a passing plan, the user's logged reply, and only blocks the storyboard names (gate.mjs).
+    const refusal = addRefusal(root, requests);
+    if (refusal) return refuse("blocks.mjs add", refusal);
+    const wanted = new Set();
+    const added = [];
+    for (const { slug } of requests) {
+      const b = CATALOG.find((x) => x.slug === slug);
       for (const f of b.files) place(join(BLOCKS, f), target(f));
       for (const p of b.packages) wanted.add(p);
       added.push(b);
@@ -147,7 +162,7 @@ const commands = {
 
 const run = commands[cmd];
 if (!run) {
-  console.error("Usage: blocks.mjs list [kind] | init | add <slug> [<slug> ...]   [--dir <project>] [--force] [--no-install]");
+  console.error("Usage: blocks.mjs list [kind] | init | add <slug>[:<variant>] [...]   [--dir <project>] [--force] [--no-install]");
   process.exit(2);
 }
 try {

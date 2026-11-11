@@ -8,6 +8,18 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFile
 import { tmpdir } from 'node:os';
 import { dirname, join, posix, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { approvedProject, treatment } from './treatment.mjs';
+
+const CUT_BOARD = [
+  'Arrival (frame) preloader-slices | lands on: the poster',
+  'Opening (loud) hero-poster:column | on screen: the poster',
+  'Work (quiet) hover-list | on screen: the pieces',
+  'Statement (quiet) own scene, SplitHeadline | on screen: one sentence',
+  'Interlude (loud) hero-opener | on screen: the name at poster scale',
+  'Release (quiet) own scene | on screen: a photo',
+  'Centerpiece (loud) panel-wipe | on screen: two photos',
+  'Close (quiet) own scene | echoes the opening | footer: footer-contact:address',
+];
 
 const BLOCKS = fileURLToPath(new URL('../skills/struq/blocks/', import.meta.url));
 const CLI = fileURLToPath(new URL('../skills/struq/scripts/blocks.mjs', import.meta.url));
@@ -50,6 +62,8 @@ test('every block carries its film role, and blocks.mjs list prints the film fac
 test('blocks.mjs add copies a block with everything it imports, layout intact', () => {
   const dir = mkdtempSync(join(tmpdir(), 'struq-blocks-'));
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'x', dependencies: { next: '16.0.0' } }));
+  // add installs only what an approved storyboard names: a cut plan with both openings in it.
+  approvedProject(dir, { plan: treatment({ language: 'cut', motif: 'cut', centerpiece: 'panel-wipe', board: CUT_BOARD }) });
   const r = spawnSync(process.execPath, [CLI, 'add', 'hero-poster', 'hero-opener', '--dir', dir, '--no-install'], { encoding: 'utf8' });
   assert.equal(r.status, 0, r.stderr);
   for (const slug of ['hero-poster', 'hero-opener']) {

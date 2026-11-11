@@ -15,6 +15,7 @@ import { join, relative, resolve, sep } from "node:path";
 import { appendLog } from "./log.mjs";
 import { altFitsBrief, packSignalForBrief } from "./packs.mjs";
 import { filmCheck, planCheck } from "./film-check.mjs";
+import { hasApproval } from "./gate.mjs";
 
 const CANON = JSON.parse(readFileSync(new URL("../canon/canon.json", import.meta.url), "utf8"));
 const CATALOG = JSON.parse(readFileSync(new URL("../blocks/catalog.json", import.meta.url), "utf8")).blocks;
@@ -550,8 +551,8 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
     const ticked = (plan.match(/^\s*[-*]\s*\[[xX]\]\s*(\d+)/gm) ?? []).map((l) => Number(l.match(/(\d+)\s*$/)[1])).filter((n) => n !== 8);
     const missing = ticked.filter((n) => !new RegExp(`^## Step ${n}\\b`, "m").test(log));
     const entries = (log.match(/^## /gm) ?? []).length;
-    const approval = log.match(/^## Step 2 Approval[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m);
-    if (!approval || !/^Reply:\s*["“‘'].+["”’']\s*$/m.test(approval[1])) {
+    // The same test blocks.mjs add and canon.mjs hold before they write a file (gate.mjs).
+    if (!hasApproval(log)) {
       add(G, "FAIL", 'No Step 2 Approval entry with the user\'s own reply. The build request is not the approval: stop once, ask "Akkoord? Heb je een logo, foto\'s of echte cijfers, stuur ze nu.", then log the answer word for word: node <skill-dir>/scripts/log.mjs "Step 2 Approval" "Asked: Akkoord? ..." "Reply: \"<their words>\"".');
     } else add(G, "PASS", "The approval stop is logged with the user's reply");
     if (missing.length) add(G, "FAIL", `STRUQ-LOG.md has no entry for ticked step(s) ${missing.join(", ")}. Add one per step with log.mjs: what was done and why.`);
