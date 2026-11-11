@@ -9,7 +9,11 @@
 // <HeroOpener image={images.hero[0]} title="Koken op" accent="vuur." lead="..." cta={{ href: "#reserveren", label: "Reserveer een tafel" }} header={<SiteHeader />} />
 // <HeroOpener image={images.hero[0]} split={["Vuur", "Noord"]} lead="..." cta={...} />
 //
-// The line is the display face at poster size, with at most one italic accent word. The flat scrim
+// <HeroOpener image={images.hero[0]} title="Koken op vuur." accent="vuur" lead="..." cta={...} />
+//
+// The line is the display face at poster size, with at most one italic accent word: the site's one accent word, marked
+// in place when the title holds it (the same mark as the Statement and the Close, kept whole by SplitText's line cut),
+// or set after the title when it does not. The flat scrim
 // keeps the copy at 4.5:1; never a gradient. Reduced motion and phones: the composed still, no pin.
 // The section after the opener slides over it: globals.css gives it a ground and a higher layer.
 //
@@ -17,6 +21,7 @@
 // any preloader or page transition to start leaving (whenUncovered, from the helper the frames share),
 // and plays at once when nothing covers the page.
 import { useRef } from "react";
+import { findAccent, withAccent } from "../kit/accent";
 import { HeroCanvas } from "../kit/HeroCanvas";
 import { MagneticButton } from "../kit/MagneticButton";
 import { SplitText, gsap, useGSAP } from "../kit/gsap";
@@ -28,7 +33,11 @@ type Props = {
   image?: StruqImage;
   /** The poster line ("across"). */
   title?: string;
-  /** One word in the display face's italic, after the title. */
+  /**
+   * The site's one accent word, in the pairing's italic accent face. A word the title holds is marked where it first
+   * stands (whole word, any case, punctuation outside), as the Statement and the Close mark it; a word the title does
+   * not hold is set after the title, as before.
+   */
   accent?: string;
   /** Two words for the split wordmark; replaces title. */
   split?: [string, string];
@@ -50,6 +59,7 @@ export function HeroOpener({ image, title, accent, split, lead, cta, header, scr
   // The lead goes on the photo's calm side; the CTA takes the other. Over a busy frame (no calm
   // side known) the lead gets a flat backing at a fixed opacity and is set a step larger.
   const side = calm ?? (image?.negativeSpace === "left" || image?.negativeSpace === "right" ? image.negativeSpace : image ? "none" : "left");
+  const inTitle = Boolean(title && findAccent(title, accent));
   const stage = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -154,13 +164,20 @@ export function HeroOpener({ image, title, accent, split, lead, cta, header, scr
           </div>
           {!split && title ? (
             <h1 data-opener-title="" data-split="" data-quiet="" className={poster}>
-              {title}
-              {accent ? (
+              {/* An accent the title holds is marked in place; any other accent is the trailing word, as it always was. */}
+              {inTitle ? (
+                withAccent(title, accent)
+              ) : (
                 <>
-                  {" "}
-                  <em className="font-accent font-light italic tracking-[-0.02em] [word-spacing:0.09em]">{accent}</em>
+                  {title}
+                  {accent ? (
+                    <>
+                      {" "}
+                      <em className="font-accent font-light italic tracking-[-0.02em] [word-spacing:0.09em]">{accent}</em>
+                    </>
+                  ) : null}
                 </>
-              ) : null}
+              )}
             </h1>
           ) : null}
         </div>

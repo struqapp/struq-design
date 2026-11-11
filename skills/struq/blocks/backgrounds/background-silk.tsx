@@ -7,7 +7,11 @@
 // real normal and a low light instead of a halftone grid. Raw WebGL (GLSL ES 1.00, so a WebGL1 context runs it too),
 // no three.js, self-contained.
 //
-// <BackgroundSilk variant="fold" lines={["Zacht licht,", "zware stof."]} lead="..." link={{ href: "#werk", label: "Bekijk het werk" }} />
+// <BackgroundSilk variant="fold" lines={["Zacht licht,", "zware stof."]} accent="licht" lead="..." link={{ href: "#werk", label: "Bekijk het werk" }} />
+//
+// `accent` (optional) is the site's one accent word: where it first stands in the headline it is set in the pairing's
+// italic accent face, inside its line's mask, and the type's box is read once that face is in. The Statement and the
+// Close carry the same word. Left out, or not in the headline, the hero is exactly as it was.
 //
 // Three compositions of the same cloth:
 // - fold: one large diagonal fold through the right half; the type stands on the calm left. The pointer turns the
@@ -32,6 +36,7 @@
 // unmount, context loss survived. Reduced motion: one still frame, held. No WebGL: the plain ground with the type.
 // No scripts: the composed hero on the plain ground (blocks.css, "--- background-silk ---").
 import { useRef } from "react";
+import { accentFaceReady, accentLines } from "../kit/accent";
 import { gsap, useGSAP } from "../kit/gsap";
 import { whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
@@ -47,6 +52,9 @@ type Props = {
   variant?: SilkVariant;
   /** The headline, one entry per line. Two short lines read best. */
   lines: string[];
+  /** The site's one accent word: where it first stands in the headline it is set in the pairing's italic accent face
+   * (--face-accent), as the Statement and the Close set it. A word the headline does not hold changes nothing. */
+  accent?: string;
   /** One lead sentence under the headline. */
   lead: string;
   /** One text link. */
@@ -783,7 +791,8 @@ function silkField(
       document.addEventListener("visibilitychange", onVisibility);
       resizeObserver.observe(holder);
       io.observe(el);
-      document.fonts?.ready.then(onFonts);
+      // The accent face too, when a word is marked: the type's box is read as it will stand.
+      document.fonts?.ready.then(() => accentFaceReady(el)).then(onFonts);
       // The folds rise once nothing covers the page: at once, or as a preloader or page transition starts to leave.
       stopRise = whenUncovered(() => {
         introAt = time;
@@ -815,7 +824,7 @@ function silkField(
   };
 }
 
-export function BackgroundSilk({ variant = "fold", lines, lead, link, className = "" }: Props) {
+export function BackgroundSilk({ variant = "fold", lines, accent, lead, link, className = "" }: Props) {
   const root = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -903,7 +912,7 @@ export function BackgroundSilk({ variant = "fold", lines, lead, link, className 
       <div className={`relative flex h-full flex-col px-sheet-margin pb-[9vh] pt-[12vh] md:pb-[11vh] ${place}`}>
         <div data-copy="" className="max-w-[min(100%,40rem)]">
           <h1 data-head="" className="font-display text-[clamp(2.75rem,12.5vw,4.5rem)] leading-[0.98] tracking-[-0.03em] md:text-[clamp(3.75rem,6.6vw,7.5rem)]">
-            {lines.map((line, i) => mask(line, i))}
+            {accentLines(lines, accent).map((line, i) => mask(line, i))}
           </h1>
           <div data-small="" className="mt-7 md:mt-9">
             {mask(<span className="block max-w-[34ch] text-[1.0625rem] leading-relaxed text-ink-muted md:text-lg">{lead}</span>)}

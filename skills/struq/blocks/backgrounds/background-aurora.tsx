@@ -7,7 +7,11 @@
 // shade of the accent at its thin edges. The headline (light display weight), one lead sentence and one text link
 // stand on the calm side, clear of the curtains.
 //
-// <BackgroundAurora variant="veil" lines={["Ruimte voor", "het licht."]} lead="..." link={{ href: "/werk", label: "Bekijk het werk" }} />
+// <BackgroundAurora variant="veil" lines={["Ruimte voor", "het licht."]} accent="licht" lead="..." link={{ href: "/werk", label: "Bekijk het werk" }} />
+//
+// `accent` (optional) is the site's one accent word: where it first stands in the headline it is set in the pairing's
+// italic accent face, inside its line's mask, and the contrast ceiling is measured once that face is in. The Statement
+// and the Close carry the same word. Left out, or not in the headline, the hero is exactly as it was.
 //
 // Three variants, three compositions of the same field:
 //   veil     one tall curtain standing in the right third, two pleats crossing as it sways; the type on the calm left.
@@ -34,6 +38,7 @@
 // scripts the type waits below its masks and is released by the CSS after 3 seconds if the script never runs
 // (blocks.css, "--- background-aurora ---").
 import { useEffect, useRef } from "react";
+import { accentFaceReady, accentLines } from "../kit/accent";
 import { ScrollTrigger, gsap, useGSAP } from "../kit/gsap";
 import { whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
@@ -50,6 +55,9 @@ type Props = {
   variant?: AuroraVariant;
   /** The headline, one entry per line. Two short lines read best. */
   lines: string[];
+  /** The site's one accent word: where it first stands in the headline it is set in the pairing's italic accent face
+   * (--face-accent), as the Statement and the Close set it. A word the headline does not hold changes nothing. */
+  accent?: string;
   /** One lead sentence. */
   lead: string;
   /** One text link. */
@@ -421,7 +429,7 @@ function build(gl: WebGL2RenderingContext): Gl | null {
 
 // ---------------------------------------------------------------------------------------------------------------
 
-export function BackgroundAurora({ variant = "veil", lines, lead, link, className = "" }: Props) {
+export function BackgroundAurora({ variant = "veil", lines, accent, lead, link, className = "" }: Props) {
   const root = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -619,7 +627,8 @@ export function BackgroundAurora({ variant = "veil", lines, lead, link, classNam
     let fontsId = 0;
     const refit = () => {
       const id = ++fontsId;
-      document.fonts?.ready.then(() => {
+      // The accent face too, when a word is marked: the text boxes are measured as they will stand.
+      document.fonts?.ready.then(() => accentFaceReady(el)).then(() => {
         if (gone || id !== fontsId) return;
         measure();
         if (gl && prog) draw();
@@ -805,7 +814,7 @@ export function BackgroundAurora({ variant = "veil", lines, lead, link, classNam
             data-quiet="display"
             className="w-fit font-display text-[clamp(2.9rem,12.5vw,4.5rem)] leading-[0.95] tracking-[-0.03em] md:text-[clamp(3.5rem,7vw,8rem)]"
           >
-            {lines.map((line, i) => mask(line, i))}
+            {accentLines(lines, accent).map((line, i) => mask(line, i))}
           </h1>
           {/* The spacing sits on plain wrappers: the line mask's own negative margins would cancel it. */}
           <div className="mt-7 md:mt-10">

@@ -1,5 +1,5 @@
 "use client";
-// components/struq/quiet/PhotoText.tsx (Struq recipe)
+// components/struq/kit/quiet/PhotoText.tsx (Struq recipe)
 // A photograph and a short text, set on the page grid: the photo across seven columns, the heading and one or two
 // paragraphs across four, one empty column between them as the breath. The text stands on the photo's foot (its last
 // line on the photo's lower edge), so the two read as one composition; the caption hangs under the photo, the label at

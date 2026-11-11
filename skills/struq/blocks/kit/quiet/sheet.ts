@@ -1,4 +1,4 @@
-// components/struq/quiet/sheet.ts (Struq recipe)
+// components/struq/kit/quiet/sheet.ts (Struq recipe)
 // The sheet the quiet scenes stand on: the page's 12 column grid inside the page margin (the header wordmark's and the
 // heroes' left edge) with the one gutter, and the margin label. Tokens from blocks.css only.
 

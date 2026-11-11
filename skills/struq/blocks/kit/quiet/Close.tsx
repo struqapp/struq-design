@@ -1,15 +1,18 @@
 "use client";
-// components/struq/quiet/Close.tsx (Struq recipe)
+// components/struq/kit/quiet/Close.tsx (Struq recipe)
 // The page's last call: one line of type at the sheet's moment size from the grid's first column, and one link at the
 // far end of the line under it, so the eye crosses the page once, from the big line to the small way out. An optional
 // hairline frame around the line is the frame motif's last echo; an optional caption sits at the start of the link's
 // line, a label in the margin columns beside the line.
 //
-// <Close line="Kom kijken in de werkplaats." link={{ href: "/contact", label: "Maak een afspraak" }}
+// <Close line="Kom kijken in de werkplaats." accent="werkplaats" link={{ href: "/contact", label: "Maak een afspraak" }}
 //   caption="Open op zaterdag, 10 tot 16 uur" frame />
 //
 // Props
 // - line: the closing sentence, plain text, short (it sets in two or three lines at moment size).
+// - accent: the site's one accent word, again: where it first stands in the line it is set in the pairing's italic
+//   accent face (--face-accent), as in the opening and the Statement (../accent). A word the line does not hold
+//   changes nothing.
 // - link: { href, label }, the one way out. Rendered as a plain <a>; wrap your own Link around it if you route.
 // - frame: draws a hairline from --line around the line, one gutter inside it. Use it only when the site's motif is the
 //   frame (it echoes the hero's or the centerpiece's frame).
@@ -20,12 +23,14 @@
 // Motion: it enters once. The line's rows rise through their masks (SplitHeadline), the caption and the link follow
 // (Reveal). No pin, no scrub, no hover motion: the link is underlined at rest and stays so. Reduced motion: a short
 // fade. Without scripts: the composed scene. Phones: the line, the label, then the link with the caption under it.
+import { withAccent } from "../accent";
 import { Reveal } from "../Reveal";
 import { SplitHeadline } from "../SplitHeadline";
 import { LABEL, SCENE_SPACE, SHEET_GRID } from "./sheet";
 
 type Props = {
   line: string;
+  accent?: string;
   link: { href: string; label: string };
   frame?: boolean;
   caption?: string;
@@ -33,7 +38,7 @@ type Props = {
   className?: string;
 };
 
-export function Close({ line, link, frame = false, caption, label, className = "" }: Props) {
+export function Close({ line, accent, link, frame = false, caption, label, className = "" }: Props) {
   return (
     <section data-scene="close" data-energy="1" className={`text-ink ${SCENE_SPACE} ${className}`}>
       <div className={`items-start gap-y-10 md:items-baseline md:gap-y-20 ${SHEET_GRID}`}>
@@ -41,7 +46,7 @@ export function Close({ line, link, frame = false, caption, label, className = "
             size and the hairline never crosses a letter. */}
         <div className={`col-span-12 md:col-span-10 ${frame ? "border border-line p-[0.35em] text-sheet-moment" : ""}`}>
           <SplitHeadline as="h2" on="scroll" className="m-0 text-sheet-moment">
-            {line}
+            {withAccent(line, accent)}
           </SplitHeadline>
         </div>
         {label ? (

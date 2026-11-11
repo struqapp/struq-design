@@ -5,8 +5,12 @@
 // on the page ground, a quiet caption bar with its facts on one line: the place, an optional middle fact, one link.
 // On scroll the photograph moves slower than the page and the headline leaves first, so the hero hands over with depth.
 //
-// <HeroStill image={images.hero[0]} lines={["Ruimte die", "blijft."]} place="Noord, Rotterdam"
+// <HeroStill image={images.hero[0]} lines={["Ruimte die", "blijft."]} accent="blijft" place="Noord, Rotterdam"
 //   link={{ href: "/werk", label: "Bekijk het werk" }} />
+//
+// `accent` (optional) is the site's one accent word: where it first stands in the headline it is set in the pairing's
+// italic accent face, inside its line's mask, and the Statement and the Close carry the same word. Left out, or not in
+// the headline, the headline is exactly as it was.
 //
 // The caption's words are the client's own. `note` fills the middle with one fact from the client's trade (a scale, a
 // year, a plot number); without it the caption is the place and the link, one either side. A live local clock is
@@ -45,6 +49,7 @@
 //   with the photograph, so it stays on its horizon as the still hands over.
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { accentLines } from "../kit/accent";
 import { ScrollTrigger, gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances, type PhotoBox } from "../kit/photo-read";
@@ -67,6 +72,9 @@ type Inner = {
   image: StruqImage;
   /** The headline, one entry per line, display size. Two or three short lines read best. */
   lines: string[];
+  /** The site's one accent word: where it first stands in the headline it is set in the pairing's italic accent face
+   * (--face-accent), as the Statement and the Close set it. A word the headline does not hold changes nothing. */
+  accent?: string;
   /** The studio's place, the caption's first fact. */
   place: string;
   /** The caption's middle fact, in the client's own words (a scale, a year, a plot number). Left out, the caption is
@@ -198,7 +206,7 @@ export function HeroStill({ variant = "still", ...rest }: Props) {
   return <StillBleed {...rest} />;
 }
 
-function StillBleed({ image, lines, side, className = "", ...caption }: Inner) {
+function StillBleed({ image, lines, accent, side, className = "", ...caption }: Inner) {
   const root = useRef<HTMLElement>(null);
   const first = side ?? (image.negativeSpace === "right" ? "right" : "left");
 
@@ -387,7 +395,7 @@ function StillBleed({ image, lines, side, className = "", ...caption }: Inner) {
         className="absolute inset-x-0 bottom-[5vh] px-sheet-margin group-data-[side=right]/hs:flex group-data-[side=right]/hs:justify-end group-data-[side=right]/hs:text-right md:bottom-[6vh]"
       >
         <h1 className="font-display text-[clamp(3rem,13.5vw,4.75rem)] leading-[0.92] tracking-[-0.035em] md:text-[clamp(3.5rem,8vw,9.5rem)]">
-          {lines.map((line, i) => mask(line, i))}
+          {accentLines(lines, accent).map((line, i) => mask(line, i))}
         </h1>
       </div>
       </div>
@@ -544,7 +552,7 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
  * preloader lands on the frame with the photo laid as the still, and opening the frame on the first scroll is a clip
  * from whole-pixel numbers to the full bleed, never a scale. The headline leaves upward ahead of the opening edge.
  */
-function StillFrame({ image, lines, className = "", ...caption }: Inner) {
+function StillFrame({ image, lines, accent, className = "", ...caption }: Inner) {
   const root = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -670,7 +678,7 @@ function StillFrame({ image, lines, className = "", ...caption }: Inner) {
           className="absolute inset-x-sheet-margin bottom-[4svh] z-10 will-change-transform md:bottom-[3svh] md:right-auto md:max-w-[34vw]"
         >
           <h1 className="font-display text-[clamp(3rem,13.5vw,4.75rem)] leading-[0.92] tracking-[-0.035em] md:text-[clamp(3rem,5.4vw,7.5rem)]">
-            {lines.map((line, i) => lineMask(line, i))}
+            {accentLines(lines, accent).map((line, i) => lineMask(line, i))}
           </h1>
         </div>
       </div>
@@ -685,11 +693,13 @@ function StillFrame({ image, lines, className = "", ...caption }: Inner) {
  * when the photo cannot be read). Each half takes the ink that needs the weaker veil over what is under its own
  * glyphs, over its own veil band that ends at the horizon; the side is measured the same way unless it is given.
  */
-function StillHorizon({ image, lines, side, horizon, className = "", ...caption }: Inner) {
+function StillHorizon({ image, lines, accent, side, horizon, className = "", ...caption }: Inner) {
   const root = useRef<HTMLElement>(null);
   const first = side ?? (image.negativeSpace === "right" ? "right" : "left");
-  const up = lines.slice(0, Math.ceil(lines.length / 2));
-  const down = lines.slice(up.length);
+  // The accent is found over the whole headline, then the lines are halved: one mark, on whichever side it falls.
+  const shown = accentLines(lines, accent);
+  const up = shown.slice(0, Math.ceil(lines.length / 2));
+  const down = shown.slice(up.length);
 
   useGSAP(
     (_, contextSafe) => {

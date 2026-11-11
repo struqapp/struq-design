@@ -2,12 +2,12 @@
   "source": {
     "repo": "Struq blocks/film/arcs.ts",
     "ref": "staging",
-    "commit": "5df6985"
+    "commit": "7ebc149"
   },
   "ARC_RULES": [
     "A loud scene moves with the scroll (a pin, a scrub, a reveal to full bleed); a quiet scene is type and a photo that enter once and sit still. Tag a scene (loud) when the block's energy is 2 or more, (quiet) at 1 or less or for an own scene.",
     "Pick the language by the client's sector. Another language only when the brief asks for that feel in its own words; then quote those words on the Language line. The idea may pick another motif of the six.",
-    "preloader-gate is a film leader (a dial counting 3, 2, 1): film clients only.",
+    "preloader-gate is neutral by default (a hairline ring an accent arc fills once, or the client's own marks); its leader dial (dial=\"leader\" with marks 3, 2, 1) is for a film client only.",
     "The header is header-bar:quiet or :settle; sections say their ground with data-bar-tone.",
     "Each arc is loud only at the opening, the centerpiece and at most one gentle scene with a quiet scene on each side. Swap at most one scene; a block the user names goes in first.",
     "The Statement is the first type moment: an own scene, one sentence at 12 to 16vw with SplitHeadline, still. Only the Statement and the Close are type alone: every other own scene sets a photo (MediaFrame) beside its type on the 12 column grid, so a quiet scene is composed, never empty."
@@ -238,10 +238,11 @@
             "ink"
           ],
           "blocks": [
+            "preloader-gate",
             "preloader-wordmark:split"
           ],
           "own": false,
-          "note": "The name parts on its line onto the opening."
+          "note": "The gate opens on its lit line onto the opening, its dial neutral; or preloader-wordmark:split, the name parting on its line."
         },
         {
           "name": "Opening",
@@ -404,7 +405,8 @@
       ],
       "feel": "a light line, panels part, a long hold before the reveal",
       "frames": {
-        "preloader": "preloader-wordmark:split",
+        "preloader": "preloader-gate",
+        "preloaderAlternative": "preloader-wordmark:split",
         "pageTransition": "page-transition-gate",
         "menu": "menu-curtain:gate"
       },
@@ -414,5 +416,11 @@
       ],
       "ground": "Field or ink at the opening, paper between, ink at the centerpiece."
     }
+  ],
+  "KIT_SCENES": [
+    "Statement",
+    "PhotoText",
+    "Rows",
+    "Close"
   ]
 }

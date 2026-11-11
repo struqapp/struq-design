@@ -1,5 +1,5 @@
 "use client";
-// components/struq/quiet/Statement.tsx (Struq recipe)
+// components/struq/kit/quiet/Statement.tsx (Struq recipe)
 // The type moment of a quiet scene: one sentence at the sheet's moment size, set from the page grid's first column, on
 // the same left edge as the header wordmark and the heroes' type. A small label stands in the margin columns beside the
 // first line, on its baseline; a small upright photo hangs off the end of the last line, so the sentence and the
@@ -11,7 +11,9 @@
 //
 // Props
 // - children: the sentence, plain text. Two to five lines at moment size on a wide screen.
-// - accent: one word of the sentence, set in the pairing's italic accent face (--face-accent). One per page.
+// - accent: one word of the sentence, set in the pairing's italic accent face (--face-accent) where it first stands
+//   (whole word, any case; punctuation stays outside). The site's one accent word: the opening and the Close carry it
+//   too (../accent). A word the sentence does not hold changes nothing.
 // - label: small, sentence case, body face. Beside the first line (wide screens), under the sentence (phones).
 // - image: a StruqImage, shown upright (4/5) and small: two columns wide, five on a phone.
 // - as: "h2" (default) or "p" when the page already has its heading here.
@@ -30,6 +32,7 @@
 // grid. Its place on the grid keeps its room either way, so the page never jumps when it moves. Measured again when
 // the width changes.
 import { useEffect, useRef } from "react";
+import { withAccent } from "../accent";
 import { ScrollTrigger } from "../gsap";
 import { MediaFrame } from "../MediaFrame";
 import { Reveal } from "../Reveal";
@@ -45,19 +48,6 @@ type Props = {
   as?: "h2" | "p";
   className?: string;
 };
-
-/** The sentence, with its accent word (the first time it occurs) in the accent face. */
-function withAccent(text: string, accent?: string) {
-  const at = accent ? text.indexOf(accent) : -1;
-  if (!accent || at < 0) return text;
-  return (
-    <>
-      {text.slice(0, at)}
-      <em className="font-accent italic">{accent}</em>
-      {text.slice(at + accent.length)}
-    </>
-  );
-}
 
 /** Where the last line ends and where its line box starts, in viewport pixels. */
 function lastLineEnd(head: HTMLElement) {

@@ -21,7 +21,11 @@
 // Lead for a photographer, a gallery, an architect, an atelier: any brief where one image carries the work.
 //
 // <HeroFramed image={images.hero[1]} name="Noord" line="Architectuur en bouw" place="Rotterdam, sinds 2011"
-//   caption="Binnenplaats met olijf, 2024" heading={["Ruimte die", "het licht volgt."]} lead="..." />
+//   caption="Binnenplaats met olijf, 2024" heading={["Ruimte die", "het licht volgt."]} accent="licht" lead="..." />
+//
+// `accent` (optional) is the site's one accent word: where it first stands in the heading (the line on the open
+// photograph) it is set in the pairing's italic accent face, inside its line's mask, as the Statement and the Close
+// set the same word. Left out, or not in the heading, the heading is exactly as it was.
 //
 // Phones: the frame larger (about 80% of the width), the label under it, the entrance only; the next line follows
 // on the ground. Reduced motion and pages without scripts: the composed wall, then the line.
@@ -37,6 +41,7 @@
 //   ink, with no veil.
 import Image from "next/image";
 import { useRef } from "react";
+import { accentLines } from "../kit/accent";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances } from "../kit/photo-read";
@@ -64,6 +69,9 @@ type Props = {
   caption?: string;
   /** The next line of copy, standing on the open photograph; one entry per line. */
   heading: string[];
+  /** The site's one accent word: where it first stands in the heading it is set in the pairing's italic accent face
+   * (--face-accent), as the Statement and the Close set it. A word the heading does not hold changes nothing. */
+  accent?: string;
   /** One sentence under it. */
   lead?: string;
   className?: string;
@@ -146,7 +154,7 @@ const LAYOUT: Record<HeroFramedVariant, { vars: Record<string, string>; frame: s
   },
 };
 
-export function HeroFramed({ variant = "wand", image, name, line, place, caption, heading, lead, className = "" }: Props) {
+export function HeroFramed({ variant = "wand", image, name, line, place, caption, heading, accent, lead, className = "" }: Props) {
   const lay = LAYOUT[variant] ?? LAYOUT.wand;
   const back = variant === "passe";
   const stage = useRef<HTMLElement>(null);
@@ -495,8 +503,8 @@ export function HeroFramed({ variant = "wand", image, name, line, place, caption
       }
     >
       <h2 className="m-0 font-display text-[clamp(2.5rem,1rem_+_4.4vw,6.5rem)] leading-[0.95] tracking-[-0.03em]">
-        {heading.map((h) => (
-          <span key={h} className={mask}>
+        {accentLines(heading, accent).map((h, i) => (
+          <span key={heading[i]} className={mask}>
             <span data-hf-copy-rise={moves ? "" : undefined} className="block">
               {h}
             </span>

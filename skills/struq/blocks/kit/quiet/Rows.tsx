@@ -1,5 +1,5 @@
 "use client";
-// components/struq/quiet/Rows.tsx (Struq recipe)
+// components/struq/kit/quiet/Rows.tsx (Struq recipe)
 // A short list set as hairline rows on the page grid: a term in the display face, one sentence in the body face beside
 // it, a hairline from --line above every row and under the last. Never numbered: the terms carry the order. An
 // optional heading opens the scene (the label beside it in the margin columns, on its first baseline) and an optional

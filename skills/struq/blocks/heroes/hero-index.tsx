@@ -22,6 +22,10 @@
 //
 // <HeroIndex items={[{ title: "Olijfhof", place: "Alentejo", year: "2025", image: images.hero[2], href: "/werk/olijfhof" }, ...]} />
 //
+// `accent` (optional) is the site's one accent word: the names are this hero's headline, and where the word first
+// stands in one of them it is set in the pairing's italic accent face, inside the name's mask, as the Statement and
+// the Close set the same word. Left out, or in no name, the list is exactly as it was.
+//
 // The photo box carries data-stack-target, so preloader-stack and page-transition-stack land on the first photograph.
 // Keyboard: focus swaps like hover; one focus ring, on the link. Phones and touch: the list over the first photograph,
 // a tap follows the link. Reduced motion: swaps are hard cuts, no drift, the names simply stand. Without scripts: the
@@ -37,6 +41,7 @@
 //   Reduced motion: the same stretches, cuts instead of wipes.
 import Image from "next/image";
 import { useRef } from "react";
+import { accentLines } from "../kit/accent";
 import { ScrollTrigger, gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances, type PhotoBox } from "../kit/photo-read";
@@ -62,6 +67,9 @@ type Props = {
   side?: Side;
   /** Five or six projects; the first is the photograph at rest. */
   items: Item[];
+  /** The site's one accent word: where it first stands in the list of names it is set in the pairing's italic accent
+   * face (--face-accent), as the Statement and the Close set it. A word no name holds changes nothing. */
+  accent?: string;
   /** The composition; the first is the default. */
   variant?: HeroIndexVariant;
   className?: string;
@@ -164,8 +172,12 @@ function texture(
   return Math.sqrt(at(ys, 0.75)) - Math.sqrt(at(ys, 0.25));
 }
 
-export function HeroIndex({ items, side, variant = "lijst", className = "" }: Props) {
+export function HeroIndex({ items, side, accent, variant = "lijst", className = "" }: Props) {
   const root = useRef<HTMLElement>(null);
+  const names = accentLines(
+    items.map((item) => item.title),
+    accent,
+  );
   // Over a photograph the names need a measured ink; in the window they stand on the ground.
   const overPhoto = variant !== "venster";
   const walks = variant === "doorlopen";
@@ -837,7 +849,7 @@ export function HeroIndex({ items, side, variant = "lijst", className = "" }: Pr
                         data-name=""
                         className={`font-display whitespace-nowrap leading-[0.98] tracking-[-0.035em] ${NAME_SIZE}`}
                       >
-                        {item.title}
+                        {names[i]}
                       </span>
                       <span
                         data-meta=""
