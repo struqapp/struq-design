@@ -3,17 +3,21 @@
 //
 //   node <skill-dir>/scripts/check.mjs
 //   node <skill-dir>/scripts/check.mjs --dir ./my-site
+//   node <skill-dir>/scripts/check.mjs --plan     the storyboard in STRUQ.md alone, before anything is built
 //
 // It needs no browser and no dependencies. It reads the source and the public folder and prints
-// PASS, WARN or FAIL per check, in four groups: images, AI tells, the motion floor, typography,
-// plus the plan in STRUQ.md. Every FAIL names the file and line and the fix. Exit code 1 while any
-// FAIL remains. Fix, run again, and only report done on "RESULT: PASS".
+// PASS, WARN or FAIL per check, in groups: images, AI tells, the motion floor, the hero, the film
+// (film-check.mjs, the budgets Struq's MCP holds too), typography, plus the plan in STRUQ.md. Every
+// FAIL names the file and line and the fix. Exit code 1 while any FAIL remains. Fix, run again, and
+// only report done on "RESULT: PASS".
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import { appendLog } from "./log.mjs";
 import { altFitsBrief, packSignalForBrief } from "./packs.mjs";
+import { filmCheck, planCheck } from "./film-check.mjs";
 
 const CANON = JSON.parse(readFileSync(new URL("../canon/canon.json", import.meta.url), "utf8"));
+const CATALOG = JSON.parse(readFileSync(new URL("../blocks/catalog.json", import.meta.url), "utf8")).blocks;
 
 const args = process.argv.slice(2);
 const dirFlag = args.indexOf("--dir");
@@ -45,6 +49,25 @@ function walk(dir, acc = []) {
 }
 
 const rel = (p) => relative(root, p).split(sep).join("/");
+
+/* -------------------------------------------------------------- PLAN ONLY */
+// --plan holds the storyboard in STRUQ.md to the film budgets before anything is built: no package.json, no build, no
+// checklist and no log needed. The routes are the page files under app/ (at least one).
+if (args.includes("--plan")) {
+  const planText = existsSync(join(root, "STRUQ.md")) ? readFileSync(join(root, "STRUQ.md"), "utf8") : "";
+  if (!planText) {
+    console.log(`FAIL no-plan: No STRUQ.md in ${root}. Fix: write the treatment head and the Storyboard first (SKILL.md step 2).`);
+    console.log("PLAN: FAIL");
+    process.exit(1);
+  }
+  const appDir = ["app", "src/app"].map((d) => join(root, d)).find((d) => existsSync(d));
+  const routes = Math.max(1, appDir ? walk(appDir).filter((p) => /(^|[\\/])page\.(tsx|jsx|js)$/.test(p)).length : 0);
+  const { findings } = planCheck({ plan: planText, catalog: CATALOG, routes });
+  for (const f of findings) console.log(`${f.severity === "fail" ? "FAIL" : "WARN"} ${f.id}: ${f.detail.replace(/\.$/, "")}. Fix: ${f.fix}`);
+  const failed = findings.some((f) => f.severity === "fail");
+  console.log(`PLAN: ${failed ? "FAIL" : "PASS"}`);
+  process.exit(failed ? 1 : 0);
+}
 // A shipped file is one the skill installs under components/struq/ at the same path as in its blocks/ copy (or the
 // images module images.mjs writes); anything else there, a scene or section you added, counts as your own.
 const SHIPPED = new URL("../blocks/", import.meta.url);
@@ -176,7 +199,8 @@ const plan = read("STRUQ.md");
   const floor = libFile ? Math.min(4, total) : 4;
   if (libFile && imageFit !== "full" && total === 0) add(G, "PASS", "No image placements needed: no pack photo fits");
   else if (used >= floor) add(G, "PASS", `${used} image placements in the page code`);
-  else add(G, "FAIL", `Only ${used} image placement(s). A Struq site carries a hero image and at least three more: use <MediaFrame image={images.card[0]} />.`);
+  // A floor, not a law: a quiet film may hold fewer photos, so a short count asks for a look rather than blocking.
+  else add(G, "WARN", `Only ${used} image placement(s). A Struq site carries a hero image and at least three more: use <MediaFrame image={images.card[0]} />.`);
   // References past what the pack holds render as empty swatches (an inline manifesto image, a card).
   if (libFile) {
     const past = [];
@@ -487,13 +511,32 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   else add(G, "WARN", "No footer block: close with footer-reveal, footer-contact or wordmark-finale, or design your own as hard as the hero.");
 
   const scenes = own.filter((f) => !f.rel.endsWith(".css")).reduce((n, f) => n + (f.text.match(/\bscene-(inverse|field)\b/g) ?? []).length, 0);
-  if (scenes === 0) add(G, "FAIL", "No contrast scene: wrap one section in scene-inverse or scene-field, so the page does not stay on one ground.");
+  // The tone arc in the treatment decides where the ground turns; a page without a turn is a choice to look at.
+  if (scenes === 0) add(G, "WARN", "No contrast scene: wrap one section in scene-inverse or scene-field, so the page does not stay on one ground.");
   else if (scenes > 2) add(G, "FAIL", `${scenes} contrast scenes: one, at most two, or the contrast stops being a moment.`);
   else add(G, "PASS", `${scenes} contrast scene${scenes > 1 ? "s" : ""}`);
 
   const geometry = hits(/new\s+THREE\.(Box|Cylinder|Torus|Sphere|Capsule|Cone|Tube|Lathe|Extrude|Tetrahedron|Octahedron|Icosahedron)Geometry\b|<(box|cylinder|torus|sphere|capsule|cone|tube|lathe|extrude)Geometry\b/, { scope: own });
   if (geometry.length) add(G, "FAIL", "Hand-built product geometry: never model the client's product from primitives. Show the product photography.", geometry);
   else add(G, "PASS", "No product modelled from primitives");
+}
+
+/* -------------------------------------------------------------------- FILM */
+// film-check.mjs, Struq's own module: the blocks on the page, in page order, held to the film grammar's budgets (one
+// centerpiece, no pin after it, one language, one clock, one marquee, the pinned screens ...). Your own files only;
+// the copies under components/struq/ are the blocks themselves, not the page.
+{
+  const G = "FILM";
+  const pageFiles = own
+    .filter((f) => !/(^|\/)components\/struq\//.test(f.rel))
+    .map((f) => ({ path: f.rel, text: f.text }));
+  const { findings, scenes } = filmCheck({ plan, files: pageFiles, catalog: CATALOG });
+  for (const f of findings) {
+    add(G, f.severity === "fail" ? "FAIL" : "WARN", `${f.id}: ${f.detail.replace(/\.$/, "")}. Fix: ${f.fix}`);
+  }
+  if (!findings.some((f) => f.severity === "fail")) {
+    add(G, "PASS", `The page holds the film budgets (${scenes.length} block${scenes.length === 1 ? "" : "s"} in page order)`);
+  }
 }
 
 /* --------------------------------------------------------------------- LOG */
@@ -517,7 +560,7 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
 }
 
 /* ------------------------------------------------------------------ REPORT */
-const order = ["IMAGES", "TELLS", "MOTION", "HERO", "TYPE", "PLAN", "LOG"];
+const order = ["IMAGES", "TELLS", "MOTION", "HERO", "FILM", "TYPE", "PLAN", "LOG"];
 console.log(`Struq check: ${root}\n`);
 for (const g of order) {
   const rows = results.filter((r) => r.group === g);

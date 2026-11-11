@@ -102,6 +102,7 @@ function fixture({ log = LOG_OK, page = PAGE_OK, extra = {} } = {}) {
 
 const run = (dir) => spawnSync(process.execPath, [CHECK, '--dir', dir, '--no-log'], { encoding: 'utf8' }).stdout;
 const fails = (out, text) => out.split('\n').some((l) => l.includes('FAIL') && l.includes(text));
+const warns = (out, text) => out.split('\n').some((l) => l.includes('WARN') && l.includes(text));
 
 test('STRUQ.md carries the treatment: idea, language, motif, lexicon, centerpiece and a storyboard of seven to nine scenes', () => {
   const ok = run(fixture());
@@ -189,10 +190,12 @@ test('glow fails; the shipped blocks are not scanned for tells', () => {
   assert.ok(!fails(run(fixture({ extra: { 'components/struq/headers/header-bar.tsx': shipped } })), 'Eyebrows'));
 });
 
-test('every site has one contrast scene, at most two', () => {
+test('a page without a contrast scene warns, more than two still fail', () => {
   assert.ok(!fails(run(fixture()), 'contrast scene'));
   const none = PAGE_OK.replace(' className="scene-inverse"', '');
-  assert.ok(fails(run(fixture({ page: none })), 'contrast scene'));
+  const out = run(fixture({ page: none }));
+  assert.ok(!fails(out, 'contrast scene'));
+  assert.ok(warns(out, 'No contrast scene'));
   const three = 'export const S = () => <><section className="scene-inverse" /><section className="scene-field" /></>;\n';
   assert.ok(fails(run(fixture({ extra: { 'components/Scene.tsx': three } })), 'contrast scene'));
 });
@@ -260,4 +263,57 @@ test('manifesto chips show a subject, never a texture', () => {
   assert.ok(fails(run(fixture({ extra: { 'components/M.tsx': texture } })), 'Inline manifesto photo'));
   const scene = 'export const M = () => <ManifestoScrub text="a {0} b" images={[images.card[0], images.column[1]]} />;\n';
   assert.ok(!fails(run(fixture({ extra: { 'components/M.tsx': scene } })), 'Inline manifesto photo'));
+});
+
+test('too few image placements warn instead of failing', () => {
+  // The fixture page places one photo, under the floor of four.
+  const out = run(fixture());
+  assert.ok(!fails(out, 'image placement'));
+  assert.ok(warns(out, 'Only 1 image placement'));
+});
+
+// why: --plan is the film check on the storyboard alone, run before a single block is installed, so it must work in a
+// folder that holds nothing but STRUQ.md and app/, and refuse the plan that breaks the one-centerpiece budget.
+const GOOD_BOARD = [
+  'Arrival (frame) preloader-stack | lands on: the hero photo',
+  'Opening (loud) hero-still:still | on screen: the dining room at dusk',
+  'Statement (quiet) own scene | on screen: one sentence at 14vw',
+  'About (quiet) reveals:lines | on screen: who cooks here',
+  'Approach (quiet) approach:schuif | on screen: the four seasons',
+  'Centerpiece (loud) image-to-fullbleed | on screen: the room opening',
+  'Release (quiet) own scene | on screen: a photo and two sentences',
+  'Close (quiet) own scene | echoes the opening | footer: footer-reveal',
+];
+const planWith = (scenes) => PLAN.replace(board(8), scenes.map((s, i) => `${i + 1}. ${s}`).join('\n'));
+
+function planOnly(plan) {
+  const dir = mkdtempSync(join(tmpdir(), 'struq-plan-'));
+  writeFileSync(join(dir, 'STRUQ.md'), plan);
+  mkdirSync(join(dir, 'app'));
+  writeFileSync(join(dir, 'app', 'page.tsx'), 'export default function Page() { return null; }\n');
+  return spawnSync(process.execPath, [CHECK, '--plan'], { cwd: dir, encoding: 'utf8' });
+}
+
+test('--plan passes a good storyboard with nothing but STRUQ.md and app/', () => {
+  const r = planOnly(planWith(GOOD_BOARD));
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /^PLAN: PASS$/m);
+  assert.ok(!/^FAIL /m.test(r.stdout), r.stdout);
+});
+
+test('--plan fails a storyboard with two centerpieces, naming the rule and the fix', () => {
+  const two = GOOD_BOARD.map((s) => (s.startsWith('Approach') ? 'Approach (loud) film-strip | on screen: the four seasons' : s));
+  const r = planOnly(planWith(two));
+  assert.equal(r.status, 1, r.stdout);
+  assert.match(r.stdout, /^FAIL one-centerpiece: 2 centerpieces: film-strip, image-to-fullbleed\. Fix: Keep one centerpiece/m);
+  assert.match(r.stdout, /^PLAN: FAIL$/m);
+});
+
+test('the FILM group fails a page transition on a site with one route', () => {
+  const layout = LAYOUT_OK.replace('<SmoothScroll>{children}</SmoothScroll>', '<PageTransitionStack /><SmoothScroll>{children}</SmoothScroll>');
+  const one = run(fixture({ extra: { 'app/layout.tsx': layout } }));
+  assert.ok(fails(one, 'transition-needs-routes: page-transition-stack on a site with 1 route'), one);
+  const two = run(fixture({ extra: { 'app/layout.tsx': layout, 'app/werk/page.tsx': 'export default function Werk() { return null; }\n' } }));
+  assert.ok(!fails(two, 'transition-needs-routes'));
+  assert.ok(!fails(run(fixture()), 'transition-needs-routes'));
 });
