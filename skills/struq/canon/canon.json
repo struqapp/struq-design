@@ -1,8 +1,8 @@
 {
   "source": {
     "repo": "Struq lib/canon",
-    "ref": "origin/main",
-    "commit": "a2b7d56"
+    "ref": "staging",
+    "commit": "598566f"
   },
   "palettes": [
     {

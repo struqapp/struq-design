@@ -1,8 +1,8 @@
 {
   "source": {
     "repo": "Struq blocks/",
-    "ref": "origin/main",
-    "commit": "a2b7d56"
+    "ref": "staging",
+    "commit": "598566f"
   },
   "blocks": [
     {
@@ -28,6 +28,23 @@
           "does": "The cover lifts while the name shrinks and travels into the header's wordmark, which takes over in the same frame."
         }
       ],
+      "role": "frame",
+      "home": "curtain",
+      "motif": "word",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {
+        "drop": {
+          "home": "cut"
+        },
+        "settle": {
+          "home": "weight"
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -50,6 +67,18 @@
       "does": "The first paint is the page's ground with the client's name, a quiet count and the first print in a small portrait frame; five or six prints cut inside that frame, each held shorter than the last, ending on the hero's own photo, and the frame then grows to the hero image's exact place and crop (the page marks it data-stack-target) so the cover becomes the hero with no seam, within 2.4 seconds of the first paint, once per session (helper: preloaders/preloader-slices-uncovered.ts).",
       "reference": "Kinetic Studio and Lowlight for pacing and the counter (v4vision/projects/kinetic-studio/index.html, Opus55/build/template.html); the grow follows image-to-fullbleed's numeric clip.",
       "variants": [],
+      "role": "frame",
+      "home": "weight",
+      "motif": "frame",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "counter"
+      ],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -73,6 +102,18 @@
       "does": "The first paint is a dark cover cut into four vertical slices (three on phones), already composed: the client's name large, a caption, a hairline and the count at 000; the count runs to 100 in one move, then the slices drop away left to right, each carrying its strip of the name and count down and off behind a 5px accent edge, uncovering the page from the top onto its own entrance, within 2.4 seconds of the first paint, once per session (helper: preloaders/preloader-slices-uncovered.ts).",
       "reference": "Kinetic Studio, the counter preloader whose four slices lift away (v4vision/projects/kinetic-studio/index.html, script near line 879).",
       "variants": [],
+      "role": "frame",
+      "home": "cut",
+      "motif": "cut",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "counter"
+      ],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -95,6 +136,18 @@
       "does": "The first paint is a shut gate with a whole film-leader dial and one figure; only the sweep moves, counting 3, 2, 1 on an eased count that waits for the fonts and the hero image, then the line through the middle lights and the two bars open top and bottom onto the hero, by 2.4 seconds from the first paint, once per session.",
       "reference": "Lowlight (Opus55/build/template.html): the leader countdown and the bars that open as a gate onto the hero (CSS line 143, markup line 600, initLoader line 1024).",
       "variants": [],
+      "role": "frame",
+      "home": "curtain",
+      "motif": "aperture",
+      "metaphor": "film-leader",
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "counter"
+      ],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -116,6 +169,16 @@
       "does": "On every link click and on back and forward, a small portrait print of the destination's own hero photo appears where the pointer is (centred for keys and history) and grows to fill the screen while the route loads under it, then settles into the new page's hero at its exact place and crop, so arriving is the preloader's own landing, under 0.9 seconds door to door; a print not decoded in time becomes the destination's name on the page ground and the cover lifts away instead (helper: preloaders/preloader-slices-uncovered.ts).",
       "reference": "preloader-stack's grow-into-the-hero, run per navigation; the navigation engine is page-transition-slices' (click hold, popstate hold-and-replay, scroll, hash, focus).",
       "variants": [],
+      "role": "frame",
+      "home": "weight",
+      "motif": "frame",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": true,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap",
@@ -140,6 +203,16 @@
       "does": "On every link click and on back and forward, the slices of preloader-slices come in from above and close over the page with the destination's name and a running hairline, the route loads under them, and they carry on down and off, uncovering the new page from the top onto its entrance, about 0.65 seconds door to door, with focus, hashes and scroll restored (helper: preloaders/preloader-slices-uncovered.ts).",
       "reference": "Kinetic Studio's slice lift (v4vision/projects/kinetic-studio/index.html, script near line 879), run on navigation.",
       "variants": [],
+      "role": "frame",
+      "home": "cut",
+      "motif": "cut",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap",
@@ -164,6 +237,16 @@
       "does": "On every navigation, back button included, the preloader's bars close carrying the two halves of a slate (the dial and the destination's name), lock into one frame as the line and the dial light, hold while the route changes, then split the name and open onto the finished page, 0.9 seconds door to door.",
       "reference": "Lowlight (Opus55/build/template.html): the gate of its loader, carried over to navigation so the site arrives and moves in one voice.",
       "variants": [],
+      "role": "frame",
+      "home": "curtain",
+      "motif": "aperture",
+      "metaphor": "slate",
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap",
@@ -205,6 +288,30 @@
           "does": "Wordmark left, links centred with a line gliding under the hovered one, Rotterdam's live time and the action right, and a thin rule filling with the page's progress."
         }
       ],
+      "role": "frame",
+      "home": null,
+      "motif": "neutral",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "hover"
+      ],
+      "byVariant": {
+        "settle": {
+          "motif": "word",
+          "energy": 2
+        },
+        "split": {
+          "motif": "line",
+          "interactions": [
+            "hover",
+            "clock"
+          ]
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -242,6 +349,28 @@
           "does": "Three panels grow one after another from the button; a small portrait frame flips through a few prints, then cuts to the hovered link's photo."
         }
       ],
+      "role": "frame",
+      "home": "curtain",
+      "motif": "aperture",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "clock",
+        "hover"
+      ],
+      "byVariant": {
+        "slices": {
+          "home": "cut",
+          "motif": "cut"
+        },
+        "stack": {
+          "home": "weight",
+          "motif": "frame"
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap",
@@ -282,6 +411,20 @@
           "does": "A print that nearly fills the screen inside a thin mat; the first scroll steps back to a small portrait at the left with the line on the wall beside it."
         }
       ],
+      "role": "opening",
+      "home": null,
+      "motif": "frame",
+      "metaphor": "gallery-print",
+      "energy": 3,
+      "pins": true,
+      "scroll": 1.5,
+      "fullBleed": true,
+      "interactions": [],
+      "byVariant": {
+        "passe": {
+          "fullBleed": false
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -322,6 +465,22 @@
           "does": "At rest the ground fills the screen and the photo is a strip at the edge; the first scroll opens it to the split while the headline turns to the photo ink as the edge passes."
         }
       ],
+      "role": "opening",
+      "home": null,
+      "motif": "cut",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {
+        "opening": {
+          "energy": 2,
+          "pins": true,
+          "scroll": 0.9
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -362,6 +521,25 @@
           "does": "The list centred over the photograph while the hero holds; each stretch of the first scroll raises the next project and steps its name forward."
         }
       ],
+      "role": "opening",
+      "home": null,
+      "motif": "neutral",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "hover"
+      ],
+      "byVariant": {
+        "doorlopen": {
+          "energy": 3,
+          "pins": true,
+          "scroll": 2.4,
+          "interactions": []
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -402,6 +580,29 @@
           "does": "The headline split at the photo's horizon, each half in the ink its side measures for, the halves closing on the horizon."
         }
       ],
+      "role": "opening",
+      "home": null,
+      "motif": "neutral",
+      "metaphor": "film-still",
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "clock"
+      ],
+      "byVariant": {
+        "frame": {
+          "motif": "frame",
+          "energy": 2,
+          "pins": true,
+          "scroll": 1,
+          "fullBleed": true
+        },
+        "horizon": {
+          "motif": "cut"
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -442,6 +643,16 @@
           "does": "One word per row with a window of a different crop between each pair; on scroll the rows part and the crops slide into one photograph."
         }
       ],
+      "role": "opening",
+      "home": null,
+      "motif": "aperture",
+      "metaphor": null,
+      "energy": 3,
+      "pins": true,
+      "scroll": 1.5,
+      "fullBleed": true,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -483,6 +694,22 @@
           "does": "Curtains across the upper half, drifting slowly sideways and bending away from the pointer."
         }
       ],
+      "role": "opening",
+      "home": null,
+      "motif": "field",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {
+        "drift": {
+          "interactions": [
+            "cursor"
+          ]
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -520,6 +747,22 @@
           "does": "The cloth hangs from the top edge in rounded pleats down to a wavy hem; scrolling the hero away draws the hem down and stretches the pleats."
         }
       ],
+      "role": "opening",
+      "home": null,
+      "motif": "field",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "cursor"
+      ],
+      "byVariant": {
+        "drape": {
+          "interactions": []
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -557,6 +800,22 @@
           "does": "Diagonal pleats in the upper left cut into planes; the light turns across them as the hero scrolls away and leans toward the pointer."
         }
       ],
+      "role": "opening",
+      "home": null,
+      "motif": "field",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {
+        "turn": {
+          "interactions": [
+            "cursor"
+          ]
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -579,6 +838,18 @@
       "does": "A full-bleed photo (or the WebGL scene over it) with the display line at 14 to 20vw across it; on scroll it pins, scales down and darkens while the next section slides over.",
       "reference": null,
       "variants": [],
+      "role": "opening",
+      "home": null,
+      "motif": "word",
+      "metaphor": null,
+      "energy": 2,
+      "pins": true,
+      "scroll": 1,
+      "fullBleed": false,
+      "interactions": [
+        "magnetic"
+      ],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "@types/three",
@@ -610,6 +881,16 @@
       "does": "A small image between the two halves of a name unclips to the full screen as the words travel off the edges.",
       "reference": null,
       "variants": [],
+      "role": "centerpiece",
+      "home": null,
+      "motif": "frame",
+      "metaphor": null,
+      "energy": 3,
+      "pins": true,
+      "scroll": 2.2,
+      "fullBleed": true,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -632,6 +913,16 @@
       "does": "Two panels carrying one word each slide apart to reveal a photo, and close again.",
       "reference": null,
       "variants": [],
+      "role": "centerpiece",
+      "home": null,
+      "motif": "aperture",
+      "metaphor": null,
+      "energy": 3,
+      "pins": true,
+      "scroll": 1.7,
+      "fullBleed": true,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -654,6 +945,16 @@
       "does": "Two words far apart with a tall slab of ink between them; the slab swings into one thick slash through both words (their letters knocked out where it crosses), then carries the words in on its two ends, turning to the accent as it travels, and seats long and rising between them; the joined pair holds and scrolls away whole.",
       "reference": null,
       "variants": [],
+      "role": "centerpiece",
+      "home": null,
+      "motif": "line",
+      "metaphor": null,
+      "energy": 3,
+      "pins": true,
+      "scroll": 3,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -675,6 +976,16 @@
       "does": "One project per screen; each slides up full bleed over the last while the one beneath recedes.",
       "reference": null,
       "variants": [],
+      "role": "centerpiece",
+      "home": null,
+      "motif": "neutral",
+      "metaphor": null,
+      "energy": 3,
+      "pins": true,
+      "scroll": 3.3,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -697,6 +1008,16 @@
       "does": "One large statement that fills word by word, from a faint ink to full ink, as it scrolls through the screen.",
       "reference": null,
       "variants": [],
+      "role": "centerpiece",
+      "home": null,
+      "motif": "word",
+      "metaphor": null,
+      "energy": 3,
+      "pins": true,
+      "scroll": 2,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -718,6 +1039,18 @@
       "does": "Large hairline rows; on hover or focus a row floods with the accent from below and its detail slides in.",
       "reference": null,
       "variants": [],
+      "role": "pattern",
+      "home": null,
+      "motif": "neutral",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "hover"
+      ],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -739,6 +1072,16 @@
       "does": "A photo that arrives as coarse pixels and resolves to full sharpness.",
       "reference": null,
       "variants": [],
+      "role": "pattern",
+      "home": null,
+      "motif": "neutral",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -760,6 +1103,18 @@
       "does": "The footer as a finale: the name fitted edge to edge, rising out of a mask, with a closing line and a live local clock.",
       "reference": null,
       "variants": [],
+      "role": "frame",
+      "home": null,
+      "motif": "word",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "clock"
+      ],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -781,6 +1136,16 @@
       "does": "A pinned composed frame (the display line and a lead on the ground, the photo in an upright window with its caption and corner marks) holds; then the camera pushes into the window: the type, nearer the lens, scales away past the edges, the window opens until all four edges leave the screen together, and the photo, deeper than the window, settles out of its push-in to full bleed with its subject held in place; a strip of the ground rises from the bottom edge with the line and caption, and the next section's heading, at the display size of the frame it left, rises out of masks in the photo where its pixels allow a light or dark ink at 4.5:1 (the calm side first, then the window's side), or on bands of ground stepped up from the strip where they do not (or cannot be read), holds, and the pin lets go with the photo drifting slower than the page.",
       "reference": "The award sheets' zoom-through (struq-assets/references/award-tier-2026-11/README.md, \"Motion\": the camera pushes into an image until it becomes the next section's background), with Lowlight's gate registration and corner marks (Opus55/build/template.html, gateShift line 1233, hero frame CSS line 252).",
       "variants": [],
+      "role": "centerpiece",
+      "home": null,
+      "motif": "aperture",
+      "metaphor": null,
+      "energy": 3,
+      "pins": true,
+      "scroll": 3,
+      "fullBleed": true,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -820,6 +1185,28 @@
           "does": "On a short pin a slit of photograph between the statement's two halves opens into a window and pushes them apart."
         }
       ],
+      "role": "pattern",
+      "home": null,
+      "motif": "frame",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": true,
+      "interactions": [],
+      "byVariant": {
+        "wandeling": {
+          "motif": "neutral",
+          "fullBleed": false
+        },
+        "doorkijk": {
+          "motif": "aperture",
+          "energy": 3,
+          "pins": true,
+          "scroll": 1.3,
+          "fullBleed": false
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -858,6 +1245,29 @@
           "does": "An index you scrub by dragging the rule, clicking a stage or using the arrow keys, the photographs wiping across in register while the copy swaps beside them."
         }
       ],
+      "role": "pattern",
+      "home": null,
+      "motif": "line",
+      "metaphor": "thread",
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {
+        "zin": {
+          "motif": "neutral",
+          "metaphor": null,
+          "energy": 3,
+          "pins": true,
+          "scroll": 2.4
+        },
+        "schuif": {
+          "motif": "neutral",
+          "metaphor": null,
+          "energy": 1
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -896,6 +1306,29 @@
           "does": "A short pin: the first half stands large on the left while the second half arrives on the right one sentence at a time, each rising under the one before, ending on the whole statement in two columns."
         }
       ],
+      "role": "pattern",
+      "home": null,
+      "motif": "line",
+      "metaphor": "typewriter",
+      "energy": 3,
+      "pins": true,
+      "scroll": 2,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {
+        "quote": {
+          "motif": "neutral",
+          "metaphor": null,
+          "energy": 2,
+          "pins": false,
+          "scroll": 0
+        },
+        "split": {
+          "motif": "neutral",
+          "metaphor": null,
+          "scroll": 1.5
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -935,6 +1368,23 @@
           "does": "One question at a time at display size; Enter or Volgende moves on, Terug goes back, the answers so far stay small above, and a thin rule fills."
         }
       ],
+      "role": "pattern",
+      "home": null,
+      "motif": "line",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {
+        "sentence": {
+          "motif": "neutral"
+        },
+        "steps": {
+          "motif": "neutral"
+        }
+      },
       "packages": [],
       "exports": [
         "ContactForm"
@@ -968,6 +1418,33 @@
           "does": "Plain ground, the line large and still; hovering the link brings a small project frame that follows the pointer while the link's line draws."
         }
       ],
+      "role": "pattern",
+      "home": null,
+      "motif": "aperture",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": true,
+      "interactions": [],
+      "byVariant": {
+        "marquee": {
+          "motif": "word",
+          "fullBleed": false,
+          "interactions": [
+            "marquee"
+          ]
+        },
+        "pointer": {
+          "motif": "neutral",
+          "energy": 1,
+          "fullBleed": false,
+          "interactions": [
+            "cursor",
+            "hover"
+          ]
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -1007,6 +1484,20 @@
           "does": "The whole section slides up over the previous one with a hairline shadow on its top edge; the covered section dims and falls behind as the content settles."
         }
       ],
+      "role": "pattern",
+      "home": null,
+      "motif": "neutral",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {
+        "clip": {
+          "motif": "aperture"
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
@@ -1029,6 +1520,19 @@
       "does": "A list of work at display size; moving the pointer over a row deals that project's photograph at the pointer each time it has travelled a set distance, turned a little with the hand and settling as it lands, while older prints hold, shrink and fade behind it, six at most; a fast hand leaves a longer, wider trail and a still one leaves nothing new; keyboard focus and reduced motion show one print beside the row, and touch and phones show each photograph inline.",
       "reference": "The award sheets' image trail (struq-assets/references/award-tier-2026-11/README.md), with the restraint of Lowlight's pointer-led still over its rows (Opus55/build/template.html, .make__preview near line 394).",
       "variants": [],
+      "role": "pattern",
+      "home": null,
+      "motif": "neutral",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "cursor",
+        "hover"
+      ],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -1051,6 +1555,18 @@
       "does": "A full-height row of five tall photo panels like gallery shutters: hover or focus opens one wide while the others narrow, the photograph already full size behind a widening window, its name rising in through a mask; on scroll into view the panels rise from their bottom edge one after another and the first opens on its own; phones stack them as rows that open on tap.",
       "reference": "The award sheets' panel and shutter moves (struq-assets/references/award-tier-2026-11/README.md) and Kinetic Studio's capabilities rhythm (v4vision/projects/kinetic-studio/index.html, near line 447).",
       "variants": [],
+      "role": "pattern",
+      "home": null,
+      "motif": "aperture",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "hover"
+      ],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -1073,6 +1589,16 @@
       "does": "A pinned section (250%) opens on nine photos lying at angles in a composed pile, a few past the screen edges, that travel one after another into an editorial grid with exact gaps as the section's line rises in its type cell; the grid holds, then the hero print, a window onto its photo at full size, opens to the full screen while the others are pushed out, the photo never changing scale, and the next line rises on the photo's calmer side, holds, and the photo drifts slower than the page as the pin lets go. Phones open the grid tile by tile; reduced motion and pages without scripts show the grid, then the full-bleed photo with its line.",
       "reference": "The award sheets' \"grid assembly\" and \"image grows to full bleed\" moves (struq-assets/references/award-tier-2026-11/README.md, showpieces 1 and Motion), with Lowlight's restraint (Opus55/build/template.html): one grade, holds as long as the moves, a hand-over into the next scene.",
       "variants": [],
+      "role": "centerpiece",
+      "home": null,
+      "motif": "frame",
+      "metaphor": "print-table",
+      "energy": 3,
+      "pins": true,
+      "scroll": 2.5,
+      "fullBleed": true,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -1096,6 +1622,18 @@
       "does": "Two lines of display type at 15vw run sideways in opposite directions as you scroll, run ahead with its speed, lean back and stretch slightly as if dragged, and settle upright within about 0.4 seconds of stopping, with small photographs sitting between the phrases as their own frames; the belt loops without a seam, and reduced motion and pages without scripts leave the lines at rest.",
       "reference": "The award sheets' velocity type (struq-assets/references/award-tier-2026-11/README.md, \"Motion\"), with the feel of Kinetic Studio's marquee (v4vision/projects/kinetic-studio/index.html).",
       "variants": [],
+      "role": "pattern",
+      "home": null,
+      "motif": "word",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "marquee"
+      ],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -1118,6 +1656,16 @@
       "does": "A process or story in chapters: one large photograph holds still on the left (plain position sticky) while the chapters scroll past on the right; as each reaches the middle its photograph rises over the last from the bottom edge (from the top when scrolling back) out of a push-in, that chapter comes forward while the others step back, and a hairline beside the frame fills as you read; phones and pages without scripts show each photograph inline, reduced motion keeps the frame with hard cuts.",
       "reference": "Lowlight's pinned process (Opus55/build/template.html, .process CSS near line 401): copy that holds while a photograph changes beside it.",
       "variants": [],
+      "role": "pattern",
+      "home": null,
+      "motif": "neutral",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -1140,6 +1688,16 @@
       "does": "A pinned reel between two rows of sprocket holes opens on the section's display line beside the first project in the gate; the scroll advances it one frame at a time, portrait frames high and landscape low, each seating at the gate as its photo settles out of a push-in while the title swaps through its mask and a hairline progress line fills; the last stop is the closing frame with the call to action, and on release the strip runs on to the left. Phones swipe a snap row between sprocket rows with titles under the frames; reduced motion and pages without scripts get the same still row.",
       "reference": "Lowlight's pinned reel (Opus55/build/template.html: reel CSS lines 312 to 372 with the sprocket rows and progress line, initReel near line 1320), turned from a 1:1 glide into frame-by-frame advances with a title mask.",
       "variants": [],
+      "role": "centerpiece",
+      "home": null,
+      "motif": "frame",
+      "metaphor": "film-reel",
+      "energy": 3,
+      "pins": true,
+      "scroll": 3,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -1162,6 +1720,19 @@
       "does": "A list of work at display size, each name with a quiet line of place and year; hovering a row shows its photograph in an upright frame that follows the pointer closely and leans with its speed while the other rows step back, row to row the photograph wipes in the way the pointer travels, and leaving the list folds the frame shut; keyboard focus and reduced motion stand the frame beside the row, and touch and phones show each photograph inline.",
       "reference": "Lowlight's still that follows the pointer over the \"What we make\" rows (Opus55/build/template.html, .make__preview CSS near line 394, initMake near line 1371), with Kinetic Studio's pointer-speed tilt (v4vision/projects/kinetic-studio/index.html, tilt near line 859).",
       "variants": [],
+      "role": "pattern",
+      "home": null,
+      "motif": "neutral",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "cursor",
+        "hover"
+      ],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -1184,6 +1755,16 @@
       "does": "A pinned pair of tall photos that meet at a hard seam: the word stands whole in ink on the ground with the seam through it; the first photo rises in on the left, turning its half of the letters to the photo's own ink, and holds half and half; the second comes down on the right against it and the pair holds whole, the two photos running against each other at different speeds the whole time, and on release the halves leave at their own speeds so the word shears along the seam.",
       "reference": "Voyeur Verite's split-screen pair (\"The Symphony of Dance / Stand Up\", struq-assets/references/award-tier-2026-11/voyeur-verite-sheet.png, rows 3 to 5): two photos arriving from opposite directions, oversized serif words across both.",
       "variants": [],
+      "role": "centerpiece",
+      "home": null,
+      "motif": "cut",
+      "metaphor": null,
+      "energy": 3,
+      "pins": true,
+      "scroll": 3,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -1207,6 +1788,18 @@
       "does": "Services or cases as a hand of photographs played onto the table: a poster heading set on the diagonal, the hand rising into the frame and fanning open large in 3D between its two lines; it holds, then the hand is played from the back, each card flying along an arc toward the lens and turning as it goes, and laid down at its own scale into a spread (the lead card large in front, each card behind it smaller and partly under the one before, all crossing the first line), each title rising from its mask as its card lands; the spread holds, and on release the cards are picked up off the table at their own speeds. Phones get the hand as a still fan; reduced motion gets the spread. Cards lift slightly on hover.",
       "reference": "VANTA/LOOP, \"Your flexible creative department\": the offers fanned in 3D beside the heading (struq-assets/references/award-tier-2026-11/vanta-loop-sheet.png, row 4), with Kinetic Studio's staggered card rhythm and pointer tilt (v4vision/projects/kinetic-studio/index.html, capabilities near line 447, tilt near line 859).",
       "variants": [],
+      "role": "centerpiece",
+      "home": null,
+      "motif": "neutral",
+      "metaphor": "card-hand",
+      "energy": 3,
+      "pins": true,
+      "scroll": 3,
+      "fullBleed": false,
+      "interactions": [
+        "hover"
+      ],
+      "byVariant": {},
       "packages": [
         "@gsap/react",
         "gsap"
@@ -1245,6 +1838,20 @@
           "does": "The footer is uncovered through an opening that grows from a thin slit at the bottom of the screen to full, the name rising inside it."
         }
       ],
+      "role": "frame",
+      "home": null,
+      "motif": "neutral",
+      "metaphor": null,
+      "energy": 2,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [],
+      "byVariant": {
+        "iris": {
+          "motif": "aperture"
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap",
@@ -1284,6 +1891,23 @@
           "does": "A closing line at display size, then three columns (Contact, Studio, Volg ons) with links whose underline draws from the pointer's side."
         }
       ],
+      "role": "frame",
+      "home": null,
+      "motif": "word",
+      "metaphor": null,
+      "energy": 1,
+      "pins": false,
+      "scroll": 0,
+      "fullBleed": false,
+      "interactions": [
+        "clock",
+        "hover"
+      ],
+      "byVariant": {
+        "columns": {
+          "motif": "neutral"
+        }
+      },
       "packages": [
         "@gsap/react",
         "gsap"
