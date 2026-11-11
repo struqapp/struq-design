@@ -156,7 +156,8 @@ test('arc prints one storyboard line per scene, the frames and how to use it', (
       assert.match(board[at], new RegExp(`^${at + 1}\\.\\s+${s.name}\\s+\\(${s.tag}\\)\\s+\\S`), board[at]);
       if (s.footer) assert.match(board[at], new RegExp(`\\| footer: ${s.footer[0]}$`));
     });
-    assert.match(board[0], /\| lands on: <what>$/);
+    // An arrival with a second preloader (curtain: the gate, or the wordmark) lists it after the landing.
+    assert.match(board[0], /\| lands on: <what>( \| or: \S.*)?$/);
     assert.match(board.at(-1), /\| echoes the opening: <how>/);
     const frames = film.FILM_LANGUAGES.find((l) => l.id === language).frames;
     assert.ok(out.includes(`preloader ${frames.preloader}`) && out.includes(frames.pageTransition) && out.includes(frames.menu), out);

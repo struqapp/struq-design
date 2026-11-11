@@ -139,7 +139,7 @@ energy in the catalogue is 2 or more, `(quiet)` at 1 or less, for a kit scene or
 |---|---|---|---|---|
 | weight | architecture, hotels, craft, interiors | photographic and slow; a print grows into place; long holds | `preloader-stack`, `page-transition-stack`, `menu-curtain:stack` | frame |
 | cut | fashion, agencies, portfolios, music | hard cuts, short masks, no fades, short holds | `preloader-slices`, `page-transition-slices`, `menu-curtain:slices` | cut or word |
-| curtain | campaigns, launches, events, culture | a light line, panels part, a long hold before the reveal | `preloader-wordmark:split` or `preloader-gate`, `page-transition-gate`, `menu-curtain:gate` | line or aperture |
+| curtain | campaigns, launches, events, culture | a light line, panels part, a long hold before the reveal | `preloader-gate` or `preloader-wordmark:split`, `page-transition-gate`, `menu-curtain:gate` | line or aperture |
 
 Pick the language by the client's sector in the For column. Another language only when the brief asks for that feel
 in its own words; then quote those words on the `Language:` line. The idea may pick another motif of the six.
@@ -177,7 +177,7 @@ scene with a quiet scene on each side. The arcs below are the printed arcs in sh
 7. Close (quiet): `Close`, type only, or `cta-closing:pointer`. Footer: `footer-contact`.
 
 **curtain.** Field or ink at the opening, paper between, ink at the centerpiece.
-1. Arrival (frame): `preloader-wordmark:split`; the name parts on its line onto the opening.
+1. Arrival (frame): `preloader-gate`, the ring fills and the gate parts; or `preloader-wordmark:split`.
 2. Opening (loud): `hero-opener`, `background-aurora`, `background-silk` or `background-facets`, the line at poster scale; calmer, `hero-still:horizon` (quiet).
 3. Statement (quiet): `Statement`.
 4. Details (loud, the gentle one): `sticky-chapters`, or quiet `panel-accordion`: the programme, places and dates given.
@@ -199,8 +199,8 @@ scene with a quiet scene on each side. The arcs below are the printed arcs in sh
 - One motif on the page. At most two full-bleed photo reveals, built the same way: `hero-framed:wand` and `:portret`,
   `hero-poster`, `hero-still:frame`, `image-to-fullbleed`, `zoom-through`, `grid-assembly`, `about-studio:plaat` and
   `cta-closing:photo` each count one.
-- At most one marquee (`cta-closing:marquee`, `velocity-type`) and one custom cursor. An accent face, if loaded, sets
-  one word of the h1 and returns in the close.
+- At most one marquee (`cta-closing:marquee`, `velocity-type`) and one custom cursor. One accent word, set in the
+  accent face through the `accent` prop: in the opening's headline, in `Statement` and again in `Close`.
 - No clock unless the lexicon is about time; then one, turned on by its prop (`clock`, `timeZone` on `wordmark-finale`).
 - Two or three type moments at poster scale (12 to 20vw) on the page; everything else from the scale.
 - Labels: no eyebrows above headings, no mono, no uppercase labels, no numbered steps. A small sentence-case label in
