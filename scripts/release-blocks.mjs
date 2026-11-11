@@ -11,6 +11,7 @@
 //
 //   skills/struq/blocks/            the files, laid out as in Struq, so the relative imports hold
 //   skills/struq/blocks/catalog.json and CATALOG.md   the generated catalogue the skill reads, film fields included
+//   skills/struq/blocks/film.json   blocks/film/arcs.ts: the three languages and their arcs, every export by name
 //   skills/struq/scripts/film-check.mjs   Struq's blocks/film/film-check.mjs verbatim, for check.mjs
 //   skills/struq/canon/canon.json   palettes, pairings, font weights and providers, for canon.mjs offline
 //   plugin/                         the lean Claude plugin, through scripts/build-plugin.mjs
@@ -55,6 +56,10 @@ const { FONT_WEIGHTS, FONT_SOURCES } = await load("lib/canon/font-sources.ts");
 // what CATALOG.md says a variant does is what the check will hold it to.
 const FILM_CHECK = "blocks/film/film-check.mjs";
 const { resolveBlock } = await load(FILM_CHECK);
+// The three languages and their arcs, as data: blocks.mjs arc prints a storyboard skeleton from them. Every value the
+// module exports goes into film.json under its export name, so nothing is reshaped between Struq and the skill.
+const FILM_ARCS = "blocks/film/arcs.ts";
+const arcs = Object.fromEntries(Object.entries(await load(FILM_ARCS)));
 rmSync(tmp, { recursive: true, force: true });
 
 // --- the closure of a block: every file it reaches by relative import -------------------------------------------
@@ -141,6 +146,9 @@ const entries = admitted
       scroll: b.scroll ?? 0,
       fullBleed: b.fullBleed === true,
       interactions: b.interactions ?? [],
+      // The prop that turns the block's live clock on (`clock`, or `timeZone` on wordmark-finale); every clock is off
+      // without it, and the film check counts a clock only where the page passes this prop.
+      clockProp: b.clockProp ?? null,
       byVariant: b.byVariant ?? {},
       packages: [...packages].sort(),
       exports: [...new Set(exports)],
@@ -181,12 +189,15 @@ writeFileSync(join(OUT, "catalog.json"), `${JSON.stringify({ source, blocks: ent
 // The film check, verbatim: check.mjs runs it on the plan and on the built page. It has no imports, so it runs as is.
 writeFileSync(FILM_OUT, show(FILM_CHECK));
 
+// The languages and arcs, verbatim from blocks/film/arcs.ts, each export under its own name.
+writeFileSync(join(OUT, "film.json"), `${JSON.stringify({ source: { repo: "Struq blocks/film/arcs.ts", ref, commit }, ...arcs }, null, 2)}\n`);
+
 // One greppable film line per block, and a second one only when a variant changes its energy or its pins.
 const pinsOf = (f) => (f.pins ? f.scroll : 0);
 function filmLines(e) {
   const base = resolveBlock(entries, e.slug, e.variants[0]?.id);
   const lines = [
-    `film: role ${base.role} · home ${base.home ?? "none"} · motif ${base.motif} · energy ${base.energy} · pins ${pinsOf(base)} · ${base.interactions.join(", ") || "none"}`,
+    `film: role ${base.role} · home ${base.home ?? "none"} · motif ${base.motif} · energy ${base.energy} · pins ${pinsOf(base)} · ${base.interactions.join(", ") || "none"}${base.clockProp ? ` · clock by prop ${base.clockProp}` : ""}`,
   ];
   const differ = e.variants
     .slice(1)
