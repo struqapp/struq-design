@@ -88,10 +88,12 @@ const commands = {
     const kind = rest[0];
     const rows = CATALOG.filter((b) => !kind || b.kind === kind);
     if (!rows.length) throw new Error(`No blocks of kind "${kind}". Kinds: ${[...new Set(CATALOG.map((b) => b.kind))].join(", ")}`);
+    // The film facts of the default variant, so a storyboard can be cast from this list alone.
+    const film = (b) => (b.role ? `  film: ${b.role} · energy ${b.energy ?? 0} · pins ${b.pins ? b.scroll : 0}` : "");
     for (const b of rows) {
-      console.log(`${b.kind.padEnd(16)} ${b.slug.padEnd(24)} ${b.title}${b.variants.length ? `  [${b.variants.map((v) => v.id).join(", ")}]` : ""}`);
+      console.log(`${b.kind.padEnd(16)} ${b.slug.padEnd(24)} ${b.title}${b.variants.length ? `  [${b.variants.map((v) => v.id).join(", ")}]` : ""}${film(b)}`);
     }
-    console.log(`\n${rows.length} block(s). What each does and its variants: blocks/CATALOG.md.`);
+    console.log(`\n${rows.length} block(s). What each does, its variants and their film lines: blocks/CATALOG.md.`);
   },
 
   init() {

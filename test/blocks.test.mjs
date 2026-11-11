@@ -38,6 +38,15 @@ test('the catalogue lists only admitted blocks, each with its files, and CATALOG
   for (const out of ['before-after', 'cursor-dot-ring', 'cursor-label']) assert.ok(!blocks.some((b) => b.slug === out), out);
 });
 
+test('every block carries its film role, and blocks.mjs list prints the film facts on its row', () => {
+  for (const b of blocks) assert.ok(['frame', 'opening', 'centerpiece', 'pattern'].includes(b.role), `${b.slug} has no film role`);
+  const r = spawnSync(process.execPath, [CLI, 'list'], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  const rows = r.stdout.split('\n').filter((l) => /^\S/.test(l) && !/block\(s\)/.test(l));
+  assert.equal(rows.length, blocks.length);
+  for (const row of rows) assert.match(row, /film: (frame|opening|centerpiece|pattern) · energy \d · pins [\d.]+$/, row);
+});
+
 test('blocks.mjs add copies a block with everything it imports, layout intact', () => {
   const dir = mkdtempSync(join(tmpdir(), 'struq-blocks-'));
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'x', dependencies: { next: '16.0.0' } }));
