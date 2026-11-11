@@ -65,9 +65,9 @@ Idea: Een kom is pas af als hij gebruikt wordt.
 Language: weight
 Motif: frame: one object alone on its plank; a small upright print at arrival, the print on the wall at the opening, the object grown to the whole screen at the centerpiece, an empty frame round the last line
 Lexicon: klei, glazuur, oven, serie
-Palette: frontier-mizu-greige-bronze (slow ceramic restraint)
-Type: serif-editorial: Fraunces + Urbanist
-Images: pack vitrine
+Palette: <yours, from canon.mjs list by the brief's mood and sector>
+Type: <yours, by the client's temperament>
+Images: <the client's photos, else the pack images.mjs picks for the brief>
 Centerpiece: image-to-fullbleed: one bowl grows from a print on the wall to the size of the screen; you see it the way you would hold it, which is the idea
 Tone arc: paper, paper, paper, paper, paper, ink, paper, paper
 Storyboard:
@@ -95,9 +95,9 @@ Idea: Eén naad, en die zit waar je hem ziet.
 Language: cut
 Motif: cut: the seam of a knitted garment; the slices at arrival, a slit through the poster type at the opening, the hard seam between two photos at the centerpiece, the page ending on a cut
 Lexicon: naad, steek, merino, oplage
-Palette: frontier-seve-bone-oxblood (restrained fashion editorial)
-Type: fashion-contrast: Bodoni Moda + Urbanist
-Images: pack bolt
+Palette: <yours, from canon.mjs list by the brief's mood and sector>
+Type: <yours, by the client's temperament>
+Images: <the client's photos, else the pack images.mjs picks for the brief>
 Centerpiece: split-pair: two garments meet on one seam and the word "Naad" shears along it; the idea made physical
 Tone arc: paper, paper, paper, paper, ink, paper, paper
 Storyboard:
@@ -121,9 +121,9 @@ Idea: De stad begint pas als het donker is.
 Language: curtain
 Motif: line: the horizon over the water at night; the name parts on it at arrival, a low band of light on it at the opening, a slab that becomes the rising line at the centerpiece, the rule under the closing link
 Lexicon: eb, vloed, de pier, drie nachten
-Palette: frontier-marrow-bone-blood-orange (studio theatrical warm bone)
-Type: condensed-poster: Big Shoulders Display + Figtree
-Images: pack assembly
+Palette: <yours, from canon.mjs list by the brief's mood and sector>
+Type: <yours, by the client's temperament>
+Images: <the client's photos, else the pack images.mjs picks for the brief>
 Centerpiece: scrub-connector: "Eb" and "Vloed" far apart, joined by one slab that seats as a rising line; the tide as the festival's clock
 Tone arc: field, field, paper, paper, paper, ink, paper, paper
 Storyboard:

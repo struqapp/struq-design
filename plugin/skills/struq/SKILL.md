@@ -150,7 +150,8 @@ in its own words; then quote those words on the `Language:` line. The idea may p
 `preloader-gate` is a film leader (a dial counting 3, 2, 1): film clients only. The header is `header-bar:quiet` or
 `:settle`; sections say their ground with `data-bar-tone`. Each arc is loud only at the opening, the centerpiece and
 at most one gentle scene with a quiet scene on each side. The Statement is the first type moment: an own scene, one
-sentence at 12 to 16vw with `SplitHeadline`, still.
+sentence at 12 to 16vw with `SplitHeadline`, still. Only the Statement and the Close are type alone: every other own
+scene sets a photo (`MediaFrame`) beside its type on the 12 column grid, so a quiet scene is composed, never empty.
 
 **weight.** Paper throughout, ink at the centerpiece.
 1. Arrival (frame): `preloader-stack`; the print lands on the hero photo.
