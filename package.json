@@ -35,7 +35,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node --test test/install.test.mjs test/check.test.mjs test/packs.test.mjs test/tokens.test.mjs test/blocks.test.mjs test/gate.test.mjs test/plugin.test.mjs",
+    "test": "node --test test/install.test.mjs test/check.test.mjs test/packs.test.mjs test/tokens.test.mjs test/blocks.test.mjs test/gate.test.mjs test/arc.test.mjs test/plugin.test.mjs",
     "release:blocks": "node scripts/release-blocks.mjs",
     "release:plugin": "node scripts/build-plugin.mjs"
   },

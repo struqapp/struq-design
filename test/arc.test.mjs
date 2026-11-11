@@ -1,0 +1,155 @@
+// why: the arcs used to live only in SKILL.md prose, so an agent copied a storyboard by hand and small models dropped
+// the quiet scenes or doubled a loud one. blocks.mjs arc prints the arc from film.json, the product's own data, and the
+// printed default must pass the plan check as it stands. The kit's quiet scenes (Statement, PhotoText, Rows, Close)
+// stand where a block would on that storyboard, so add, the gate and init must all treat them as known kit parts.
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { approvedProject } from './treatment.mjs';
+
+const BLOCKS_DIR = fileURLToPath(new URL('../skills/struq/blocks/', import.meta.url));
+const CLI = fileURLToPath(new URL('../skills/struq/scripts/blocks.mjs', import.meta.url));
+const CHECK = fileURLToPath(new URL('../skills/struq/scripts/check.mjs', import.meta.url));
+const film = JSON.parse(readFileSync(join(BLOCKS_DIR, 'film.json'), 'utf8'));
+const LANGUAGES = film.FILM_LANGUAGES.map((l) => l.id);
+
+const blocks = (...a) => spawnSync(process.execPath, [CLI, ...a], { encoding: 'utf8' });
+const tmp = (name) => mkdtempSync(join(tmpdir(), `struq-${name}-`));
+function nextProject() {
+  const dir = tmp('arc');
+  writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'x', dependencies: { next: '16.0.0' } }));
+  return dir;
+}
+
+/** The printed Tone arc and numbered Storyboard lines, as they would be pasted into STRUQ.md. */
+function printedBoard(language) {
+  const r = blocks('arc', language);
+  assert.equal(r.status, 0, r.stderr);
+  const lines = r.stdout.split('\n');
+  const tone = lines.find((l) => l.startsWith('Tone arc: '));
+  const board = lines.filter((l) => /^\d+\.\s/.test(l));
+  return { out: r.stdout, tone, board };
+}
+
+/** A minimal treatment head above the printed lines; the centerpiece is the arc's default centerpiece pick. */
+function planFor(language) {
+  const { tone, board } = printedBoard(language);
+  const spec = film.FILM_LANGUAGES.find((l) => l.id === language);
+  const centerpiece = film.FILM_ARCS.find((a) => a.language === language).scenes.find((s) => s.name === 'Centerpiece').blocks[0];
+  return `# STRUQ.md: arc fixture
+Brief: a client in the ${spec.for[0]} sector
+Idea: The work is the proof.
+Language: ${language}
+Motif: ${spec.motifs[0]}: one shape that returns down the page
+Lexicon: werk, plaats, maat
+Palette: frontier-mizu-greige-bronze (calm)
+Type: serif-editorial: Fraunces + Urbanist
+Images: pack vitrine
+Centerpiece: ${centerpiece}: the one moment
+${tone}
+Storyboard:
+${board.join('\n')}
+Assumptions: none
+`;
+}
+
+test('film.json carries the three languages and an arc for each, as arcs.ts exports them', () => {
+  assert.deepEqual(LANGUAGES, ['weight', 'cut', 'curtain']);
+  assert.deepEqual(film.FILM_ARCS.map((a) => a.language), LANGUAGES);
+  for (const key of ['FILM_HEADER', 'ARC_RULES', 'FILM_BUDGETS']) assert.ok(film[key].length, key);
+  for (const arc of film.FILM_ARCS) {
+    for (const s of arc.scenes) {
+      assert.ok(['frame', 'loud', 'quiet'].includes(s.tag), `${arc.language} ${s.name}`);
+      assert.ok(s.blocks.length || s.own, `${arc.language} ${s.name} has no block and no own scene`);
+    }
+  }
+});
+
+test('arc with no language lists the three with their sectors', () => {
+  const r = blocks('arc');
+  assert.equal(r.status, 0, r.stderr);
+  for (const l of film.FILM_LANGUAGES) assert.match(r.stdout, new RegExp(`^${l.id}\\s+${l.for.join(', ')}$`, 'm'));
+  assert.equal(blocks('arc', 'film').status, 1);
+});
+
+test('arc prints one storyboard line per scene, the frames and how to use it', () => {
+  for (const language of LANGUAGES) {
+    const { out, tone, board } = printedBoard(language);
+    const arc = film.FILM_ARCS.find((a) => a.language === language);
+    assert.equal(board.length, arc.scenes.length, language);
+    assert.equal(tone, `Tone arc: ${arc.scenes.map((s) => s.tone[0]).join(', ')}`);
+    arc.scenes.forEach((s, at) => {
+      assert.match(board[at], new RegExp(`^${at + 1}\\.\\s+${s.name}\\s+\\(${s.tag}\\)\\s+\\S`), board[at]);
+      if (s.footer) assert.match(board[at], new RegExp(`\\| footer: ${s.footer[0]}$`));
+    });
+    assert.match(board[0], /\| lands on: <what>$/);
+    assert.match(board.at(-1), /\| echoes the opening: <how>/);
+    const frames = film.FILM_LANGUAGES.find((l) => l.id === language).frames;
+    assert.ok(out.includes(`preloader ${frames.preloader}`) && out.includes(frames.pageTransition) && out.includes(frames.menu), out);
+    assert.match(out, /^Use: .*check\.mjs --plan\.$/m);
+  }
+  // The weight arc fills its own scenes with the kit's quiet scenes, and lists the blocks that also fit.
+  const { board } = printedBoard('weight');
+  assert.match(board[2], /\(quiet\)\s+Statement \|/);
+  assert.match(board[1], /\(loud\)\s+hero-framed:wand \|.*\| or: hero-framed:portret, hero-still:frame, hero-still:still$/);
+});
+
+test('the printed default storyboard of every language passes check.mjs --plan without a quiet or loud warning', () => {
+  for (const language of LANGUAGES) {
+    const dir = tmp('arc-plan');
+    writeFileSync(join(dir, 'STRUQ.md'), planFor(language));
+    mkdirSync(join(dir, 'app'));
+    writeFileSync(join(dir, 'app', 'page.tsx'), 'export default function Page() { return null; }\n');
+    const r = spawnSync(process.execPath, [CHECK, '--plan'], { cwd: dir, encoding: 'utf8' });
+    assert.equal(r.status, 0, `${language}\n${r.stdout}${r.stderr}`);
+    assert.match(r.stdout, /^PLAN: PASS$/m, language);
+    assert.ok(!/^FAIL /m.test(r.stdout), `${language}\n${r.stdout}`);
+    for (const id of ['quiet-is-quiet', 'loud-adjacent', 'quiet-share']) assert.ok(!r.stdout.includes(id), `${language}: ${id}\n${r.stdout}`);
+  }
+});
+
+test('init brings the quiet scenes to components/struq/kit/quiet, importable from its index', () => {
+  const dir = nextProject();
+  const r = blocks('init', '--dir', dir, '--no-install');
+  assert.equal(r.status, 0, r.stderr);
+  const quiet = join(dir, 'components', 'struq', 'kit', 'quiet');
+  for (const f of ['Statement.tsx', 'PhotoText.tsx', 'Rows.tsx', 'Close.tsx', 'sheet.ts', 'index.ts']) assert.ok(existsSync(join(quiet, f)), f);
+  const index = readFileSync(join(quiet, 'index.ts'), 'utf8');
+  for (const name of ['Statement', 'PhotoText', 'Rows', 'Close']) assert.match(index, new RegExp(`export \\{ ${name} \\} from "\\./${name}"`));
+  // Everything a quiet scene imports from the kit arrives with it.
+  for (const f of ['MediaFrame.tsx', 'Reveal.tsx', 'SplitHeadline.tsx', 'gsap.ts', 'images.ts']) assert.ok(existsSync(join(dir, 'components', 'struq', 'kit', f)), f);
+  const css = readFileSync(join(dir, 'components', 'struq', 'kit', 'blocks.css'), 'utf8');
+  assert.match(css, /\.struq-line-mask/);
+  assert.match(css, /\.struq-char-mask/);
+});
+
+test('add <kit scene> says it is in the kit and how to import it, installs nothing, and exits 0', () => {
+  const dir = nextProject();
+  for (const name of ['Statement', 'PhotoText', 'Rows', 'Close']) {
+    const r = blocks('add', name, '--dir', dir, '--no-install');
+    assert.equal(r.status, 0, r.stderr);
+    const lines = r.stdout.trim().split('\n');
+    assert.equal(lines.length, 1, r.stdout);
+    assert.equal(lines[0], `${name} is a kit quiet scene, already in components/struq/kit/quiet/ (blocks.mjs init): import { ${name} } from "@/components/struq/kit/quiet";`);
+  }
+  // No plan and no approval in this project: a kit scene never reaches the gate, and nothing was written.
+  assert.ok(!existsSync(join(dir, 'components')));
+});
+
+test('the gate takes a storyboard that names kit quiet scenes, and add installs the blocks beside them', () => {
+  const dir = nextProject();
+  writeFileSync(join(dir, 'STRUQ.md'), planFor('weight'));
+  approvedProject(dir, { plan: null });
+  const r = blocks('add', 'Statement', 'preloader-stack', 'hero-framed', '--dir', dir, '--no-install');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /^Statement is a kit quiet scene/m);
+  assert.match(r.stdout, /OK blocks added/);
+  // A kit scene that is not on the storyboard is no unnamed block either: it was copied by init, never by add.
+  const other = blocks('add', 'Rows', '--dir', dir, '--no-install');
+  assert.equal(other.status, 0, other.stderr);
+  assert.ok(!/storyboard does not name/.test(other.stderr));
+});

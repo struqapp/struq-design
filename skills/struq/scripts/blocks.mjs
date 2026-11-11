@@ -5,10 +5,13 @@
 //   node <skill-dir>/scripts/blocks.mjs list [kind]          the catalogue, one line per block with its variants
 //   node <skill-dir>/scripts/blocks.mjs init                 the kit, the app shell (on a starter) and the base packages
 //   node <skill-dir>/scripts/blocks.mjs add <slug>[:<variant>] [...]  a block and every file it imports, plus its packages
+//   node <skill-dir>/scripts/blocks.mjs arc [language]      a language's storyboard skeleton (film.json); none: the three
 //   flags: --dir <project>, --force (replace files you already have), --no-install
 //
 // add refuses, installing nothing, until STRUQ.md passes the plan check and STRUQ-LOG.md holds the user's reply to the
-// treatment, and then takes only blocks the storyboard names, in the site's language (gate.mjs). list and init never ask.
+// treatment, and then takes only blocks the storyboard names, in the site's language (gate.mjs). list, init and arc
+// never ask. The kit's quiet scenes (Statement, PhotoText, Rows, Close) come with init, so add only says how to import
+// one.
 //
 // Everything lands under components/struq/ in the layout of Struq's blocks/ (kit/, heroes/, sections/ ...), so the
 // relative imports between them hold. A layout or stylesheet you wrote yourself is never overwritten.
@@ -23,6 +26,12 @@ const here = dirname(fileURLToPath(import.meta.url));
 const BLOCKS = join(here, "..", "blocks");
 const RECIPES = join(here, "..", "recipes");
 const CATALOG = JSON.parse(readFileSync(join(BLOCKS, "catalog.json"), "utf8")).blocks;
+const FILM = join(BLOCKS, "film.json");
+/** The kit's composed quiet scenes, one file each in kit/quiet/: a storyboard names them where a block would stand. */
+const KIT_SCENES = readdirSync(join(BLOCKS, "kit", "quiet"))
+  .filter((n) => /^[A-Z]\w*\.tsx$/.test(n))
+  .map((n) => n.replace(/\.tsx$/, ""));
+const kitScene = (name) => KIT_SCENES.find((k) => k.toLowerCase() === name.split(":")[0].toLowerCase()) ?? null;
 
 const args = process.argv.slice(2);
 const dirAt = args.indexOf("--dir");
@@ -87,6 +96,36 @@ function report(step, what) {
   appendLog(root, step, [what, ...(notes.length ? [`Notes: ${notes.join(" ")}`] : [])]);
 }
 
+/**
+ * A language's arc as STRUQ.md lines: the Tone arc, then one numbered Storyboard line per scene in the treatment's
+ * format, the default pick filled in (the own scene first where the arc prefers it, as its kit quiet scene when it has
+ * one, else the first block) and what else fits after `or:`. The defaults pass check.mjs --plan as they stand.
+ */
+function arcLines(arc) {
+  const pick = (scene) => {
+    const own = scene.kit ?? "own scene";
+    const ownFirst = scene.own && (scene.ownFirst || !scene.blocks.length);
+    const options = ownFirst ? [own, ...scene.blocks] : [...scene.blocks, ...(scene.own ? [own] : [])];
+    if (scene.kit && scene.own && !options.includes("own scene")) options.push("own scene");
+    return options;
+  };
+  const width = Math.max(...arc.scenes.map((s) => s.name.length));
+  const last = arc.scenes.length - 1;
+  const lines = [`Tone arc: ${arc.scenes.map((s) => s.tone[0]).join(", ")}`, "Storyboard:"];
+  arc.scenes.forEach((scene, at) => {
+    const [first, ...others] = pick(scene);
+    const head = `${`${at + 1}.`.padEnd(at + 1 >= 10 ? 4 : 3)}${scene.name.padEnd(width)} ${`(${scene.tag})`.padEnd(8)} ${first}`;
+    const parts = [head];
+    if (scene.tag === "frame") parts.push("lands on: <what>");
+    else if (at === last) parts.push("echoes the opening: <how>");
+    else parts.push("on screen: <...>", "enters: <...>", "hands over: <...>");
+    if (others.length) parts.push(`or: ${others.join(", ")}`);
+    if (scene.footer?.length) parts.push(`footer: ${scene.footer[0]}`);
+    lines.push(parts.join(" | "));
+  });
+  return lines;
+}
+
 const commands = {
   list() {
     const kind = rest[0];
@@ -126,8 +165,34 @@ const commands = {
     console.log("OK init ready");
   },
 
+  arc() {
+    const film = JSON.parse(readFileSync(FILM, "utf8"));
+    const languages = film.FILM_LANGUAGES;
+    const id = rest[0];
+    if (!id) {
+      const width = Math.max(...languages.map((l) => l.id.length)) + 2;
+      for (const l of languages) console.log(`${l.id.padEnd(width)}${l.for.join(", ")}`);
+      console.log(`\nPrint one: blocks.mjs arc <${languages.map((l) => l.id).join(" | ")}>`);
+      return;
+    }
+    const language = languages.find((l) => l.id === id);
+    const arc = film.FILM_ARCS.find((a) => a.language === id);
+    if (!language || !arc) throw new Error(`No language "${id}". The languages: ${languages.map((l) => l.id).join(", ")}.`);
+    for (const line of arcLines(arc)) console.log(line);
+    const f = language.frames;
+    console.log(`\nFrames of ${id}: preloader ${f.preloader}, page transition ${f.pageTransition} (only with a second route), menu ${f.menu}. Header: ${film.FILM_HEADER.join(" or ")}.`);
+    console.log(`Use: paste the Tone arc and the Storyboard into STRUQ.md under your treatment head, fill every <...>, keep one pick per line (or: lists what else fits), then run check.mjs --plan.`);
+  },
+
   add() {
     if (!rest.length) throw new Error("Usage: blocks.mjs add <slug>[:<variant>] [...]. The slugs: blocks.mjs list");
+    // A kit quiet scene is no block: init already copied it, so say how to import it and install nothing for it.
+    for (const arg of rest.filter(kitScene)) {
+      const name = kitScene(arg);
+      console.log(`${name} is a kit quiet scene, already in components/struq/kit/quiet/ (blocks.mjs init): import { ${name} } from "@/components/struq/kit/quiet";`);
+    }
+    rest.splice(0, rest.length, ...rest.filter((arg) => !kitScene(arg)));
+    if (!rest.length) return;
     const requests = rest.map((arg) => {
       const [slug, variant = null] = arg.split(":");
       const b = CATALOG.find((x) => x.slug === slug);
@@ -162,7 +227,7 @@ const commands = {
 
 const run = commands[cmd];
 if (!run) {
-  console.error("Usage: blocks.mjs list [kind] | init | add <slug>[:<variant>] [...]   [--dir <project>] [--force] [--no-install]");
+  console.error("Usage: blocks.mjs list [kind] | init | add <slug>[:<variant>] [...] | arc [language]   [--dir <project>] [--force] [--no-install]");
   process.exit(2);
 }
 try {
