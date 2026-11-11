@@ -48,13 +48,20 @@ the opening, the centerpiece and at most one gentle one, never side by side.
 | word | the name set across the screen | one word at poster scale | a word that fills, splits or shears | the name again, edge to edge |
 | field | the cover in the field colour | a live field behind the type | the one field scene | the field returning under the footer |
 
-## A quiet scene, in words
+## Quiet scenes, from the kit
 
-Paper ground. A single photograph of a stairwell sits in the right seven columns at 4:5. In the left columns, two
-sentences in the body face, and under the photo a small sentence-case caption in the lexicon: "Trap, schaal 1:20".
-As the scene comes in, the lines rise once through their masks and the photo opens once from its bottom edge. Then
-nothing moves until the visitor scrolls on: no pin, no scrub, no parallax, no hover, no counter. Quiet scenes are
-what make the centerpiece read as the moment.
+The quiet scenes come from `@/components/struq/kit/quiet`, already on the page grid and the sheet's margin, each
+entering once and then holding still: no pin, no scrub, no parallax, no hover, no counter.
+
+- `Statement` sets the one sentence at moment size, one `accent` word in the italic face, a `label` in the margin
+  ("Werkplaats Zuid, sinds 1998") and a small upright `image` hanging off the last line.
+- `PhotoText` puts a photo across seven columns and a short heading with one or two paragraphs across four, the
+  caption under the photo in the lexicon ("Trap, schaal 1:20").
+- `Rows` lists three to six terms with one sentence each between hairlines, a column photo beside them, no numbers.
+- `Close` ends on one line and one link; `frame` draws the hairline frame when the motif is the frame.
+
+Quiet scenes are what make the centerpiece read as the moment. Write an own scene only when none of the four fits,
+and put `data-scene="<name>"` on its root.
 
 ## weight: Atelier Sloot, a ceramics studio
 
@@ -73,12 +80,12 @@ Tone arc: paper, paper, paper, paper, paper, ink, paper, paper
 Storyboard:
 1. Arrival   (frame)  preloader-stack, "Atelier Sloot" under the frame | lands on: the hero print
 2. Opening   (loud)   hero-framed:wand | on screen: one bowl as a small print, its label "Kom, mat glazuur", the h1 "Gemaakt om te gebruiken." | enters: the line rises beside the print | hands over: the first scroll walks up to the print until it fills the screen
-3. Statement (quiet)  own scene, SplitHeadline | on screen: "Eerst de hand, dan de oven." at 14vw on paper | enters: lines rise once | hands over: plain scroll
+3. Statement (quiet)  Statement, accent "hand" | on screen: "Eerst de hand, dan de oven." at moment size on paper, the label "Klei, nog nat" in the margin, a small print of a bowl drying off the last line | enters: lines rise once | hands over: plain scroll
 4. About     (loud)   about-studio:wandeling | on screen: who makes it and where, as the brief says, beside two columns of objects | enters: the columns drift with the scroll | hands over: plain scroll
-5. Approach  (quiet)  own scene, hairline rows | on screen: draaien, drogen, glazuren, stoken, one sentence each, no numbers | enters: each row once | hands over: plain scroll
+5. Approach  (quiet)  Rows | on screen: "Hoe een kom ontstaat.", then draaien, drogen, glazuren, stoken, one sentence each, no numbers, a column photo of the oven beside them | enters: each row once | hands over: plain scroll
 6. Centerpiece (loud) image-to-fullbleed | on screen: one bowl on stone, from print to full screen, with "Op ware grootte." | enters: pinned 2.2 screens | hands over: the photo lets go and scrolls away whole
-7. Release   (quiet)  own scene | on screen: a photo of the drying rack and two sentences on ordering a series | enters: once | hands over: plain scroll
-8. Close     (quiet)  own scene | echoes the opening: an empty hairline frame the size of the arrival print round "Vraag een serie aan." and the mail link | footer: wordmark-finale
+7. Release   (quiet)  PhotoText | on screen: a photo of the drying rack, "Een serie voor je zaak." and two sentences on ordering one, the caption "Droogrek, één serie" | enters: once | hands over: plain scroll
+8. Close     (quiet)  Close, frame | echoes the opening: an empty hairline frame round "Vraag een serie aan." and the mail link | footer: wordmark-finale
 ```
 
 Budgets: pins 1.5 + 2.2 = 3.7 screens; full-bleed reveals two, built the same way (a print growing to the screen);
@@ -104,13 +111,14 @@ Storyboard:
 1. Arrival   (frame)  preloader-slices, name "Vaar", caption "Merino, kleine oplage, Amsterdam" | lands on: the poster
 2. Opening   (loud)   hero-poster:column | on screen: "Langzaam / gebreid" fitted to the width, a slit of folded wool through it | enters: the slices uncover it | hands over: the slit opens sideways into the full photo
 3. Work      (quiet)  hover-list | on screen: the pieces of this oplage, name and colour | enters: rows rise once | hands over: plain scroll
-4. Statement (quiet)  reveals:clip | on screen: a photo opening from a slit, "Elke trui heeft één naad." | enters: once | hands over: plain scroll
+4. Statement (quiet)  Statement, accent "naad" | on screen: "Elke trui heeft één naad." at moment size, the label "Merino, vier draden" in the margin, a small photo of the seam off the last line | enters: once | hands over: plain scroll
 5. Centerpiece (loud) split-pair | on screen: the word "Naad", two photos meeting on it | enters: pinned 3 screens | hands over: the halves leave at their own speeds
 6. Release   (quiet)  fill-rows | on screen: the three yarns, a detail on hover | enters: once | hands over: a hard cut to paper
-7. Close     (quiet)  own scene, type only | echoes the opening: "Uit deze oplage, zolang hij er is." cut off at the seam line, a link to the shop | footer: footer-contact:address
+7. Close     (quiet)  Close | echoes the opening: "Uit deze oplage, zolang hij er is." at moment size, a link to the shop at the far end of the line under it | footer: footer-contact:address
 ```
 
-Budgets: pins 1.5 + 3 = 4.5; one full-bleed reveal; one clock (the footer); no marquee, so the close is type only.
+Budgets: pins 1.5 + 3 = 4.5; one full-bleed reveal; no clock, so the footer goes without `clock`; no marquee, so
+the close is type only.
 
 ## curtain: Nachtwerk, a night festival
 
@@ -129,17 +137,18 @@ Tone arc: field, field, paper, paper, paper, ink, paper, paper
 Storyboard:
 1. Arrival   (frame)  preloader-wordmark:split, "Nachtwerk" | lands on: the field, the halves parting on its middle line
 2. Opening   (loud)   background-aurora:horizon | on screen: "Drie nachten aan zee." at 16vw on the calm side, a low band of light along the foot | enters: lines rise as the band brightens | hands over: the band rises as the hero scrolls away
-3. Statement (quiet)  reveals:lines | on screen: one sentence on why the festival starts at dusk, a photo of an empty stage | enters: once | hands over: plain scroll
+3. Statement (quiet)  Statement, accent "donker" | on screen: one sentence on why the festival starts at dusk, the label "De pier, na zonsondergang" in the margin, a small photo of an empty stage off the last line | enters: once | hands over: plain scroll
 4. Details   (loud)   sticky-chapters | on screen: the three nights as chapters, with the places the brief names | enters: one photo holds while the nights scroll past, each night's photo rising over the last | hands over: plain scroll
-5. Build     (quiet)  own scene | on screen: who makes it, a photo of the pier | enters: once | hands over: plain scroll
+5. Build     (quiet)  PhotoText | on screen: who makes it, as the brief says, a photo of the pier, the caption "De pier bij vloed" | enters: once | hands over: plain scroll
 6. Centerpiece (loud) scrub-connector | on screen: "Eb" and "Vloed" | enters: pinned 3 screens | hands over: the joined pair scrolls away whole
-7. Release   (quiet)  own scene | on screen: one photo of the boulevard, the dates and place from the brief | enters: once | hands over: plain scroll
+7. Release   (quiet)  PhotoText, side right | on screen: one photo of the boulevard, the dates and place from the brief | enters: once | hands over: plain scroll
 8. Close     (quiet)  cta-closing:pointer | echoes the opening: the line drawn under "Kom kijken als het donker wordt." | footer: footer-reveal:lift
 ```
 
 Budgets: pins 3 screens; no full-bleed reveal; no clock; two contrast scenes (the field and the ink); the chapters
-are the one gentle loud scene, a quiet scene on each side.
-`preloader-gate` was left out: its film leader counts 3, 2, 1, and this client is not a film.
+are the one gentle loud scene, a quiet scene on each side. `preloader-gate`, with its neutral hairline ring, fits
+the language as well; its film leader (`dial="leader"`, counting 3, 2, 1) stays out, because this client is not a
+film.
 
 ## Before the stop
 
