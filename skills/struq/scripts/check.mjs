@@ -438,9 +438,23 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
     if (open.length) add(G, "FAIL", `${open.length} Build checklist item(s) not ticked in STRUQ.md. Do them, then tick them.`, open.map((l) => l.trim()));
     else if (done >= 7) add(G, "PASS", `Build checklist ticked (${done} items)`);
     else add(G, "FAIL", "STRUQ.md has no Build checklist: copy it from SKILL.md and tick each step as you finish it.");
-    const need = ["Palette", "Type", "Images", "Order"].filter((k) => !new RegExp(`^${k}:\\s*\\S`, "mi").test(plan));
-    if (need.length) add(G, "FAIL", `STRUQ.md does not record: ${need.map((k) => `${k}:`).join(", ")} (SKILL.md, the plan).`);
-    else add(G, "PASS", "Direction and order recorded (palette, type, images, order)");
+    const has = (k) => new RegExp(`^${k}:\\s*\\S`, "mi").test(plan);
+    // The storyboard is the order now; a plan from before the treatment may still carry an Order: line.
+    const need = ["Palette", "Type", "Images"].filter((k) => !has(k));
+    if (!/^Storyboard:/mi.test(plan) && !has("Order")) need.push("Storyboard");
+    if (need.length) add(G, "FAIL", `STRUQ.md does not record: ${need.map((k) => `${k}:`).join(", ")} (SKILL.md, the treatment).`);
+    else add(G, "PASS", "Direction and order recorded (palette, type, images, storyboard)");
+
+    // The treatment: the film the site is cast into (SKILL.md, The film).
+    const missing = ["Idea", "Motif", "Lexicon", "Centerpiece"].filter((k) => !has(k));
+    const language = plan.match(/^Language:\s*(\S+)/mi)?.[1]?.toLowerCase().replace(/[^a-z]/g, "");
+    if (!["weight", "cut", "curtain"].includes(language)) missing.push("Language");
+    const board = plan.match(/^Storyboard:[^\n]*\n((?:[ \t]*(?:\d+\.|\.\.\.)[^\n]*\n?)*)/mi);
+    const scenes = board ? (board[1].match(/^[ \t]*\d+\.\s+\S/gm) ?? []).length : 0;
+    if (!board) missing.push("Storyboard");
+    if (missing.length) add(G, "FAIL", `The treatment in STRUQ.md lacks: ${missing.map((k) => `${k}:`).join(", ")}. Write the head of STRUQ.md from the template in SKILL.md step 2 (Language: is weight, cut or curtain; the storyboard numbers its scenes).`);
+    else if (scenes < 7 || scenes > 9) add(G, "FAIL", `The storyboard has ${scenes} numbered scene(s): seven to nine, cast from the language's arc (SKILL.md, The film).`);
+    else add(G, "PASS", `Treatment recorded: language ${language}, ${scenes} scenes in the storyboard`);
   }
 }
 

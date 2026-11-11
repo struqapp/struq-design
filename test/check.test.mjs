@@ -52,7 +52,35 @@ export default function Page() {
 `;
 
 const SMOOTH = 'import Lenis from "lenis";\nconst l = new Lenis({ autoRaf: false });\ngsap.ticker.add(() => l.raf(0));\nconst q = "(prefers-reduced-motion: reduce)";\n';
-const PLAN = '# STRUQ.md: fixture\nPalette: midnight-brass\nType: serif-editorial\nImages: pack proof\nOrder: header-bar, hero-still, footer-reveal\n\n## Build checklist\n- [x] 1 Project\n- [x] 2 Direction and approval\n';
+const SCENES = [
+  'Arrival (frame) preloader-stack | lands on: the hero photo',
+  'Opening (loud) hero-still:still | on screen: the dining room at dusk',
+  'Statement (quiet) own scene | on screen: one sentence at 14vw',
+  'About (quiet) about-studio:wandeling | on screen: who cooks here',
+  'Approach (quiet) own hairline rows | on screen: the four seasons',
+  'Centerpiece (loud) image-to-fullbleed | on screen: the room opening',
+  'Release (quiet) own scene | on screen: a photo and two sentences',
+  'Close (quiet) own scene | echoes the opening | footer: footer-reveal',
+];
+const board = (n) => SCENES.slice(0, n).map((s, i) => `${i + 1}. ${s}`).join('\n');
+const PLAN = `# STRUQ.md: fixture
+Idea: Een zaal aan het water, waar het seizoen het menu schrijft.
+Language: weight
+Motif: frame: the window onto the harbour
+Lexicon: getij, seizoen, kade
+Palette: midnight-brass
+Type: serif-editorial
+Images: pack proof
+Centerpiece: image-to-fullbleed: the room opens onto the water
+Tone arc: paper, paper, paper, paper, paper, ink, paper, paper
+Storyboard:
+${board(8)}
+Assumptions: none
+
+## Build checklist
+- [x] 1 Project
+- [x] 2 Treatment and approval
+`;
 
 function fixture({ log = LOG_OK, page = PAGE_OK, extra = {} } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'struq-check-'));
@@ -74,6 +102,29 @@ function fixture({ log = LOG_OK, page = PAGE_OK, extra = {} } = {}) {
 
 const run = (dir) => spawnSync(process.execPath, [CHECK, '--dir', dir, '--no-log'], { encoding: 'utf8' }).stdout;
 const fails = (out, text) => out.split('\n').some((l) => l.includes('FAIL') && l.includes(text));
+
+test('STRUQ.md carries the treatment: idea, language, motif, lexicon, centerpiece and a storyboard of seven to nine scenes', () => {
+  const ok = run(fixture());
+  assert.ok(!fails(ok, 'treatment in STRUQ.md lacks'));
+  assert.ok(!fails(ok, 'numbered scene'));
+  assert.ok(!fails(ok, 'does not record'));
+  assert.ok(fails(run(fixture({ extra: { 'STRUQ.md': PLAN.replace(/^Lexicon:.*\n/m, '') } })), 'lacks: Lexicon:'));
+  assert.ok(fails(run(fixture({ extra: { 'STRUQ.md': PLAN.replace(/^Centerpiece:.*\n/m, '') } })), 'lacks: Centerpiece:'));
+  assert.ok(fails(run(fixture({ extra: { 'STRUQ.md': PLAN.replace('Language: weight', 'Language: cinematic') } })), 'lacks: Language:'));
+  assert.ok(!fails(run(fixture({ extra: { 'STRUQ.md': PLAN.replace('Language: weight', 'Language: Curtain') } })), 'treatment in STRUQ.md lacks'));
+  assert.ok(fails(run(fixture({ extra: { 'STRUQ.md': PLAN.replace(board(8), board(5)) } })), 'has 5 numbered scene'));
+  assert.ok(!fails(run(fixture({ extra: { 'STRUQ.md': PLAN.replace(board(8), board(7)) } })), 'numbered scene'));
+  const crlf = PLAN.replace(/\n/g, '\r\n');
+  assert.ok(!fails(run(fixture({ extra: { 'STRUQ.md': crlf } })), 'numbered scene'));
+});
+
+test('a plan from before the treatment keeps its Order: line but fails the treatment', () => {
+  const old = '# STRUQ.md: fixture\nPalette: midnight-brass\nType: serif-editorial\nImages: pack proof\nOrder: header-bar, hero-still, footer-reveal\n\n## Build checklist\n- [x] 1 Project\n';
+  const out = run(fixture({ extra: { 'STRUQ.md': old } }));
+  assert.ok(!fails(out, 'does not record'));
+  assert.ok(fails(out, 'lacks: Idea:, Motif:, Lexicon:, Centerpiece:, Language:, Storyboard:'));
+  assert.ok(fails(run(fixture({ extra: { 'STRUQ.md': old.replace(/^Order:.*\n/m, '') } })), 'does not record: Storyboard:'));
+});
 
 test('the approval stop must be logged with the user\'s own reply', () => {
   assert.ok(!fails(run(fixture()), 'Step 2 Approval'));
