@@ -213,6 +213,8 @@ The blocks hold this already; your glue must too. Detail in [references/craft.md
 - The gate: `sq-js` on `<html>` before paint hides only what will animate, and shows it anyway after 3 s.
 - Type on a photo sits on the measured calm side over the lightest flat veil that reaches 3:1.
 - Display runs light (300, or the poster pairing's weight); fitted lines measured after `document.fonts.ready`.
+- Never clip a descender: big type goes through `SplitHeadline`, whose line mask leaves room under g, j, p and y;
+  never `overflow-hidden` on a heading of your own, and a poster line keeps a leading of 1 in a serif, 0.95 in a sans.
 - Tokens only, mixes in oklab, a surface step and a hairline instead of a shadow, one accent.
 - Icons: Struq Icons (`@struq/icons`), functional only ([references/iconography.md](references/iconography.md)).
 
