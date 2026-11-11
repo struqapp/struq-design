@@ -53,16 +53,37 @@ export const PRODUCT_LAUNCH_WORDS = ["lancering", "lanceren", "lanceert", "gelan
 // Endings that only inflect a word (architect-en, verbouwing-en, renovatie-s, makelaar-s).
 const INFLECTIONS = new Set(["s", "e", "n", "en", "es", "er", "ers", "ing", "ingen", "ies"]);
 
+// Everyday words that hold a sector stem but do not name the sector: "zorgvuldig" (careful) reached the care pack
+// through "zorg", "natuurlijk" (natural) the nature pack through "natuur". A brief word that starts with one of these
+// never matches by stem, so each entry also covers its inflections (zorgvuldige, natuurlijke). Struq's MCP keeps the
+// same list, so both land a brief on the same pack.
+export const NOT_A_SECTOR = [
+  "zorgvuldig", "zorgeloos", "zorgeloze", "zorgelijk", "zorgen", "klantenzorg", "kwaliteitszorg",
+  "natuurlijk", "natuurkunde", "natuurkundig", "natuurgetrouw", "signatuur",
+  "kunstmatig", "kunststof", "kunstlicht",
+  "modern", "moderate", "moderator", "moderation",
+  "eventual", "operation",
+  "bedrijfscultuur", "organisatiecultuur", "werkcultuur", "teamcultuur", "agriculture",
+  "metaalachtig",
+  "verteler", "verhalenverteler",
+  "grondstof", "voedingsstof",
+  "praktijkgericht", "praktijkervaring", "praktijkvoorbeeld",
+  "whitelabel",
+];
+
 /**
  * True when a brief word is a sector stem, an inflection of it or a compound that holds it.
  * A stem under four letters only matches whole (so "art" never matches "smart"). A longer stem
  * matches at the start of the word when the rest is an inflection or a word of its own (five
  * letters or more: architect-enstudio, mode-label, keramiek-atelier, but not mode-rn), and at the
  * end when a modifier of three letters or more comes before it (boetiek-hotel, tandarts-praktijk).
+ * A word that starts with an entry of NOT_A_SECTOR never matches by stem; a word equal to a sector
+ * word still matches whole.
  */
 export function wordMatches(word, stem) {
   if (word === stem) return true;
   if (stem.length < 4) return false;
+  if (NOT_A_SECTOR.some((entry) => word.startsWith(entry))) return false;
   if (word.startsWith(stem)) {
     const rest = word.slice(stem.length);
     return INFLECTIONS.has(rest) || rest.length >= 5;

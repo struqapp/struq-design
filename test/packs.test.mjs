@@ -88,6 +88,22 @@ test('short stems match only whole words, and a stem never matches a lookalike',
   assert.equal(packForBrief('Een moderne website voor een smart home app'), 'halide');
 });
 
+// why: the stem rule read everyday words as a sector: "zorgvuldig" (careful) sent a brief to the care pack and
+// "natuurlijk" (natural) to the nature pack. A short stoplist, the same as the MCP's, is checked before the stem.
+test('everyday words that hold a sector stem never pick a pack, and true compounds still do', () => {
+  assert.equal(wordMatches('zorgvuldig', 'zorg'), false);
+  assert.equal(wordMatches('zorgvuldige', 'zorg'), false);
+  assert.equal(wordMatches('natuurlijk', 'natuur'), false);
+  assert.equal(wordMatches('natuurlijke', 'natuur'), false);
+  assert.equal(wordMatches('kunstmatig', 'kunst'), false);
+  assert.equal(wordMatches('zorg', 'zorg'), true);
+  assert.equal(packForBrief('Een zorgvuldig gemaakte website'), 'halide');
+  assert.equal(packForBrief('Natuurlijk licht en een kunstmatig gazon'), 'halide');
+  assert.equal(packForBrief('Een architectenstudio in Delft'), 'datum');
+  assert.equal(packForBrief('Een boetiekhotel in Gent'), 'portico');
+  assert.equal(packForBrief('Een koffiebranderij in Gent'), 'proof');
+});
+
 test('the Duin brief still picks a hospitality or coast pack', () => {
   const pack = packForBrief('Bouw een website voor Duin, een boetiekhotel met twaalf kamers achter de duinen bij Bergen aan Zee.');
   assert.ok(['portico', 'brume'].includes(pack), pack);
