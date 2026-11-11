@@ -45,34 +45,34 @@ As the scene comes in, the lines rise once through their masks and the photo ope
 nothing moves until the visitor scrolls on: no pin, no scrub, no parallax, no hover, no counter. Quiet scenes are
 what make the centerpiece read as the moment.
 
-## weight: Atelier Kade
+## weight: Atelier Sloot, a ceramics studio
 
 ```
-# STRUQ.md: Atelier Kade
-Brief: architectenbureau voor woonhuizen en verbouwingen aan de Utrechtse grachten, voor eigenaren van oude panden
-Idea: Elk huis begint bij de maat van wat er al staat.
+# STRUQ.md: Atelier Sloot
+Brief: keramiekatelier in Deventer dat servies in kleine series draait, voor restaurants en voor thuis
+Idea: Een kom is pas af als hij gebruikt wordt.
 Language: weight
-Motif: frame: the window frame of a canal house; a small upright print at arrival, the print on the wall at the opening, a whole room opening out of the grid at the centerpiece, an empty frame round the last line
-Lexicon: schaal 1:50, kavel, gevel, bouwjaar
-Palette: stone-forest (quiet confidence)
-Type: editorial-sans-precision: Sora + Public Sans
-Images: pack datum
-Centerpiece: grid-assembly: the houses lie like drawings on a table and come together into one plan sheet, then one opens into a room at full size; drawing becomes house, which is the idea
+Motif: frame: one object alone on its plank; a small upright print at arrival, the print on the wall at the opening, the object grown to the whole screen at the centerpiece, an empty frame round the last line
+Lexicon: klei, glazuur, oven, serie
+Palette: frontier-mizu-greige-bronze (slow ceramic restraint)
+Type: serif-editorial: Fraunces + Urbanist
+Images: pack vitrine
+Centerpiece: image-to-fullbleed: one bowl grows from a print on the wall to the size of the screen; you see it the way you would hold it, which is the idea
 Tone arc: paper, paper, paper, paper, paper, ink, paper, paper
 Storyboard:
-1. Arrival   (frame)  preloader-stack, "Atelier Kade" under the frame | lands on: the hero print
-2. Opening   (loud)   hero-framed:wand | on screen: one facade as a small print, its label "Gevel, schaal 1:50", the h1 "Elk huis begint bij wat er al staat." | enters: the line rises beside the print | hands over: the first scroll walks up to the print until it fills the screen
-3. Statement (quiet)  own scene, SplitHeadline | on screen: "We tekenen eerst wat er is." at 14vw on paper | enters: lines rise once | hands over: plain scroll
-4. About     (quiet)  about-studio:wandeling | on screen: who works here and since when, as the brief says, beside two columns of facades | enters: once | hands over: plain scroll
-5. Approach  (quiet)  own hairline rows | on screen: opmeten, schetsen, bestek, oplevering, one sentence each, no numbers | enters: each row once | hands over: plain scroll
-6. Centerpiece (loud) grid-assembly | on screen: nine houses into one plan, then one room at full size with "Een kamer op schaal 1:1." | enters: pinned 2.5 screens | hands over: the photo drifts off slower than the page
-7. Release   (quiet)  own scene | on screen: a stairwell photo and two sentences on the first visit | enters: once | hands over: plain scroll
-8. Close     (quiet)  own scene | echoes the opening: an empty hairline frame the size of the arrival print round "Stuur ons de tekening van uw huis." and the mail link | footer: wordmark-finale
+1. Arrival   (frame)  preloader-stack, "Atelier Sloot" under the frame | lands on: the hero print
+2. Opening   (loud)   hero-framed:wand | on screen: one bowl as a small print, its label "Kom, mat glazuur", the h1 "Gemaakt om te gebruiken." | enters: the line rises beside the print | hands over: the first scroll walks up to the print until it fills the screen
+3. Statement (quiet)  own scene, SplitHeadline | on screen: "Eerst de hand, dan de oven." at 14vw on paper | enters: lines rise once | hands over: plain scroll
+4. About     (quiet)  about-studio:wandeling | on screen: who makes it and where, as the brief says, beside two columns of objects | enters: once | hands over: plain scroll
+5. Approach  (quiet)  own hairline rows | on screen: draaien, drogen, glazuren, stoken, one sentence each, no numbers | enters: each row once | hands over: plain scroll
+6. Centerpiece (loud) image-to-fullbleed | on screen: one bowl on stone, from print to full screen, with "Op ware grootte." | enters: pinned 2.2 screens | hands over: the photo lets go and scrolls away whole
+7. Release   (quiet)  own scene | on screen: a photo of the drying rack and two sentences on ordering a series | enters: once | hands over: plain scroll
+8. Close     (quiet)  own scene | echoes the opening: an empty hairline frame the size of the arrival print round "Vraag een serie aan." and the mail link | footer: wordmark-finale
 ```
 
-Budgets: pins 1.5 + 2.5 = 4 screens; full-bleed reveals two (the wand and the end of the grid); clocks none, so no
-`timeZone` on the finale; five of eight scenes quiet. `approach:draad` was left out: it draws a line, and this
-site's motif is a frame.
+Budgets: pins 1.5 + 2.2 = 3.7 screens; full-bleed reveals two, built the same way (a print growing to the screen);
+clocks none, so no `timeZone` on the finale; five of eight scenes quiet. `approach:draad` was left out: it draws a
+line, and this site's motif is a frame.
 
 ## cut: Vaar, a knitwear label
 

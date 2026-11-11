@@ -57,10 +57,10 @@ step: append only, one entry per step with what you did and why.
 ```
 ## Build checklist
 - [ ] 1 Project: Next.js App Router + Tailwind v4
-- [ ] 2 Direction and approval: palette, pairing, pack and the block order in STRUQ.md; the one stop sent and answered
+- [ ] 2 Treatment and approval: the treatment and storyboard in STRUQ.md within the budgets; the one stop sent and answered
 - [ ] 3 Canon: struq_richting's token block and fonts written
 - [ ] 4 Images: only photos whose alt fits the client, placed with their alt and calm side
-- [ ] 5 Blocks: every block on the order taken with struq_blok and composed in app/page.tsx with real copy
+- [ ] 5 Scenes: frames and the centerpiece taken with struq_blok, every other scene built as the storyboard says, composed in app/page.tsx with real copy
 - [ ] 6 Build: the project's production build passes
 - [ ] 7 Look: 390 and 1440 screenshots and one full scroll, fixes made (or "Verify: not seen, no browser")
 - [ ] 8 Check: struq_controle's detectors find no FAIL
@@ -70,31 +70,45 @@ step: append only, one entry per step with what you did and why.
 create one (create-next-app with TypeScript, Tailwind and the App Router) or create it with their approval. Your own
 layout and stylesheet stay; merge the setup lines from `struq_blok` into them.
 
-**2 Direction and the one stop.** Call `struq_richting` with the brief in the user's words; never invent a palette or
+**2 Treatment and the one stop.** Call `struq_richting` with the brief in the user's words; never invent a palette or
 pairing while the canon has one that fits. Palette by the brief's mood, then its sector; a cool palette (blue, purple,
 teal) only for a brand that is that colour, declared as `Cool hue: declared because <brand colour>`. The brand's own
 colours and faces beat the canon: write them into the same token names. Pairing by temperament: Fraunces
 (serif-editorial) warm and premium, Newsreader literate, Sora calm and architectural, Urbanist soft and current, Bodoni
 Moda for fashion, Big Shoulders (condensed-poster) for a campaign at poster scale, Unbounded for a wide agency voice;
-ask again with `palette` or `type` to change one. Then choose the order (below) and write the top of STRUQ.md:
+ask again with `palette` or `type` to change one. Then pick the language, cast the brief into its arc (The film,
+below; swap at most one scene; a block the user names goes in first) and write the treatment at the top of STRUQ.md,
+every line filled:
 
 ```
 # STRUQ.md: <name>
 Brief: <one line: what, for whom, where>
-Idea: <the one idea the site is about>
+Idea: <one sentence the whole site is about>
+Language: <weight | cut | curtain>
+Motif: <line | frame | aperture | cut | word | field>: <what it is in this client's world and how it changes down the page>
+Lexicon: <three to five words or numbers from the client's own world; every label, counter and caption uses these, never film or studio jargon the client does not own>
 Palette: <id> (<mood>)
 Type: <pairing id>: <display> + <body>
 Images: pack <id> (or the client's photos, then pack <id>)
-Order: <block slug:variant>, <block slug:variant>, ...
+Centerpiece: <block>: <why this is this site's one moment>
+Tone arc: <ground per scene, for example paper, paper, paper, ink, paper, field>
+Storyboard:
+1. Arrival   (frame)  <preloader of the language> | lands on: <what>
+2. Opening   (loud)   <block:variant> | on screen: <...> | enters: <...> | hands over: <...>
+3. <scene>   (quiet)  <block:variant or "own scene"> | on screen: <...> | enters: <...> | hands over: <...>
+...
+N. Close     (quiet)  <block or own scene> | echoes the opening: <how> | footer: <block>
 Assumptions: <every drafted line and every fact left out>
 Verify: <filled in at step 7>
 ```
 
-Then **stop once**, in the user's language: the plan in five lines (idea, palette, type, pack, order) and
-"Akkoord? Heb je een logo, foto's of echte cijfers, stuur ze nu." (English: "Approve? If you have a logo, photos or
-real numbers, send them now."). The build request is not the approval. Log the reply word for word. Any yes builds
-the plan; what they send replaces the matching pick; a veto changes only what it names. Never ask a second time. When
-no pack shows the client's own product, add: "Ik heb geen foto's van je <product>: stuur ze, dan komen ze in de hero."
+Then **stop once**, in the user's language, and show the treatment, never a list of block slugs: idea, language,
+motif and centerpiece in plain words; the storyboard as numbered lines, one sentence each of what the visitor sees;
+palette, type and pack on one line; then "Akkoord? Heb je een logo, foto's of echte cijfers, stuur ze nu." (English:
+"Approve? If you have a logo, photos or real numbers, send them now."). The build request is not the approval. Log
+the reply word for word. Any yes builds the treatment; what they send replaces the matching pick; a veto changes only
+what it names. Never ask twice. When no pack shows the client's product, add: "Ik heb geen foto's van je <product>:
+stuur ze, dan komen ze in de hero."
 
 **3 Canon.** Write `struq_richting`'s token block after the `blocks.css` import in `app/globals.css`, in place of any
 earlier token block, and load every font URL it returns in the layout. Never drop a weight it asks for: each URL
@@ -106,55 +120,89 @@ width, height and calm side together in `lib/struq-images.ts`, in the shape the 
 `components/struq/kit/images.ts`). With no fitting pack, use no stock photos and let a background block carry the
 hero. Set the title, description and `lang` in the layout.
 
-**5 Blocks.** Take each block on the order with `struq_blok(slug, variant)`, install the packages it names, read its
-props and usage, and compose `app/page.tsx` with the brief's real copy. When several blocks each bring `blocks.css`,
-keep one file with the kit base once and every block's marked sections. Glue between blocks uses the kit (`Reveal`,
-`MediaFrame`, `SplitHeadline`, `MagneticButton`) and the craft rules, never a fresh motion system.
+**5 Scenes.** Take the language's frames and the centerpiece first with `struq_blok(slug, variant)`, then each scene
+as its storyboard line says; install the packages each names and read its props and usage. Fill every label, counter
+and caption from the lexicon; wrap the tone arc's ink or field scenes in `scene-inverse` or `scene-field`. When
+several blocks each bring `blocks.css`, keep one file with the kit base once and every block's marked sections. Own
+scenes and glue use the kit (`Reveal`, `MediaFrame`, `SplitHeadline`) and the craft rules.
 
 **6 to 8.** The production build passes (fix your code, never delete a block to get green). Look at the production
 build at 390 and 1440 and scroll it once: the preloader lands on the hero, every frame fills, each pin engages and
 releases without a jump, nothing overflows at 390, scrolling back reverses. Never claim you saw what you did not. Then
 run `struq_controle`'s detectors on your files until nothing fails.
 
-## The order of a studio site
+## The film
 
-Read top to bottom; each line is a slot with the blocks that fill it. Seven to nine slots, not all of them every time.
+One film, not a showreel: every frame from one language, one arc, one centerpiece, one motif seen at the arrival,
+the opening, the centerpiece and the close. A loud scene moves with the scroll (a pin, a scrub, a reveal to full
+bleed); a quiet scene is type and a photo that enter once and sit still.
 
-1. **Arrival, once:** a preloader on the first visit (`preloader-wordmark`, `-slices`, `-gate`, `-stack`) and the
-   page transition of the same language on every navigation (`page-transition-slices`, `-gate`, `-stack`; mount it in
-   the layout). Slices with slices, gate with gate, stack with stack: they share one handover.
-2. **Header:** `header-bar` (quiet, settle, split) or `menu-curtain` for a full-screen menu. Sections under it say
-   their ground with `data-bar-tone`.
-3. **Hero:** `hero-still` (one photo, calm side measured), `hero-framed` (the print on the wall), `hero-split` (a
-   seam), `hero-index` (the work list as the first screen), `hero-poster` (type as poster), `hero-opener` (full bleed
-   with the WebGL layer), or a background block (`background-aurora`, `-silk`, `-facets`) when the hero is type on a
-   live field.
-4. **Manifesto:** `manifesto`, `manifesto-scrub`, `velocity-type` or `reveals`: the one statement, given a screen.
-5. **About:** `about-studio` or `split-pair`.
-6. **Approach:** `approach`, `sticky-chapters`, `panel-accordion` or `fill-rows`. Never numbered steps.
-7. **Work:** `project-stack`, `hover-list`, `image-trail`, `film-strip`, `grid-assembly`, `fanned-cards`, or a scene
-   move (`image-to-fullbleed`, `panel-wipe`, `zoom-through`, `scrub-connector`, `pixel-resolve`) between two slots.
-8. **Closing call to action:** `cta-closing`, with `contact-form` when the site asks for input.
-9. **Footer:** `footer-reveal`, `footer-contact` or `wordmark-finale`.
+| Language | For | Feel | Frames: preloader, page transition, menu | Motif |
+|---|---|---|---|---|
+| weight | architecture, hotels, craft, interiors | photographic and slow; a print grows into place; long holds | `preloader-stack`, `page-transition-stack`, `menu-curtain:stack` | frame |
+| cut | fashion, agencies, portfolios, music | hard cuts, short masks, no fades, short holds | `preloader-slices`, `page-transition-slices`, `menu-curtain:slices` | cut or word |
+| curtain | campaigns, launches, events, culture | a light line, panels part, a long hold before the reveal | `preloader-wordmark:split`, `page-transition-gate`, `menu-curtain:gate` | line or aperture |
 
-**Picking.** One lead move per page, the hero or a work piece, and the rest quieter around it. Never two pinned
-pieces back to back: a plain slot breathes between them. One contrast scene, at most two: wrap a slot in
-`scene-inverse` or `scene-field`. Choose the variant by the brief and the photos, not by novelty: a variant is a
-different composition of the same idea, and every variant works light and dark. Name a block the user asks for first.
-A studio with real project photos leads with work (`hero-index`, `project-stack`); a studio without them leads with
-type and one photo (`hero-poster`, `hero-still`, `manifesto`).
+The idea may pick another motif of the six. `preloader-gate` is a fixed film leader (a dial counting 3, 2, 1): film
+clients only. The header is `header-bar:quiet` or `:settle`; sections say their ground with `data-bar-tone`.
+
+**weight.** Paper throughout, ink at the centerpiece.
+1. Arrival (frame): `preloader-stack`; the print lands on the hero photo.
+2. Opening (loud, a short hold): `hero-still:still` or `hero-framed`.
+3. Statement (quiet): one sentence set very large and still: `manifesto:quote`, or an own scene with `SplitHeadline`.
+4. About (quiet): `about-studio:wandeling` or an own scene (`:plaat` counts as a full-bleed reveal).
+5. Approach (quiet): `approach:draad` (it draws a line) or hairline rows of your own.
+6. Centerpiece (loud, ink): `grid-assembly`, `image-to-fullbleed`, `zoom-through`, or `project-stack` (real projects).
+7. Release (quiet): one plain scene, a photo and a short text, no pin, no scrub.
+8. Close (quiet): echoes the opening, type only after a full-bleed centerpiece. Footer: `wordmark-finale`.
+
+**cut.** Paper and ink in hard alternation, never a fade.
+1. Arrival (frame): `preloader-slices`, its caption from the lexicon.
+2. Opening (loud): `hero-poster`, `hero-index:lijst` or `:venster`, `hero-split:naad` or `:liggend`; poster type.
+3. Work (quiet): `hover-list` or `image-trail`; after `hero-index`, already a list, `reveals:clip`.
+4. Statement (quiet): `reveals:lines` or `manifesto:quote`.
+5. Centerpiece (loud, ink): `split-pair`, `panel-wipe`, `project-stack`, `fanned-cards`, `film-strip` (film clients).
+6. Release (quiet): `fill-rows` or hairline rows of your own.
+7. Close (quiet): `cta-closing:marquee` (the page's only marquee) or type only. Footer: `footer-contact`.
+
+**curtain.** Field or ink at the opening, paper between, ink at the centerpiece.
+1. Arrival (frame): `preloader-wordmark:split`; the name parts on its line onto the opening.
+2. Opening (loud): `hero-opener`, a background block with the line at poster scale, or `hero-still:horizon`.
+3. Statement (quiet): `reveals:lines` or `manifesto:quote`.
+4. Details (quiet): `sticky-chapters` or `panel-accordion`: the programme, places and dates the brief gave.
+5. Build (quiet): `about-studio:wandeling` or `:plaat`, or an own scene.
+6. Centerpiece (loud, ink): `zoom-through`, `scrub-connector`, `manifesto-scrub` or `panel-wipe`.
+7. Release (quiet): one plain scene, a photo and a short text.
+8. Close (quiet): `cta-closing:pointer`, the line returning. Footer `footer-reveal`, the curtain closing.
+
+**Budgets.** Hard rules: a storyboard that breaks one is rewritten before the stop.
+- Exactly one centerpiece; nothing pins after it. The opening holds at most 1.5 screens, all pins together about 4.5.
+  Screens pinned: `hero-opener` 1, `hero-framed` and `hero-poster` 1.5, `manifesto-scrub` 2, `image-to-fullbleed`
+  2.2, `grid-assembly` 2.5, `panel-wipe` 1.7 (2.6 when it closes), `film-strip` up to 3, `fanned-cards`, `split-pair`,
+  `zoom-through` and `scrub-connector` 3, `project-stack` 1.1 per project after the first. Pinned in one variant, so
+  never quiet: `hero-still:frame`, `hero-split:opening`, `hero-index:doorlopen`, `about-studio:doorkijk`,
+  `approach:zin`, `manifesto:writes` and `:split`.
+- Never two loud scenes side by side. At least four in ten scenes are quiet.
+- Every frame from the site's language. A page transition only when the site has more than one route.
+- One motif on the page. At most two full-bleed photo reveals, built the same way: `hero-framed:wand` and `:portret`,
+  `hero-poster`, `hero-still:frame`, `image-to-fullbleed`, `zoom-through`, `grid-assembly`, `about-studio:plaat` and
+  `cta-closing:photo` each count one.
+- At most one live clock, one marquee and one custom cursor. Clocks: `hero-still` (its caption), `footer-contact`,
+  `header-bar:split`, `menu-curtain`, `wordmark-finale` given a `timeZone`. Marquees: `cta-closing:marquee`,
+  `velocity-type`. An accent face, if loaded, sets one word of the h1 and returns in the close.
+- Two or three type moments at poster scale (12 to 20vw) on the page; everything else from the scale.
+- Labels: no eyebrows above headings, no mono, no uppercase labels, no numbered steps. A small sentence-case label in
+  the body face may sit beside a headline in the margin column or under a photo, in words from the lexicon.
 
 ## What makes it feel high end
 
 The blocks hold this already; your glue must too. Detail in [references/craft.md](references/craft.md).
 
-- Reveals clip from numbers (inset values tweened as numbers), never scale a box; positions in whole pixels.
-- Photos are decoded before they show, cut or swap.
+- Reveals clip from numbers, never scale a box; whole pixels; photos decoded before they show, cut or swap.
 - Scroll effects are scroll-tied and reverse when the visitor scrolls back; key frames hold.
 - The gate: `sq-js` on `<html>` before paint hides only what will animate, and shows it anyway after 3 s.
 - Type on a photo sits on the measured calm side over the lightest flat veil that reaches 3:1.
-- Display faces run light (300, or the poster pairing's own weight); fitted lines are measured with the real face
-  after `document.fonts.ready`.
+- Display runs light (300, or the poster pairing's weight); fitted lines measured after `document.fonts.ready`.
 - Tokens only, mixes in oklab, a surface step and a hairline instead of a shadow, one accent.
 - Icons: Struq Icons (`@struq/icons`), functional only ([references/iconography.md](references/iconography.md)).
 
