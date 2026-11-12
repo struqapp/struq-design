@@ -1,6 +1,6 @@
 {
   "name": "struq",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Award-tier studio sites for coding agents, built through the Struq MCP from Struq's admitted blocks: preloaders, page transitions, headers, heroes, WebGL backgrounds, showpieces, sections and footers, on Struq's palettes and type pairings, with a check against the AI tells.",
   "author": {
     "name": "Struq",
