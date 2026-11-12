@@ -274,7 +274,7 @@ test('media captions may be small caps; section eyebrows may not', () => {
 
 test('a photo left by an earlier pack fails under this pack\'s caption', () => {
   const photo = 'x'.repeat(9000);
-  const pack = (bytes) => JSON.stringify({ pack: 'datum', images: [{ file: 'public/images/band-2.webp', slot: 'band', source: 'https://struq.nl/media/packs/datum/b.webp', bytes }] });
+  const pack = (bytes) => JSON.stringify({ pack: 'datum', images: [{ file: 'public/images/band-2.webp', slot: 'band', source: 'https://struq.app/media/packs/datum/b.webp', bytes }] });
   const stale = { 'public/images/band-2.webp': photo, 'public/images/struq-pack.json': pack(12345) };
   assert.ok(fails(run(fixture({ extra: stale })), 'not the ones their alt and caption describe'));
   const fresh = { 'public/images/band-2.webp': photo, 'public/images/struq-pack.json': pack(photo.length) };

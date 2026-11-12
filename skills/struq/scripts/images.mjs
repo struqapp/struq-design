@@ -11,11 +11,12 @@
 // given, and photos whose alt names a subject the client does not do are left out, best fit first.
 //
 // What it does, in order:
-// 1. Reads the pack from https://struq.nl/api/media/packs/<slug> (public, no key, CC0 images).
+// 1. Reads the pack from https://struq.app/api/media/packs/<slug> (public, no key, CC0 images),
+//    or from https://struq.nl when struq.app does not answer.
 // 2. Downloads all 24 images to public/images/<slot>-<n>.webp and checks each one is a real image.
 // 3. Writes lib/struq-images.ts (src/lib/ when the project uses src/): every image with its alt,
 //    size and description, grouped by slot, plus the credit line. Components import from it.
-// 4. If struq.nl cannot be reached, or a file fails its check, it writes a graded fallback plate
+// 4. If Struq cannot be reached, or a file fails its check, it writes a graded fallback plate
 //    in the site palette for that slot instead, so no frame is ever empty, and says so.
 //
 // Node 18 or later, no dependencies. Safe to run again: a file is kept only when the last run
@@ -26,12 +27,21 @@ import { join, resolve } from "node:path";
 import { appendLog } from "./log.mjs";
 import { fitImages, packForBrief, packReason } from "./packs.mjs";
 
-// STRUQ_API_BASE points a test run at another Struq environment (for example https://staging.struq.nl).
-// Real users never set it: the default is production.
-const BASE = (process.env.STRUQ_API_BASE || "https://struq.nl").replace(/\/+$/, "");
-const API = `${BASE}/api/media/packs`;
-/** The download URL, on the same base as the API (directPath), falling back to the absolute publicUrl. */
-const imageUrl = (img) => (img.directPath ? `${BASE}${img.directPath}` : img.publicUrl);
+// Struq lives at struq.app. The old domain struq.nl keeps answering the pack API and the media for
+// installed skills, so a run tries struq.app first and falls back to struq.nl when struq.app gives a
+// network error, a non-2xx answer or something that is not the pack.
+// STRUQ_API_BASE points a test run at another Struq environment (for example https://staging.struq.app),
+// with no fallback. Real users never set it: the default is production.
+const DEFAULT_BASES = ["https://struq.app", "https://struq.nl"];
+const BASES = process.env.STRUQ_API_BASE ? [process.env.STRUQ_API_BASE.replace(/\/+$/, "")] : DEFAULT_BASES;
+const PACKS = "/api/media/packs";
+const HOSTS = BASES.map((b) => b.replace(/^https?:\/\//, "")).join(" and ");
+/** The base that last answered the pack API; image downloads try it first. */
+let activeBase = BASES[0];
+/** The bases in the order to try: the one that answered first, then the rest. */
+const basesInOrder = () => [activeBase, ...BASES.filter((b) => b !== activeBase)];
+/** Download URLs on the same bases as the API (directPath), or the absolute publicUrl. */
+const imageUrls = (img) => (img.directPath ? basesInOrder().map((b) => `${b}${img.directPath}`) : [img.publicUrl]);
 const SLOTS = ["hero", "band", "card", "column", "detail", "backdrop"];
 const FALLBACK_COUNTS = { hero: 3, band: 2, card: 8, column: 4, detail: 4, backdrop: 3 };
 const FALLBACK_SIZE = {
@@ -53,10 +63,22 @@ const brief = flag("--brief");
 const slug = args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--dir" && args[i - 1] !== "--brief") ?? (brief ? packForBrief(brief) : undefined);
 const why = brief && !args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--dir" && args[i - 1] !== "--brief") ? packReason(brief) : "named on the command line";
 
-async function getJson(url) {
-  const res = await fetch(url, { signal: AbortSignal.timeout(20000), headers: { accept: "application/json" } });
-  if (!res.ok) throw new Error(`${url} answered ${res.status}`);
-  return res.json();
+/** GET a path of the pack API from each base in turn; the first JSON answer wins and sets activeBase. */
+async function getJson(path) {
+  const errors = [];
+  for (const base of basesInOrder()) {
+    const url = `${base}${path}`;
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(20000), headers: { accept: "application/json" } });
+      if (!res.ok) throw new Error(`${url} answered ${res.status}`);
+      const json = await res.json();
+      activeBase = base;
+      return json;
+    } catch (error) {
+      errors.push(error.message.startsWith(url) ? error.message : `${url}: ${error.message}`);
+    }
+  }
+  throw new Error(errors.join("; "));
 }
 
 function isImage(buf) {
@@ -77,20 +99,23 @@ function fileIsImage(path) {
   }
 }
 
-async function download(url, path) {
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(30000) });
-      if (!res.ok) continue;
-      const buf = Buffer.from(await res.arrayBuffer());
-      if (!isImage(buf)) continue;
-      writeFileSync(path, buf);
-      return true;
-    } catch {
-      // retry once, then fall back
+/** Tries each URL twice in turn; returns the URL that gave a real image, or null. */
+async function download(urls, path) {
+  for (const url of urls) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const res = await fetch(url, { signal: AbortSignal.timeout(30000) });
+        if (!res.ok) continue;
+        const buf = Buffer.from(await res.arrayBuffer());
+        if (!isImage(buf)) continue;
+        writeFileSync(path, buf);
+        return url;
+      } catch {
+        // retry once, then the next base, then fall back
+      }
     }
   }
-  return false;
+  return null;
 }
 
 function readPalette() {
@@ -161,7 +186,7 @@ function writeModule(entries, packSlug, fallback, imageFit = "full") {
     return `  ${s}: [\n${rows}\n  ],`;
   }).join("\n");
   const source = `// Written by the Struq skill (scripts/images.mjs). Do not hand-edit the list: run the script again
-// to change pack. Pack: ${packSlug}${fallback ? " (FALLBACK PLATES: struq.nl was unreachable, run the script again when online)" : ""}.
+// to change pack. Pack: ${packSlug}${fallback ? " (FALLBACK PLATES: Struq was unreachable, run the script again when online)" : ""}.
 // Beeldbank images are CC0. Translate the alt texts when the site is not in Dutch.
 
 export type StruqImage = {
@@ -192,7 +217,7 @@ export const imagePack = ${JSON.stringify(packSlug)};
 export const imageFit: "full" | "partial" | "none" = ${JSON.stringify(imageFit)};
 
 /** The credit line for the footer: one quiet text-small link, never a badge. */
-export const imageCredit = { label: "Beeld: Struq", href: "https://struq.nl/beeldbank" };
+export const imageCredit = { label: "Beeld: Struq", href: "https://struq.app/photos" };
 
 export const images: Record<ImageSlot, StruqImage[]> = {
 ${body}
@@ -226,7 +251,7 @@ function removeStale(outDir, manifest) {
 }
 
 async function list() {
-  const index = await getJson(API);
+  const index = await getJson(PACKS);
   console.log(`${index.packCount} packs, ${index.totalImages} images, ${index.license}\n`);
   for (const p of index.packs) console.log(`${p.slug.padEnd(10)} ${p.description}`);
 }
@@ -250,11 +275,11 @@ async function main() {
   let droppedImages = [];
   let imageFit = "full";
   try {
-    pack = await getJson(`${API}/${encodeURIComponent(slug)}`);
+    pack = await getJson(`${PACKS}/${encodeURIComponent(slug)}`);
     if (!Array.isArray(pack?.images) || pack.images.length === 0) throw new Error("pack has no images");
   } catch (error) {
     try {
-      const index = await getJson(API);
+      const index = await getJson(PACKS);
       const known = index.packs.map((p) => p.slug);
       if (!known.includes(slug)) {
         console.error(`Unknown pack "${slug}". Packs: ${known.join(", ")}`);
@@ -263,7 +288,7 @@ async function main() {
     } catch {
       // the API itself is down: fall through to the plates
     }
-    console.warn(`WARN struq.nl unreachable (${error.message}). Writing graded fallback plates instead.`);
+    console.warn(`WARN ${HOSTS} unreachable (${error.message}). Writing graded fallback plates instead.`);
     pack = null;
   }
 
@@ -293,10 +318,12 @@ async function main() {
       while (cursor < jobs.length) {
         const job = jobs[cursor++];
         const target = join(outDir, `${job.name}.webp`);
-        const source = imageUrl(job.img);
-        const kept = previous.get(`public/images/${job.name}.webp`) === source && fileIsImage(target);
-        const ok = kept || (await download(source, target));
-        if (ok) {
+        const urls = imageUrls(job.img);
+        const last = previous.get(`public/images/${job.name}.webp`);
+        // The same photo from either base counts as the same source.
+        const kept = urls.includes(last) && fileIsImage(target);
+        const source = kept ? last : await download(urls, target);
+        if (source) {
           real++;
           entries.push({
             slot: job.img.slot,
@@ -345,7 +372,7 @@ async function main() {
           width: size[0],
           height: size[1],
           ratio: `${size[0]}:${size[1]}`,
-          description: "Fallback plate in the site palette (struq.nl was unreachable).",
+          description: "Fallback plate in the site palette (Struq was unreachable).",
           unoptimized: true,
         });
         manifest.push({ file: `public/images/${slot}-${n}.svg`, id: null, slot, source: "fallback" });
@@ -372,13 +399,13 @@ async function main() {
     console.log(`${`images.${e.slot}[${e.order - 1}]`.padEnd(18)} ${e.ratio.padEnd(5)} ${e.description.slice(0, 110)}`);
   }
   if (plates > 0) {
-    console.log(`\nWARN ${plates} slot(s) use fallback plates. Run this script again when struq.nl answers.`);
+    console.log(`\nWARN ${plates} slot(s) use fallback plates. Run this script again when Struq answers.`);
   }
   appendLog(root, "Step 4 Images", [
     `images.mjs: pack ${slug} (${why}), ${real} images downloaded and verified, ${plates} fallback plates.`,
     ...(droppedImages.length ? [`Left out ${droppedImages.length} photos that do not fit this client: ${[...new Set(droppedImages.map((d) => d.reason))].join("; ")}.`] : []),
     ...(imageFit !== "full" ? [`Image fit: ${imageFit}${imageFit === "none" ? ", the opener is typographic or WebGL, and the approval stop asks for photos" : ""}.`] : []),
-    `Files in public/images, list in ${module.replace(root, ".")}${BASE !== "https://struq.nl" ? `, from ${BASE}` : ""}.`,
+    `Files in public/images, list in ${module.replace(root, ".")}${activeBase !== DEFAULT_BASES[0] ? `, from ${activeBase}` : ""}.`,
   ]);
   console.log(imageFit === "none" ? "\nOK no fitting photos: build the opener without them" : real > 0 ? "\nOK images ready" : "\nOK fallback plates ready (no frame is empty)");
 }
