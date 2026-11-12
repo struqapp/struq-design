@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.5.0 (2026-11-12)
+
+The film grammar. The skill plans a site as one film before it installs a block: one motion language, one idea, one
+motif, a storyboard of scenes, and the handovers between them. Blocks and canon come from Struq main 95e54a2.
+
+### Plan
+- `STRUQ.md` carries a treatment: the motion language (weight, cut or curtain), the idea as a point of view, the
+  client's trade words as its lexicon, the motif and the storyboard. `references/film.md` holds one worked treatment
+  per language, with no block picks to copy.
+- `blocks.mjs arc <language>` prints the storyboard skeleton for a language; `blocks.mjs list` prints each block's
+  film role, energy and pins.
+
+### Gate
+- `canon.mjs` and `blocks.mjs add` wait until the plan passes and your reply is logged. They refuse a frame from
+  another language, a block the storyboard does not name, and a page transition on a one-route site.
+
+### Blocks
+- The film fields on every admitted block (role, home, motif, energy, pins, `clockProp`). Every clock is off until a
+  prop turns it on; the gate preloader and page transition default to a hairline ring, and the gate family hands the
+  curtain to the hero behind it.
+- Composed quiet scenes in the kit (`Statement`, `PhotoText`, `Rows`, `Close`), each marked with `data-scene`; `add`
+  points quiet slots at them.
+- Line and character masks keep descenders: 0.3em above and 0.35em below.
+
+### Check
+- The film check runs on the plan (`check.mjs --plan`) and on the built page: live clocks, pinned screens, loud scenes
+  side by side, full-bleed reveals and foreign metaphors.
+- A heading of your own that clips its descenders fails.
+
+### Images
+- Sector words match their compounds, everyday words no longer pick a sector pack, and a sector pack keeps its photos.
+
+### Plugin
+- The plugin's SKILL.md and catalogue follow the treatment and the film section.
+
 ## 0.4.3 (2026-11-12)
 
 The skill itself is unchanged; this release carries the new README to npm.

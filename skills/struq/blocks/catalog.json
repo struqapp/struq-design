@@ -1,8 +1,8 @@
 {
   "source": {
     "repo": "Struq blocks/",
-    "ref": "staging",
-    "commit": "7ebc149"
+    "ref": "origin/main",
+    "commit": "95e54a2"
   },
   "blocks": [
     {
