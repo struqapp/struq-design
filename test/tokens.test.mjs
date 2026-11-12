@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fontHrefs, paletteTokens } from '../skills/struq/scripts/tokens.mjs';
+import { approvedProject } from './treatment.mjs';
 
 const read = (rel) => readFileSync(new URL(rel, import.meta.url), 'utf8');
 const CANON = JSON.parse(read('../skills/struq/canon/canon.json'));
@@ -48,6 +49,7 @@ test('every pairing face has a provider and asks Google only for weights it ship
 test('canon.mjs palette and type rewrite the one block and write the font links', () => {
   const dir = mkdtempSync(join(tmpdir(), 'struq-canon-'));
   mkdirSync(join(dir, 'app'));
+  approvedProject(dir); // palette and type wait for a passing plan and the logged reply
   writeFileSync(join(dir, 'app', 'globals.css'), read('../skills/struq/recipes/app/globals.css'));
   const run = (...a) => spawnSync(process.execPath, [CANON_CLI, ...a, '--dir', dir], { encoding: 'utf8' });
   assert.match(run('palette', 'frontier-olea-flour-terracotta').stdout, /OK palette written/);

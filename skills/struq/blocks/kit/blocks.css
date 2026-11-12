@@ -27,7 +27,7 @@
 }
 
 @theme {
-  /* Type roles: text-display, text-h2, text-h3, text-lead, text-body, text-small. */
+  /* Type roles: text-display, text-h2, text-h3, text-lead, text-body, text-small; the sheet's below. */
   --text-display: clamp(2.875rem, 1.2rem + 6.86vw, 8rem);
   --text-display--line-height: 0.95;
   --text-display--letter-spacing: -0.025em;
@@ -42,6 +42,18 @@
   --text-body--line-height: 1.65;
   --text-small: 0.875rem;
   --text-small--line-height: 1.5;
+  /* The sheet (the film grammar's type and grid), prefixed so it never meets struq.nl's own --step-*, --space-* or
+     --gutter. text-sheet-moment: poster-scale type, two or three per page, about 20vw on a phone easing to 12.5vw
+     at 1920 (3.5rem floor, 15rem cap). text-sheet-label: the small label in the margin column or under a photo,
+     body face, sentence case. px-sheet-margin (and mx-, pl-, ...): the page margin, the header wordmark's and the
+     heroes' left edge. gap-x-sheet-gutter: the gutter of the 12 column grid. */
+  --text-sheet-moment: clamp(3.5rem, 1.7rem + 12vw, 15rem);
+  --text-sheet-moment--line-height: 0.9;
+  --text-sheet-moment--letter-spacing: -0.03em;
+  --text-sheet-label: clamp(0.8125rem, 0.78rem + 0.12vw, 0.9375rem);
+  --text-sheet-label--line-height: 1.45;
+  --spacing-sheet-margin: clamp(1.5rem, 4vw, 5rem);
+  --spacing-sheet-gutter: clamp(1rem, 0.6rem + 1.6vw, 2.5rem);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
 }
@@ -167,10 +179,48 @@
 @keyframes struq-fade { to { opacity: 1; } }
 @keyframes struq-open { to { clip-path: inset(0 0 0 0); } }
 
-/* SplitText masks: room for descenders inside each line's clip. */
-[data-blocks] .struq-line-mask {
-  padding-block: 0.06em 0.16em;
-  margin-block: -0.06em -0.16em;
+/* The one line mask (SplitText's `mask: "lines"` with linesClass "struq-line", `mask: "chars"` with charsClass
+   "struq-char", and every hand-rolled mask: a .struq-line-mask whose direct child is the part that rises).
+   Room: the clip reaches 0.3em above the line box and 0.35em below it. Measured on every face Struq ships (Fraunces,
+   Newsreader, Bodoni Moda, Sora, Urbanist, Big Shoulders, Unbounded, Syne, Schibsted Grotesk, Instrument Serif, all
+   weights and italics, hhea and win metrics) at leading 0.82, the tightest in the canon: the tallest accent stands
+   0.30em above the line (Syne A-ring), the deepest descender 0.34em below it (Unbounded C-cedilla). Leading above
+   0.82 needs less. The negative margin gives the room back, so the layout is the line box alone.
+   The rising child carries the same room, so its own box is as tall as the clip: a start of yPercent 100 or more
+   puts every ascent and accent below the clip edge, whatever the face and leading.
+   The clip is padding, not overflow-clip-margin, which WebKit has not shipped: padding moves the clip edge in every
+   engine. Masks and their children paint no background, so the overlap with the next line's room hides nothing; the
+   next line's clip only clips the next line. Only the vertical axis clips (overflow: clip lets the other axis stay
+   visible, where hidden would not), so an italic j or f overhanging the line's start or end keeps its ink; engines
+   without overflow: clip (Safari before 16) clip both axes, as before. !important because SplitText writes
+   overflow: clip on every mask inline. The room is registered as a length, so it resolves in the mask's own em and
+   the child inherits it in pixels, whatever the child's own size. */
+@property --struq-mask-top {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --struq-mask-bottom {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+[data-blocks] :is(.struq-line-mask, .struq-char-mask) {
+  --struq-mask-top: 0.3em;
+  --struq-mask-bottom: 0.35em;
+  padding-block: var(--struq-mask-top) var(--struq-mask-bottom);
+  margin-block: calc(var(--struq-mask-top) * -1) calc(var(--struq-mask-bottom) * -1);
+  overflow: hidden !important;
+}
+@supports (overflow: clip) {
+  [data-blocks] :is(.struq-line-mask, .struq-char-mask) {
+    overflow-x: visible !important;
+    overflow-y: clip !important;
+  }
+}
+[data-blocks] :is(.struq-line-mask, .struq-char-mask) > * {
+  padding-block: var(--struq-mask-top) var(--struq-mask-bottom);
+  margin-block: calc(var(--struq-mask-top) * -1) calc(var(--struq-mask-bottom) * -1);
 }
 
 /* --- preloader-gate and page-transition-gate --- */
@@ -466,8 +516,8 @@
 [data-blocks] [data-hero-still] [data-hs-slot] {
   position: absolute;
   top: 4svh;
-  left: 1.5rem;
-  right: 1.5rem;
+  left: var(--spacing-sheet-margin);
+  right: var(--spacing-sheet-margin);
   bottom: 42%;
   overflow: hidden;
 }
@@ -479,7 +529,7 @@
   [data-blocks] [data-hero-still] [data-hs-slot] {
     top: 7svh;
     left: 42vw;
-    right: 4vw;
+    right: var(--spacing-sheet-margin);
     bottom: 3svh;
   }
   [data-blocks] [data-hero-still] [data-hs-photo] {
@@ -667,8 +717,8 @@
   opacity: 1;
 }
 [data-blocks] [data-bg-facets] [data-copy] {
-  left: 24px;
-  right: 24px;
+  left: var(--spacing-sheet-margin);
+  right: var(--spacing-sheet-margin);
   bottom: 9svh;
 }
 [data-blocks] [data-bg-facets] h1 {
@@ -676,7 +726,7 @@
 }
 @media (min-width: 768px) {
   [data-blocks] [data-bg-facets] [data-copy] {
-    left: 6vw;
+    left: var(--spacing-sheet-margin);
     right: auto;
     width: min(46vw, 44rem);
   }
@@ -1151,13 +1201,15 @@
 [data-blocks] [data-footer-contact] [data-fc-part] {
   display: inline-block;
   white-space: nowrap;
-  clip-path: inset(0 -0.3em);
 }
+/* Each character is a shared mask (.struq-char-mask): top-aligned, because a clipping inline-block sits on its bottom
+   edge instead of its text's baseline. The roll carries the mask's room in either nesting, so its copy waits one
+   room lower than its own box and lands exactly where the character stood. */
 [data-blocks] [data-footer-contact] [data-fc-ch] {
   display: inline-block;
   position: relative;
+  vertical-align: top;
   white-space: pre;
-  clip-path: inset(0 -0.2em);
 }
 [data-blocks] [data-footer-contact] [data-fc-enter] {
   display: block;
@@ -1165,6 +1217,8 @@
 [data-blocks] [data-footer-contact] [data-fc-roll] {
   display: block;
   position: relative;
+  padding-block: var(--struq-mask-top) var(--struq-mask-bottom);
+  margin-block: calc(var(--struq-mask-top) * -1) calc(var(--struq-mask-bottom) * -1);
   transition: transform 0.75s var(--ease-out-expo) var(--d, 0s);
 }
 [data-blocks] [data-footer-contact] [data-fc-roll] > span {
@@ -1173,7 +1227,7 @@
 [data-blocks] [data-footer-contact] [data-fc-roll] > [data-fc-copy] {
   position: absolute;
   left: 0;
-  top: 100%;
+  top: calc(100% + var(--struq-mask-top));
 }
 [data-blocks] [data-footer-contact] [data-fc-roll-host]:is(:hover, :focus-visible) [data-fc-roll] {
   transform: translateY(-100%);
@@ -1394,13 +1448,9 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
    55svh over its line, at the top the script will use;
    the links wait for the landing. The script takes over with the measured face and eases out the difference. If the
    script never runs the plain bar returns after 3s. The wordmark rises out of its mask from 0s, script or not. */
+/* --hb-gx: the bar's side padding, the sheet's page margin, so the estimate spans what the script measures. */
 [data-blocks] [data-header-bar] {
-  --hb-gx: 1.5rem;
-}
-@media (min-width: 768px) {
-  [data-blocks] [data-header-bar] {
-    --hb-gx: 3vw;
-  }
+  --hb-gx: var(--spacing-sheet-margin);
 }
 @media (prefers-reduced-motion: no-preference) {
   .sq-js [data-blocks] [data-header-bar="settle"]:not([data-ready]) [data-hb-word] {
@@ -1424,7 +1474,7 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
 }
 @keyframes hb-rise {
   from {
-    translate: 0 calc(100% + 0.22em);
+    translate: 0 100%;
   }
 }
 /* Keyboard focus: drawn on the copies in their own ink (the real links' text is transparent once they show). */
@@ -1452,29 +1502,22 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
   opacity: 0.2;
 }
 /* The wordmark rolls whole (its letters keep their kerning, even set large): the name slides up out of its mask and its
-   copy rises in from below. The mask has room for descenders; the copy waits a little lower than the line. */
-[data-blocks] [data-header-bar] [data-hb-wmask] {
-  overflow: hidden;
-  padding-block: 0.08em 0.14em;
-  margin-block: -0.08em -0.14em;
-}
+   copy rises in from below. The mask is the shared line mask (.struq-line-mask): the roll carries its room, so the copy
+   waits one room below the roll's box and a roll of -100% lands it where the name stood. */
 [data-blocks] [data-header-bar] [data-hb-wroll] > span:last-child {
-  top: calc(100% + 0.22em);
+  top: calc(100% + var(--struq-mask-top));
 }
 [data-blocks] [data-header-bar] [data-hb-wroll] {
   transition: transform 0.6s var(--ease-out-expo);
 }
 [data-blocks] [data-header-bar] [data-hb-word][data-hot] [data-hb-wroll] {
-  transform: translateY(calc(-100% - 0.22em));
+  transform: translateY(-100%);
 }
-/* quiet: each letter in its own mask, rolling after the one before it. */
+/* quiet: each letter in its own mask (.struq-char-mask), rolling after the one before it, by the same sums. */
 [data-blocks] [data-header-bar] [data-hb-ch] {
   position: relative;
   display: inline-block;
-  overflow: hidden;
   white-space: pre;
-  padding-block: 0.15em;
-  margin-block: -0.15em;
 }
 [data-blocks] [data-header-bar] [data-hb-ch] > span {
   display: block;
@@ -1483,10 +1526,10 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
 [data-blocks] [data-header-bar] [data-hb-ch] > span:last-child {
   position: absolute;
   left: 0;
-  top: calc(100% + 0.15em);
+  top: calc(100% + var(--struq-mask-top));
 }
 [data-blocks] [data-header-bar] [data-hb-link][data-hot] [data-hb-ch] > span {
-  transform: translateY(calc(-100% - 0.3em));
+  transform: translateY(-100%);
 }
 /* The action: a text link with a faint rule under it at rest; quiet's rule comes up to the full ink on hover. */
 [data-blocks] [data-header-bar] [data-hb-action]::before {

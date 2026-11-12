@@ -220,8 +220,9 @@ function runWrites(el: HTMLElement, reduce: boolean) {
       const to = (write * acc) / total;
       const p = within(P, from, to);
       const r = p * l.w;
-      // The clip reaches a quarter line past every edge it is not drawing, so ascents, descents and overhangs show.
-      const pad = Math.round(l.h * 0.25);
+      // The clip reaches a whole line past every edge it is not drawing, so ascents, accents, descents and an italic's
+      // overhang show at any leading (they need up to 0.35em; a line is at least 0.82em).
+      const pad = Math.round(l.h);
       const right = p <= 0 ? l.box + pad : p >= 1 ? -pad : l.box - l.left - r;
       lines[i].style.clipPath = `inset(${-pad}px ${right.toFixed(1)}px ${-pad}px ${-pad}px)`;
       if (P >= from) {

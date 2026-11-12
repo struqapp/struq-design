@@ -52,7 +52,35 @@ export default function Page() {
 `;
 
 const SMOOTH = 'import Lenis from "lenis";\nconst l = new Lenis({ autoRaf: false });\ngsap.ticker.add(() => l.raf(0));\nconst q = "(prefers-reduced-motion: reduce)";\n';
-const PLAN = '# STRUQ.md: fixture\nPalette: midnight-brass\nType: serif-editorial\nImages: pack proof\nOrder: header-bar, hero-still, footer-reveal\n\n## Build checklist\n- [x] 1 Project\n- [x] 2 Direction and approval\n';
+const SCENES = [
+  'Arrival (frame) preloader-stack | lands on: the hero photo',
+  'Opening (loud) hero-still:still | on screen: the dining room at dusk',
+  'Statement (quiet) own scene | on screen: one sentence at 14vw',
+  'About (quiet) about-studio:wandeling | on screen: who cooks here',
+  'Approach (quiet) own hairline rows | on screen: the four seasons',
+  'Centerpiece (loud) image-to-fullbleed | on screen: the room opening',
+  'Release (quiet) own scene | on screen: a photo and two sentences',
+  'Close (quiet) own scene | echoes the opening | footer: footer-reveal',
+];
+const board = (n) => SCENES.slice(0, n).map((s, i) => `${i + 1}. ${s}`).join('\n');
+const PLAN = `# STRUQ.md: fixture
+Idea: Een zaal aan het water, waar het seizoen het menu schrijft.
+Language: weight
+Motif: frame: the window onto the harbour
+Lexicon: getij, seizoen, kade
+Palette: midnight-brass
+Type: serif-editorial
+Images: pack proof
+Centerpiece: image-to-fullbleed: the room opens onto the water
+Tone arc: paper, paper, paper, paper, paper, ink, paper, paper
+Storyboard:
+${board(8)}
+Assumptions: none
+
+## Build checklist
+- [x] 1 Project
+- [x] 2 Treatment and approval
+`;
 
 function fixture({ log = LOG_OK, page = PAGE_OK, extra = {} } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'struq-check-'));
@@ -74,6 +102,30 @@ function fixture({ log = LOG_OK, page = PAGE_OK, extra = {} } = {}) {
 
 const run = (dir) => spawnSync(process.execPath, [CHECK, '--dir', dir, '--no-log'], { encoding: 'utf8' }).stdout;
 const fails = (out, text) => out.split('\n').some((l) => l.includes('FAIL') && l.includes(text));
+const warns = (out, text) => out.split('\n').some((l) => l.includes('WARN') && l.includes(text));
+
+test('STRUQ.md carries the treatment: idea, language, motif, lexicon, centerpiece and a storyboard of seven to nine scenes', () => {
+  const ok = run(fixture());
+  assert.ok(!fails(ok, 'treatment in STRUQ.md lacks'));
+  assert.ok(!fails(ok, 'numbered scene'));
+  assert.ok(!fails(ok, 'does not record'));
+  assert.ok(fails(run(fixture({ extra: { 'STRUQ.md': PLAN.replace(/^Lexicon:.*\n/m, '') } })), 'lacks: Lexicon:'));
+  assert.ok(fails(run(fixture({ extra: { 'STRUQ.md': PLAN.replace(/^Centerpiece:.*\n/m, '') } })), 'lacks: Centerpiece:'));
+  assert.ok(fails(run(fixture({ extra: { 'STRUQ.md': PLAN.replace('Language: weight', 'Language: cinematic') } })), 'lacks: Language:'));
+  assert.ok(!fails(run(fixture({ extra: { 'STRUQ.md': PLAN.replace('Language: weight', 'Language: Curtain') } })), 'treatment in STRUQ.md lacks'));
+  assert.ok(fails(run(fixture({ extra: { 'STRUQ.md': PLAN.replace(board(8), board(5)) } })), 'has 5 numbered scene'));
+  assert.ok(!fails(run(fixture({ extra: { 'STRUQ.md': PLAN.replace(board(8), board(7)) } })), 'numbered scene'));
+  const crlf = PLAN.replace(/\n/g, '\r\n');
+  assert.ok(!fails(run(fixture({ extra: { 'STRUQ.md': crlf } })), 'numbered scene'));
+});
+
+test('a plan from before the treatment keeps its Order: line but fails the treatment', () => {
+  const old = '# STRUQ.md: fixture\nPalette: midnight-brass\nType: serif-editorial\nImages: pack proof\nOrder: header-bar, hero-still, footer-reveal\n\n## Build checklist\n- [x] 1 Project\n';
+  const out = run(fixture({ extra: { 'STRUQ.md': old } }));
+  assert.ok(!fails(out, 'does not record'));
+  assert.ok(fails(out, 'lacks: Idea:, Motif:, Lexicon:, Centerpiece:, Language:, Storyboard:'));
+  assert.ok(fails(run(fixture({ extra: { 'STRUQ.md': old.replace(/^Order:.*\n/m, '') } })), 'does not record: Storyboard:'));
+});
 
 test('the approval stop must be logged with the user\'s own reply', () => {
   assert.ok(!fails(run(fixture()), 'Step 2 Approval'));
@@ -138,10 +190,12 @@ test('glow fails; the shipped blocks are not scanned for tells', () => {
   assert.ok(!fails(run(fixture({ extra: { 'components/struq/headers/header-bar.tsx': shipped } })), 'Eyebrows'));
 });
 
-test('every site has one contrast scene, at most two', () => {
+test('a page without a contrast scene warns, more than two still fail', () => {
   assert.ok(!fails(run(fixture()), 'contrast scene'));
   const none = PAGE_OK.replace(' className="scene-inverse"', '');
-  assert.ok(fails(run(fixture({ page: none })), 'contrast scene'));
+  const out = run(fixture({ page: none }));
+  assert.ok(!fails(out, 'contrast scene'));
+  assert.ok(warns(out, 'No contrast scene'));
   const three = 'export const S = () => <><section className="scene-inverse" /><section className="scene-field" /></>;\n';
   assert.ok(fails(run(fixture({ extra: { 'components/Scene.tsx': three } })), 'contrast scene'));
 });
@@ -172,6 +226,37 @@ test('a display heading never sits in an overflow-hidden box', () => {
   const clipped = 'export const S = () => <div className="relative overflow-hidden"><h2 className="font-display text-h2">Fabriekspanden</h2></div>;\n';
   assert.ok(fails(run(fixture({ extra: { 'components/Clip.tsx': clipped } })), 'Display heading clipped'));
   assert.ok(!fails(run(fixture()), 'Display heading clipped'));
+});
+
+// why: Roy's second gate build clipped descenders in many places. The kit's masks keep them now, so what is left is the
+// agent's own heading: a clip on it, or on a box held to its line, cuts g, j, p and y with no error anywhere.
+test('a heading of your own that clips its descenders fails, with SplitHeadline as the fix', () => {
+  const cuts = (tsx) => fails(run(fixture({ extra: { 'components/Scene.tsx': tsx } })), 'Heading that cuts descenders');
+  const out = run(fixture({ extra: { 'components/Scene.tsx': 'export const S = () => <h3 className="leading-tight overflow-hidden">Glazuur</h3>;\n' } }));
+  assert.ok(fails(out, 'Heading that cuts descenders'), out);
+  assert.match(out, /SplitHeadline or the \.struq-line-mask class/);
+  assert.match(out, /components\/Scene\.tsx:1 /);
+  assert.ok(cuts('export const S = () => <SplitHeadline as="h2" className="overflow-clip" text="Gegroeid" />;\n'));
+  assert.ok(cuts('export const S = () => (\n  <div className="h-[1.1em] overflow-hidden">\n    <h2 className="text-h3">Jaargang</h2>\n  </div>\n);\n'));
+  assert.ok(cuts('export const S = () => <span className="block overflow-hidden leading-none"><h4>Oven</h4></span>;\n'));
+  // A clip on a tall box is no cut: a full-screen hero leaves its heading room. A clip on a plain box is the clipped
+  // check's business, not this one's, and a box held to the line without a clip cuts nothing.
+  assert.ok(!cuts('export const S = () => <section className="relative h-screen overflow-hidden"><h1 className="text-h3">Zout</h1></section>;\n'));
+  assert.ok(!cuts('export const S = () => <div className="h-[100vh] overflow-hidden"><h1 className="text-h3">Zout</h1></div>;\n'));
+  assert.ok(!cuts('export const S = () => <div className="overflow-hidden"><h3 className="text-h3">Glazuur</h3></div>;\n'));
+  assert.ok(!cuts('export const S = () => <div className="h-12 leading-none"><h3>Glazuur</h3></div>;\n'));
+  assert.ok(!cuts('export const S = () => <header className="h-16 overflow-hidden"><a href="/">Zout</a></header>;\n'));
+  // The kit is never scanned: its SplitHeadline clips on purpose, inside a mask that leaves room under the baseline.
+  const kit = 'export const SplitHeadline = () => <h2 className="overflow-hidden">x</h2>;\n';
+  assert.ok(!fails(run(fixture({ extra: { 'components/struq/kit/SplitHeadline.tsx': kit } })), 'Heading that cuts descenders'));
+  assert.ok(!fails(run(fixture()), 'Heading that cuts descenders'));
+});
+
+test('a heading of your own set under a leading of 0.9 warns', () => {
+  const leading = (value) => run(fixture({ extra: { 'components/Scene.tsx': `export const S = () => <h1 className="text-display leading-[${value}]">Gevlochten</h1>;\n` } }));
+  for (const value of ['0.8', '0.85', '.88']) assert.ok(warns(leading(value), 'Heading leading under 0.9'), value);
+  for (const value of ['0.9', '0.95', '1']) assert.ok(!warns(leading(value), 'Heading leading under 0.9'), value);
+  assert.ok(!warns(run(fixture()), 'Heading leading under 0.9'));
 });
 
 test('an image reference past the pack fails', () => {
@@ -209,4 +294,57 @@ test('manifesto chips show a subject, never a texture', () => {
   assert.ok(fails(run(fixture({ extra: { 'components/M.tsx': texture } })), 'Inline manifesto photo'));
   const scene = 'export const M = () => <ManifestoScrub text="a {0} b" images={[images.card[0], images.column[1]]} />;\n';
   assert.ok(!fails(run(fixture({ extra: { 'components/M.tsx': scene } })), 'Inline manifesto photo'));
+});
+
+test('too few image placements warn instead of failing', () => {
+  // The fixture page places one photo, under the floor of four.
+  const out = run(fixture());
+  assert.ok(!fails(out, 'image placement'));
+  assert.ok(warns(out, 'Only 1 image placement'));
+});
+
+// why: --plan is the film check on the storyboard alone, run before a single block is installed, so it must work in a
+// folder that holds nothing but STRUQ.md and app/, and refuse the plan that breaks the one-centerpiece budget.
+const GOOD_BOARD = [
+  'Arrival (frame) preloader-stack | lands on: the hero photo',
+  'Opening (loud) hero-still:still | on screen: the dining room at dusk',
+  'Statement (quiet) own scene | on screen: one sentence at 14vw',
+  'About (quiet) reveals:lines | on screen: who cooks here',
+  'Approach (quiet) approach:schuif | on screen: the four seasons',
+  'Centerpiece (loud) image-to-fullbleed | on screen: the room opening',
+  'Release (quiet) own scene | on screen: a photo and two sentences',
+  'Close (quiet) own scene | echoes the opening | footer: footer-reveal',
+];
+const planWith = (scenes) => PLAN.replace(board(8), scenes.map((s, i) => `${i + 1}. ${s}`).join('\n'));
+
+function planOnly(plan) {
+  const dir = mkdtempSync(join(tmpdir(), 'struq-plan-'));
+  writeFileSync(join(dir, 'STRUQ.md'), plan);
+  mkdirSync(join(dir, 'app'));
+  writeFileSync(join(dir, 'app', 'page.tsx'), 'export default function Page() { return null; }\n');
+  return spawnSync(process.execPath, [CHECK, '--plan'], { cwd: dir, encoding: 'utf8' });
+}
+
+test('--plan passes a good storyboard with nothing but STRUQ.md and app/', () => {
+  const r = planOnly(planWith(GOOD_BOARD));
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /^PLAN: PASS$/m);
+  assert.ok(!/^FAIL /m.test(r.stdout), r.stdout);
+});
+
+test('--plan fails a storyboard with two centerpieces, naming the rule and the fix', () => {
+  const two = GOOD_BOARD.map((s) => (s.startsWith('Approach') ? 'Approach (loud) film-strip | on screen: the four seasons' : s));
+  const r = planOnly(planWith(two));
+  assert.equal(r.status, 1, r.stdout);
+  assert.match(r.stdout, /^FAIL one-centerpiece: 2 centerpieces: film-strip, image-to-fullbleed\. Fix: Keep one centerpiece/m);
+  assert.match(r.stdout, /^PLAN: FAIL$/m);
+});
+
+test('the FILM group fails a page transition on a site with one route', () => {
+  const layout = LAYOUT_OK.replace('<SmoothScroll>{children}</SmoothScroll>', '<PageTransitionStack /><SmoothScroll>{children}</SmoothScroll>');
+  const one = run(fixture({ extra: { 'app/layout.tsx': layout } }));
+  assert.ok(fails(one, 'transition-needs-routes: page-transition-stack on a site with 1 route'), one);
+  const two = run(fixture({ extra: { 'app/layout.tsx': layout, 'app/werk/page.tsx': 'export default function Werk() { return null; }\n' } }));
+  assert.ok(!fails(two, 'transition-needs-routes'));
+  assert.ok(!fails(run(fixture()), 'transition-needs-routes'));
 });

@@ -56,6 +56,10 @@ catalogue does not have: your code has to hold the same bar or it shows as the s
   `document.fonts.ready` with the loaded face, and refitted on `loadingdone`. Never fit with the fallback face, and
   never ask Google for a weight the family does not ship: `canon.mjs type` requests each face's real range.
 - **Word spacing at poster size:** 0.06 to 0.1em on display lines, so tight tracking never runs two words into one.
+- **Descenders are never cut.** A mask that hides a rising line must leave room below the baseline for g, j, p and y
+  and above the cap line for accents: use `SplitHeadline` or the `.struq-line-mask` class, never `overflow-hidden`
+  on a heading. At poster size keep the leading at 1 or more in a serif and 0.95 or more in a sans; look at a line
+  with a g and a j in it before you call the type done.
 - One italic accent face at most, on one word of the page.
 - One fluid root-rem knob (`html { font-size: clamp(...) }` in globals.css): author in rem; breakpoints change the
   layout, never the size.

@@ -22,6 +22,11 @@
 // <HeroPoster image={images.hero[1]} lines={["Noord bouwt", "met daglicht"]} place="Architectuur en bouw, Rotterdam"
 //   link={{ label: "Bekijk het werk", href: "#werk" }} />
 //
+// `accent` (optional) is the site's one accent word: where it first stands in the two lines it is set in the pairing's
+// italic accent face, as the Statement and the Close set the same word. The fit measures each line with the mark in
+// place and waits for the accent face as it waits for the display face, so a wider italic is fitted, never spilled.
+// Left out, or not in the lines, the poster is exactly as it was.
+//
 // Phones: one word per line, the window between at the height that is left, showing the photo's own crop; the
 // entrance only (no pin, no open).
 //
@@ -36,6 +41,7 @@
 //   slides to registration and opens to the full screen, so the crops merge into one photograph.
 import Image from "next/image";
 import { useRef } from "react";
+import { accentFaceReady, accentLines } from "../kit/accent";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { covered, whenUncovered } from "../preloaders/preloader-slices-uncovered";
@@ -58,6 +64,9 @@ type Inner = {
   image: StruqImage;
   /** The two lines of the poster: the studio's name, or its line split in two. */
   lines: [string, string];
+  /** The site's one accent word: where it first stands in the lines it is set in the pairing's italic accent face
+   * (--face-accent), as the Statement and the Close set it. A word the lines do not hold changes nothing. */
+  accent?: string;
   /** The foot line: place, discipline. */
   place?: string;
   /** One link in the foot line. */
@@ -73,6 +82,13 @@ const EM_PER_CHAR = 0.66;
 const LEADING = 0.84;
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+/** The poster's side margin as laid out: the sheet margin on its padded box ([data-hp-sheet]), read in px. */
+const sideOf = (el: HTMLElement) => {
+  const pad = el.querySelector<HTMLElement>("[data-hp-sheet]");
+  return pad ? parseFloat(getComputedStyle(pad).paddingLeft) || 0 : 0;
+};
+/** The width the script-free estimates fit into: the screen inside the sheet margin on both sides. */
+const INSIDE = "(100vw - 2 * var(--spacing-sheet-margin))";
 
 export function HeroPoster({ variant = "window", ...rest }: Props) {
   if (variant === "column") return <PosterColumn {...rest} />;
@@ -80,9 +96,10 @@ export function HeroPoster({ variant = "window", ...rest }: Props) {
   return <PosterWindow {...rest} />;
 }
 
-function PosterWindow({ image, lines, place, link, className = "" }: Inner) {
+function PosterWindow({ image, lines, accent, place, link, className = "" }: Inner) {
   const stage = useRef<HTMLElement>(null);
   const words = lines.map((l) => l.split(" "));
+  const marked = markWords(words, accent);
   const longest = (ws: string[]) => Math.max(...ws.map((w) => w.length));
 
   useGSAP(
@@ -113,7 +130,7 @@ function PosterWindow({ image, lines, place, link, className = "" }: Inner) {
         const W = el.clientWidth;
         const H = el.clientHeight;
         const wide = W >= 768;
-        const room = W - (wide ? W * 0.08 : 48);
+        const room = W - 2 * sideOf(el);
         const widthOf = (w: HTMLElement) => {
           const c = w.cloneNode(true) as HTMLElement;
           Object.assign(c.style, { position: "absolute", left: "0", top: "0", visibility: "hidden", fontSize: "100px" });
@@ -198,7 +215,7 @@ function PosterWindow({ image, lines, place, link, className = "" }: Inner) {
       };
       // With the face in, or on what there is after FONT_WAIT; and again whenever a face arrives later than that. The
       // poster counts as shown once the entrance has started (or the fallback did it), so a late face eases in.
-      const faceIn = Promise.race([document.fonts?.ready ?? Promise.resolve(), new Promise((r) => setTimeout(r, FONT_WAIT))]);
+      const faceIn = faceReady(el);
       settle(frame);
       faceIn.then(() => {
         refit();
@@ -318,23 +335,23 @@ function PosterWindow({ image, lines, place, link, className = "" }: Inner) {
         mm.revert();
       };
     },
-    { scope: stage, dependencies: [lines[0], lines[1]] },
+    { scope: stage, dependencies: [lines[0], lines[1], accent] },
   );
 
   // The script-free estimate per line: the width over its characters, and on wide screens a height cap so two lines
   // and a window always fit. Phones stack one word per line, so the longest word sets it.
   const est = (i: 0 | 1) =>
-    `min(18vw, calc(92vw / ${(lines[i].length * EM_PER_CHAR).toFixed(2)}), 30svh)`;
-  const estPhone = (i: 0 | 1) => `calc((100vw - 48px) / ${(longest(words[i]) * EM_PER_CHAR).toFixed(2)})`;
+    `min(18vw, calc(${INSIDE} / ${(lines[i].length * EM_PER_CHAR).toFixed(2)}), 30svh)`;
+  const estPhone = (i: 0 | 1) => `calc(${INSIDE} / ${(longest(words[i]) * EM_PER_CHAR).toFixed(2)})`;
 
   // The line's box is LEADING of its size per row; the mask carries the descender room in the display em.
   const word = "font-display block w-fit whitespace-nowrap leading-[0.84] tracking-[-0.045em] text-ink";
-  const mask = "block overflow-hidden pb-[0.24em] -mb-[0.24em]";
-  const small = "block overflow-hidden pb-[0.15em] -mb-[0.15em]";
+  const mask = "struq-line-mask block";
+  const small = "struq-line-mask block";
   // Inline, because the kit balances display type (text-wrap), which would let a poster line wrap; and no transition,
   // or a page that transitions every property hands the fit a size from mid-change.
   const nowrap = { whiteSpace: "nowrap", textWrap: "nowrap", transition: "none" } as React.CSSProperties;
-  const stack = (parts: string[]) =>
+  const stack = (parts: React.ReactNode[]) =>
     parts.map((part, i) => (
       <span key={i} data-hp-part="" className="inline-block max-md:block">
         {part}
@@ -360,7 +377,7 @@ function PosterWindow({ image, lines, place, link, className = "" }: Inner) {
       <h1 className="sr-only">{`${lines[0]} ${lines[1]}`}</h1>
 
       {/* The poster: line, window, line, foot. The lines stand above the photo as it opens past them. */}
-      <div className="relative flex h-full flex-col px-6 pb-6 pt-8 md:px-[4vw] md:pb-[3svh] md:pt-[4svh]">
+      <div data-hp-sheet="" className="relative flex h-full flex-col px-sheet-margin pb-6 pt-8 md:pb-[3svh] md:pt-[4svh]">
         <div data-hp-top="" className="relative z-10 will-change-transform">
           <p aria-hidden className="m-0">
             <span
@@ -368,7 +385,7 @@ function PosterWindow({ image, lines, place, link, className = "" }: Inner) {
             >
               <span data-hp-rise="" data-hp-line="" className="block">
                 <span data-hp-word="" className={word} style={nowrap}>
-                  {stack(words[0])}
+                  {stack(marked[0])}
                 </span>
               </span>
             </span>
@@ -384,7 +401,7 @@ function PosterWindow({ image, lines, place, link, className = "" }: Inner) {
           >
             <div
               data-stack-photo=""
-              className="absolute inset-0 md:inset-auto md:left-[-4vw] md:top-[calc(-4svh_-_0.84_*_var(--hp-s1,var(--hp-e1))_-_1.2svh)] md:h-svh md:w-screen"
+              className="absolute inset-0 md:inset-auto md:-left-sheet-margin md:top-[calc(-4svh_-_0.84_*_var(--hp-s1,var(--hp-e1))_-_1.2svh)] md:h-svh md:w-screen"
             >
               <Image
                 src={image.src}
@@ -406,7 +423,7 @@ function PosterWindow({ image, lines, place, link, className = "" }: Inner) {
             >
               <span data-hp-rise="" data-hp-line="" className="block">
                 <span data-hp-word="" className={`${word} ml-auto text-right`} style={nowrap}>
-                  {stack(words[1])}
+                  {stack(marked[1])}
                 </span>
               </span>
             </span>
@@ -504,13 +521,26 @@ function sizer(el: HTMLElement, names: string[], onScreen: () => number[], shown
   };
 }
 
-/** The display face in, or what there is after FONT_WAIT. */
-const faceReady = () =>
-  Promise.race([document.fonts?.ready ?? Promise.resolve(), new Promise((r) => setTimeout(r, FONT_WAIT))]);
+/** The display face in (and the accent face, when a word is marked), or what there is after FONT_WAIT. */
+const faceReady = (el: HTMLElement) =>
+  Promise.race([
+    Promise.all([document.fonts?.ready ?? Promise.resolve(), accentFaceReady(el)]),
+    new Promise((r) => setTimeout(r, FONT_WAIT)),
+  ]);
+
+/**
+ * The poster's words (one list per line) with the accent marked on the first word that holds it, so a block that
+ * sets one word per part or per row marks the same word the line would.
+ */
+function markWords(words: string[][], accent?: string): React.ReactNode[][] {
+  const flat = accentLines(words.flat(), accent);
+  let at = 0;
+  return words.map((ws) => flat.slice(at, (at += ws.length)));
+}
 
 const WORD = "font-display block w-fit whitespace-nowrap leading-[0.84] tracking-[-0.045em]";
-const MASK = "block overflow-hidden pb-[0.24em] -mb-[0.24em]";
-const SMALL = "block overflow-hidden pb-[0.15em] -mb-[0.15em]";
+const MASK = "struq-line-mask block";
+const SMALL = "struq-line-mask block";
 // Inline, because the kit balances display type (text-wrap), which would let a poster line wrap; and no transition,
 // or a page that transitions every property hands the fit a size from mid-change.
 const NOWRAP = { whiteSpace: "nowrap", textWrap: "nowrap", transition: "none" } as React.CSSProperties;
@@ -560,9 +590,10 @@ function Foot({ place, link, copy = false }: { place?: string; link?: Inner["lin
  * first scroll (pin 150%) it opens sideways by registration while the upper line leaves left, the lower line right
  * and the foot down. Phones: one word per row, the same slit, the entrance only.
  */
-function PosterColumn({ image, lines, place, link, className = "" }: Inner) {
+function PosterColumn({ image, lines, accent, place, link, className = "" }: Inner) {
   const stage = useRef<HTMLElement>(null);
   const words = lines.map((l) => l.split(" "));
+  const marked = markWords(words, accent);
   const longest = (ws: string[]) => Math.max(...ws.map((w) => w.length));
 
   useGSAP(
@@ -586,7 +617,7 @@ function PosterColumn({ image, lines, place, link, className = "" }: Inner) {
         const W = el.clientWidth;
         const H = el.clientHeight;
         const wide = W >= 768;
-        const room = W - (wide ? W * 0.08 : 48);
+        const room = W - 2 * sideOf(el);
         const sizes = lineWords.map((w) => {
           const width = widthAt100(w, !wide);
           return width > 0 ? (100 * room) / width : 100;
@@ -650,7 +681,7 @@ function PosterColumn({ image, lines, place, link, className = "" }: Inner) {
         sizes.set(fit(), frame);
         decoded.then(() => !dead && grade());
       };
-      const faceIn = faceReady();
+      const faceIn = faceReady(el);
       sizes.set(fit(), frame);
       faceIn.then(() => {
         refit();
@@ -747,13 +778,13 @@ function PosterColumn({ image, lines, place, link, className = "" }: Inner) {
         mm.revert();
       };
     },
-    { scope: stage, dependencies: [lines[0], lines[1]] },
+    { scope: stage, dependencies: [lines[0], lines[1], accent] },
   );
 
-  const est = (i: 0 | 1) => `min(18vw, calc(92vw / ${(lines[i].length * EM_PER_CHAR).toFixed(2)}), 26svh)`;
-  const estPhone = (i: 0 | 1) => `calc((100vw - 48px) / ${(longest(words[i]) * EM_PER_CHAR).toFixed(2)})`;
+  const est = (i: 0 | 1) => `min(18vw, calc(${INSIDE} / ${(lines[i].length * EM_PER_CHAR).toFixed(2)}), 26svh)`;
+  const estPhone = (i: 0 | 1) => `calc(${INSIDE} / ${(longest(words[i]) * EM_PER_CHAR).toFixed(2)})`;
   // The space stands between the words, outside them: a space at the end of an inline block is dropped.
-  const parts = (ps: string[]) =>
+  const parts = (ps: React.ReactNode[]) =>
     ps.map((part, i) => (
       <span key={i}>
         <span data-hp-part="" className="inline-block max-md:block">
@@ -770,7 +801,7 @@ function PosterColumn({ image, lines, place, link, className = "" }: Inner) {
       >
         <span data-hp-rise="" data-hp-line="" className="block">
           <span data-hp-word="" className={`${WORD} ${i === 1 ? "ml-auto text-right" : ""}`} style={NOWRAP}>
-            {parts(words[i])}
+            {parts(marked[i])}
           </span>
         </span>
       </span>
@@ -781,7 +812,8 @@ function PosterColumn({ image, lines, place, link, className = "" }: Inner) {
     <div
       data-hp-layer={copy ? "copy" : "ground"}
       aria-hidden={copy || undefined}
-      className={`absolute inset-0 flex flex-col px-6 pb-6 pt-8 md:px-[4vw] md:pb-[3svh] md:pt-[4svh] ${copy ? "text-on-photo" : "text-ink"}`}
+      data-hp-sheet=""
+      className={`absolute inset-0 flex flex-col px-sheet-margin pb-6 pt-8 md:pb-[3svh] md:pt-[4svh] ${copy ? "text-on-photo" : "text-ink"}`}
     >
       <div className="flex-1" />
       <div data-hp-l1="" className="will-change-transform">
@@ -845,9 +877,10 @@ function PosterColumn({ image, lines, place, link, className = "" }: Inner) {
  * Phones: the same stack, each window its own crop, the entrance only. Without scripts or under reduced motion the
  * composed poster shows with every crop in place.
  */
-function PosterStack({ image, lines, place, link, className = "" }: Inner) {
+function PosterStack({ image, lines, accent, place, link, className = "" }: Inner) {
   const stage = useRef<HTMLElement>(null);
   const rows = lines.flatMap((l) => l.split(" ")).filter(Boolean);
+  const marked = accentLines(rows, accent);
   const n = rows.length;
   const m = Math.max(0, n - 1);
   const middle = Math.floor((m - 1) / 2);
@@ -873,7 +906,7 @@ function PosterStack({ image, lines, place, link, className = "" }: Inner) {
         const W = el.clientWidth;
         const H = el.clientHeight;
         const wide = W >= 768;
-        const room = W - (wide ? W * 0.08 : 48);
+        const room = W - 2 * sideOf(el);
         const widest = Math.max(1, ...wordEls.map((w) => widthAt100(w, false)));
         const free = H - (foot?.offsetHeight ?? 0) - (wide ? H * 0.1 : 72) - m * H * (wide ? 0.075 : 0.08);
         return [Math.floor(Math.min((100 * room) / widest, free / (LEADING * n)))];
@@ -888,7 +921,7 @@ function PosterStack({ image, lines, place, link, className = "" }: Inner) {
         if (dead) return;
         sizes.set(fit(), frame);
       };
-      const faceIn = faceReady();
+      const faceIn = faceReady(el);
       sizes.set(fit(), frame);
       faceIn.then(() => {
         refit();
@@ -1017,13 +1050,13 @@ function PosterStack({ image, lines, place, link, className = "" }: Inner) {
         mm.revert();
       };
     },
-    { scope: stage, dependencies: [lines[0], lines[1]] },
+    { scope: stage, dependencies: [lines[0], lines[1], accent] },
   );
 
   // The script-free estimate: the longest word over the width, capped so the rows and their windows fit the height.
   const per = (longest * EM_PER_CHAR).toFixed(2);
-  const est = `min(calc(92vw / ${per}), calc((90svh - 2rem - ${m} * 7.5svh) / ${(n * LEADING).toFixed(2)}))`;
-  const estPhone = `min(calc((100vw - 48px) / ${per}), calc((100svh - 7rem - ${m} * 8svh) / ${(n * LEADING).toFixed(2)}))`;
+  const est = `min(calc(${INSIDE} / ${per}), calc((90svh - 2rem - ${m} * 7.5svh) / ${(n * LEADING).toFixed(2)}))`;
+  const estPhone = `min(calc(${INSIDE} / ${per}), calc((100svh - 7rem - ${m} * 8svh) / ${(n * LEADING).toFixed(2)}))`;
 
   return (
     <section
@@ -1035,8 +1068,8 @@ function PosterStack({ image, lines, place, link, className = "" }: Inner) {
       style={{ "--hp-e": est, "--hp-p": estPhone } as React.CSSProperties}
     >
       <h1 className="sr-only">{`${lines[0]} ${lines[1]}`}</h1>
-      <div className="relative flex h-full flex-col px-6 pb-6 pt-8 md:px-[4vw] md:pb-[3svh] md:pt-[4svh]">
-        {rows.map((w, i) => (
+      <div data-hp-sheet="" className="relative flex h-full flex-col px-sheet-margin pb-6 pt-8 md:pb-[3svh] md:pt-[4svh]">
+        {marked.map((w, i) => (
           <div key={i} className="contents">
             <div data-hp-row="" className="relative z-10 will-change-transform">
               <p aria-hidden className="m-0">

@@ -8,6 +8,18 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFile
 import { tmpdir } from 'node:os';
 import { dirname, join, posix, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { approvedProject, treatment } from './treatment.mjs';
+
+const CUT_BOARD = [
+  'Arrival (frame) preloader-slices | lands on: the poster',
+  'Opening (loud) hero-poster:column | on screen: the poster',
+  'Work (quiet) hover-list | on screen: the pieces',
+  'Statement (quiet) own scene, SplitHeadline | on screen: one sentence',
+  'Interlude (loud) hero-opener | on screen: the name at poster scale',
+  'Release (quiet) own scene | on screen: a photo',
+  'Centerpiece (loud) panel-wipe | on screen: two photos',
+  'Close (quiet) own scene | echoes the opening | footer: footer-contact:address',
+];
 
 const BLOCKS = fileURLToPath(new URL('../skills/struq/blocks/', import.meta.url));
 const CLI = fileURLToPath(new URL('../skills/struq/scripts/blocks.mjs', import.meta.url));
@@ -38,9 +50,37 @@ test('the catalogue lists only admitted blocks, each with its files, and CATALOG
   for (const out of ['before-after', 'cursor-dot-ring', 'cursor-label']) assert.ok(!blocks.some((b) => b.slug === out), out);
 });
 
+// why: every live clock is off until a prop turns it on; the film check counts a clock only where the page passes that
+// prop, so the catalogue must carry which prop it is and CATALOG.md must say it on the film line.
+test('a block with a live clock names the prop that turns it on, in catalog.json and on its CATALOG.md film line', () => {
+  const md = readFileSync(join(BLOCKS, 'CATALOG.md'), 'utf8');
+  const clocked = blocks.filter((b) => b.clockProp);
+  assert.ok(clocked.length >= 3);
+  assert.equal(blocks.find((b) => b.slug === 'wordmark-finale').clockProp, 'timeZone');
+  for (const b of blocks) {
+    assert.ok(b.clockProp === null || ['clock', 'timeZone'].includes(b.clockProp), b.slug);
+    const line = md.split(`### ${b.slug}\n`)[1].split('\n')[0];
+    if (b.clockProp) assert.ok(line.endsWith(` · clock by prop ${b.clockProp}`), line);
+    else assert.ok(!line.includes('clock by prop'), line);
+  }
+  // The film check that reads clockProp ships with it.
+  assert.match(readFileSync(new URL('../skills/struq/scripts/film-check.mjs', import.meta.url), 'utf8'), /clockProp/);
+});
+
+test('every block carries its film role, and blocks.mjs list prints the film facts on its row', () => {
+  for (const b of blocks) assert.ok(['frame', 'opening', 'centerpiece', 'pattern'].includes(b.role), `${b.slug} has no film role`);
+  const r = spawnSync(process.execPath, [CLI, 'list'], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  const rows = r.stdout.split('\n').filter((l) => /^\S/.test(l) && !/block\(s\)/.test(l));
+  assert.equal(rows.length, blocks.length);
+  for (const row of rows) assert.match(row, /film: (frame|opening|centerpiece|pattern) · energy \d · pins [\d.]+$/, row);
+});
+
 test('blocks.mjs add copies a block with everything it imports, layout intact', () => {
   const dir = mkdtempSync(join(tmpdir(), 'struq-blocks-'));
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'x', dependencies: { next: '16.0.0' } }));
+  // add installs only what an approved storyboard names: a cut plan with both openings in it.
+  approvedProject(dir, { plan: treatment({ language: 'cut', motif: 'cut', centerpiece: 'panel-wipe', board: CUT_BOARD }) });
   const r = spawnSync(process.execPath, [CLI, 'add', 'hero-poster', 'hero-opener', '--dir', dir, '--no-install'], { encoding: 'utf8' });
   assert.equal(r.status, 0, r.stderr);
   for (const slug of ['hero-poster', 'hero-opener']) {

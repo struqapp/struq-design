@@ -465,15 +465,14 @@ export function ZoomThrough({
       >
         <h2 className={`font-display ${size} leading-[0.88] tracking-[-0.04em] [word-spacing:0.08em]`}>
           {heading.map((h) => (
-            <span
-              key={h}
-              className={`-mx-6 flex px-6 md:-mx-[5vw] md:px-[5vw] ${headRight ? "justify-end" : "justify-start"} ${
-                motion ? "overflow-hidden pb-[0.1em] -mb-[0.1em] group-data-[place=ground]/zt:pb-0 group-data-[place=ground]/zt:mb-0" : ""
-              }`}
-            >
+            <span key={h} className={`-mx-6 flex px-6 md:-mx-[5vw] md:px-[5vw] ${headRight ? "justify-end" : "justify-start"}`}>
+              {/* The ground band sits outside the shared line mask, so the mask's child paints no plate and a band
+                  never grows into the line above it. */}
               <span className={`block group-data-[place=ground]/zt:bg-surface-0 group-data-[place=ground]/zt:pb-[0.12em] group-data-[place=ground]/zt:pt-[0.08em] ${band}`}>
-                <span data-rise={motion ? "" : undefined} data-hline="" className="block whitespace-nowrap">
-                  {h}
+                <span className={`block ${motion ? "struq-line-mask" : ""}`}>
+                  <span data-rise={motion ? "" : undefined} data-hline="" className="block whitespace-nowrap">
+                    {h}
+                  </span>
                 </span>
               </span>
             </span>
@@ -488,14 +487,14 @@ export function ZoomThrough({
           }`}
         >
           {line ? (
-            <span className={`block max-w-[38ch] ${motion ? "overflow-hidden" : ""}`}>
+            <span className={`block max-w-[38ch] ${motion ? "struq-line-mask" : ""}`}>
               <span data-after={motion ? "" : undefined} className="block text-balance text-lead text-ink">
                 {line}
               </span>
             </span>
           ) : null}
           {caption ? (
-            <span className={`block ${motion ? "overflow-hidden" : ""}`}>
+            <span className={`block ${motion ? "struq-line-mask" : ""}`}>
               <span data-after={motion ? "" : undefined} className="block text-small text-ink-muted">
                 {caption}
               </span>

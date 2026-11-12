@@ -154,7 +154,7 @@ Stack: Next.js App Router and Tailwind v4 (Vite by hand, see `references/stack-t
 
 ## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/compass-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/compass-light.svg" width="26" height="26" alt=""></picture> How a build runs
 
-- **Direction.** A palette, a type pairing and a photo pack from Struq's canon, and the order of the site from the catalogue: arrival, header, hero, manifesto, about, approach, work, closing call to action, footer. All of it in one `STRUQ.md`.
+- **Direction.** The site is planned as one film: a motion language (weight, cut or curtain), one idea, one motif, and a storyboard of scenes with the handovers between them. Then a palette, a type pairing and a photo pack from Struq's canon. All of it in one `STRUQ.md`, and no block goes in until that plan passes its own check.
 - **One stop.** It shows you that plan and asks once: approve it, and send a logo, photos or real numbers if you have them. It does not ask again.
 - **Blocks.** It installs each block with everything it imports, writes the tokens and fonts, and composes the page with your real copy.
 - **Check.** `check.mjs` runs until the page passes. With a browser tool it also looks at the page at phone and desktop width and fixes what it sees.

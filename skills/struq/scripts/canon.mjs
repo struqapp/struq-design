@@ -9,10 +9,14 @@
 //   node <skill-dir>/scripts/canon.mjs print <palette> <pairing>  prints the block and the font URLs, writes nothing
 //   add --dir <project> to run from elsewhere
 //
+// palette and type refuse, writing nothing, until STRUQ.md passes the plan check and STRUQ-LOG.md holds the user's
+// reply to the treatment (gate.mjs). list and print never ask.
+//
 // Node 18 or later, no network, no dependencies.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { refuse, stopRefusal } from "./gate.mjs";
 import { appendLog } from "./log.mjs";
 import { fontHrefs, headFamily, lightness, paletteTokens } from "./tokens.mjs";
 
@@ -126,7 +130,10 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     process.exit(2);
   }
   try {
-    run();
+    // palette and type write into the project, so they wait for the one stop: a passing plan and the logged reply.
+    const refusal = cmd === "palette" || cmd === "type" ? stopRefusal(root) : null;
+    if (refusal) refuse(`canon.mjs ${cmd}, nothing written`, refusal);
+    else run();
   } catch (e) {
     console.error(`FAIL ${e.message}`);
     process.exitCode = 1;

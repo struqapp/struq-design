@@ -7,7 +7,11 @@
 // shade of the accent at its thin edges. The headline (light display weight), one lead sentence and one text link
 // stand on the calm side, clear of the curtains.
 //
-// <BackgroundAurora variant="veil" lines={["Ruimte voor", "het licht."]} lead="..." link={{ href: "/werk", label: "Bekijk het werk" }} />
+// <BackgroundAurora variant="veil" lines={["Ruimte voor", "het licht."]} accent="licht" lead="..." link={{ href: "/werk", label: "Bekijk het werk" }} />
+//
+// `accent` (optional) is the site's one accent word: where it first stands in the headline it is set in the pairing's
+// italic accent face, inside its line's mask, and the contrast ceiling is measured once that face is in. The Statement
+// and the Close carry the same word. Left out, or not in the headline, the hero is exactly as it was.
 //
 // Three variants, three compositions of the same field:
 //   veil     one tall curtain standing in the right third, two pleats crossing as it sways; the type on the calm left.
@@ -27,13 +31,16 @@
 // the same colour math the shader uses. The compositions keep the curtains clear of the type, so the ceiling only
 // catches a stray ray, and it meets the field softly: faint light runs on behind the text, no veil and no cutout.
 //
-// Entrance: the canvas stays hidden until its first frame is drawn, then fades in while the light dawns; the type
-// rises through masks once its face is in (capped). Reduced motion: one rendered still frame, held, type in place. No
+// Entrance: the canvas stays hidden until its first frame is drawn, then fades in; the light dawns and the type rises
+// through masks once its face is in (capped) and nothing covers the page (whenUncovered: a preloader or page
+// transition has started to leave, or there is none). Reduced motion: one rendered still frame, held, type in place. No
 // WebGL: the same field drawn once, small, on a 2D canvas. No scripts: the composed hero on the plain ground; with
 // scripts the type waits below its masks and is released by the CSS after 3 seconds if the script never runs
 // (blocks.css, "--- background-aurora ---").
 import { useEffect, useRef } from "react";
+import { accentFaceReady, accentLines } from "../kit/accent";
 import { ScrollTrigger, gsap, useGSAP } from "../kit/gsap";
+import { whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 export type AuroraVariant = "veil" | "horizon" | "drift";
 
@@ -48,6 +55,9 @@ type Props = {
   variant?: AuroraVariant;
   /** The headline, one entry per line. Two short lines read best. */
   lines: string[];
+  /** The site's one accent word: where it first stands in the headline it is set in the pairing's italic accent face
+   * (--face-accent), as the Statement and the Close set it. A word the headline does not hold changes nothing. */
+  accent?: string;
   /** One lead sentence. */
   lead: string;
   /** One text link. */
@@ -419,7 +429,7 @@ function build(gl: WebGL2RenderingContext): Gl | null {
 
 // ---------------------------------------------------------------------------------------------------------------
 
-export function BackgroundAurora({ variant = "veil", lines, lead, link, className = "" }: Props) {
+export function BackgroundAurora({ variant = "veil", lines, accent, lead, link, className = "" }: Props) {
   const root = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -442,6 +452,7 @@ export function BackgroundAurora({ variant = "veil", lines, lead, link, classNam
     let last = 0;
     let clock = 0;
     let introClock = 0;
+    let dawning = false;
     const leave = { now: 0, target: 0 };
     const ptr = { x: 0.5, y: 0.5, z: 0, tx: 0.5, ty: 0.5, tz: 0 };
 
@@ -570,7 +581,8 @@ export function BackgroundAurora({ variant = "veil", lines, lead, link, classNam
       const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
       last = now;
       clock += dt;
-      introClock += dt;
+      // The dawn holds at its start while a cover is over the page.
+      if (dawning) introClock += dt;
       // The pointer eases in over about 0.18 s; the scroll settles like a camera, about 0.4 s.
       const kp = 1 - Math.exp(-dt / 0.06);
       ptr.x += (ptr.tx - ptr.x) * kp;
@@ -615,7 +627,8 @@ export function BackgroundAurora({ variant = "veil", lines, lead, link, classNam
     let fontsId = 0;
     const refit = () => {
       const id = ++fontsId;
-      document.fonts?.ready.then(() => {
+      // The accent face too, when a word is marked: the text boxes are measured as they will stand.
+      document.fonts?.ready.then(() => accentFaceReady(el)).then(() => {
         if (gone || id !== fontsId) return;
         measure();
         if (gl && prog) draw();
@@ -698,9 +711,13 @@ export function BackgroundAurora({ variant = "veil", lines, lead, link, classNam
     }
 
     wake();
+    const stopDawn = whenUncovered(() => {
+      dawning = true;
+    });
 
     return () => {
       gone = true;
+      stopDawn();
       if (raf) cancelAnimationFrame(raf);
       sized.disconnect();
       themed.disconnect();
@@ -752,17 +769,22 @@ export function BackgroundAurora({ variant = "veil", lines, lead, link, classNam
         if (gone) return;
         gsap.to(rise, { yPercent: 0, duration: 1.2, ease: "expo.out", stagger: 0.09, delay: 0.15 });
       });
+      // Once the face is in, and once nothing covers the page (a preloader or page transition starting to leave).
+      let stop = () => {};
       const fonts = document.fonts?.ready ?? Promise.resolve();
-      Promise.race([fonts, new Promise((r) => setTimeout(r, 1200))]).then(play);
+      Promise.race([fonts, new Promise((r) => setTimeout(r, 1200))]).then(() => {
+        if (!gone) stop = whenUncovered(play);
+      });
       return () => {
         gone = true;
+        stop();
       };
     },
     { scope: root, dependencies: [variant] },
   );
 
   const mask = (child: React.ReactNode, key?: number) => (
-    <span key={key} className="struq-line-mask block overflow-hidden">
+    <span key={key} className="struq-line-mask block">
       <span data-rise="" className="block">
         {child}
       </span>
@@ -786,24 +808,24 @@ export function BackgroundAurora({ variant = "veil", lines, lead, link, classNam
       className={`relative isolate flex h-svh min-h-[34rem] overflow-hidden bg-surface-0 text-ink ${className}`}
     >
       <canvas ref={canvasRef} data-field="" aria-hidden="true" className="absolute inset-0 block h-full w-full" />
-      <div className={`relative z-10 flex w-full px-6 md:px-[4vw] ${place}`}>
+      <div className={`relative z-10 flex w-full px-sheet-margin ${place}`}>
         <div className={variant === "veil" ? "md:max-w-[52%]" : "max-w-[min(100%,52rem)]"}>
           <h1
             data-quiet="display"
             className="w-fit font-display text-[clamp(2.9rem,12.5vw,4.5rem)] leading-[0.95] tracking-[-0.03em] md:text-[clamp(3.5rem,7vw,8rem)]"
           >
-            {lines.map((line, i) => mask(line, i))}
+            {accentLines(lines, accent).map((line, i) => mask(line, i))}
           </h1>
           {/* The spacing sits on plain wrappers: the line mask's own negative margins would cancel it. */}
           <div className="mt-7 md:mt-10">
-            <div data-quiet="small" className="struq-line-mask max-w-[34ch] overflow-hidden text-ink-muted">
+            <div data-quiet="small" className="struq-line-mask max-w-[34ch] text-ink-muted">
               <p data-rise="" className="text-lead m-0">
                 {lead}
               </p>
             </div>
           </div>
           <div className="mt-5 md:mt-6">
-            <div data-quiet="small" className="struq-line-mask w-fit overflow-hidden">
+            <div data-quiet="small" className="struq-line-mask w-fit">
               <span data-rise="" className="block">
                 <a href={link.href} className="text-body underline decoration-1 underline-offset-[0.3em]">
                   {link.label}

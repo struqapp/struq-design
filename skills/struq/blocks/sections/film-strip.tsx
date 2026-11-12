@@ -306,30 +306,34 @@ export function FilmStrip({ items, intro, outro, className = "" }: Props) {
         {/* The title of the frame in the gate, and its metadata, each in its own mask, standing under the gate
             (where the first frame's left edge is: 5vw, the intro's 40vw and one gap, until measured). */}
         <div data-foot="" aria-hidden className="absolute bottom-10 left-[50.5vw] right-[5vw]">
-          <p className={`relative m-0 overflow-hidden pb-[0.14em] text-[length:calc(var(--fs-t)*var(--fs-fit,1))] ${display}`}>
+          {/* Shared line masks (blocks.css). The waiting copies stand one room down from the mask's top, where the
+              first one's text starts, since an absolute box is placed from the mask's padding edge. */}
+          <p className={`struq-line-mask relative text-[length:calc(var(--fs-t)*var(--fs-fit,1))] ${display}`}>
             {items.map((item, j) => (
               <span
                 key={item.title}
                 data-title=""
-                className={`block whitespace-nowrap will-change-transform ${j === 0 ? "relative" : "absolute inset-x-0 top-0"}`}
+                className={`block whitespace-nowrap will-change-transform ${j === 0 ? "relative" : "absolute inset-x-0 top-[var(--struq-mask-top)]"}`}
                 style={{ transform: j === 0 ? "translate3d(0, 0%, 0)" : "translate3d(0, 140%, 0)" }}
               >
                 {item.title}
               </span>
             ))}
           </p>
-          <p className="relative m-0 mt-3 overflow-hidden text-small text-ink-muted">
-            {items.map((item, j) => (
-              <span
-                key={item.title}
-                data-meta=""
-                className={`block whitespace-nowrap ${j === 0 ? "relative" : "absolute inset-x-0 top-0"}`}
-                style={{ transform: j === 0 ? "translate3d(0, 0%, 0)" : "translate3d(0, 140%, 0)" }}
-              >
-                {item.meta ?? " "}
-              </span>
-            ))}
-          </p>
+          <div className="mt-3">
+            <p className="struq-line-mask relative text-small text-ink-muted">
+              {items.map((item, j) => (
+                <span
+                  key={item.title}
+                  data-meta=""
+                  className={`block whitespace-nowrap ${j === 0 ? "relative" : "absolute inset-x-0 top-[var(--struq-mask-top)]"}`}
+                  style={{ transform: j === 0 ? "translate3d(0, 0%, 0)" : "translate3d(0, 140%, 0)" }}
+                >
+                  {item.meta ?? " "}
+                </span>
+              ))}
+            </p>
+          </div>
         </div>
       </div>
 

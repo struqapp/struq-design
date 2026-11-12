@@ -14,6 +14,11 @@
 // <HeroSplit name="Noord" lead="Wij bouwen" items={[{ word: "huizen.", image }, { word: "interieurs.", image }, ...]}
 //   line="Aan de Maashaven in Rotterdam." link={{ href: "/werk", label: "Bekijk het werk" }} />
 //
+// `accent` (optional) is the site's one accent word: where it first stands in the headline (the lead, then the
+// cycling words) it is set in the pairing's italic accent face in every copy of the line, as the Statement and the
+// Close set the same word. The fit measures with the mark in place and refits once the accent face is in, so the
+// wider italic never pushes the line past its span. Left out, or not in the headline, the hero is exactly as it was.
+//
 // One clock: the words (in every copy) and the photos are tweens in one looping timeline, so they can never drift; it
 // starts once every photograph is decoded and pauses off screen or in a hidden tab. The cycling words share one grid
 // cell, so a change of word never moves anything; the headline is fitted with the loaded face and refit when it lands
@@ -35,6 +40,7 @@
 //   the edge passes under it; scrolling back closes it. Phones, reduced motion and no scripts: the split.
 import Image from "next/image";
 import { useRef } from "react";
+import { accentFaceReady, accentLines } from "../kit/accent";
 import { ScrollTrigger, gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances } from "../kit/photo-read";
@@ -54,6 +60,10 @@ type Props = {
   lead: string;
   /** Two to five disciplines, each with its photograph. */
   items: Item[];
+  /** The site's one accent word: where it first stands in the headline (the lead, then the cycling words) it is set in
+   * the pairing's italic accent face (--face-accent), as the Statement and the Close set it. A word the headline does
+   * not hold changes nothing. */
+  accent?: string;
   /** One short line at the foot of the type side. */
   line?: string;
   link: { href: string; label: string };
@@ -121,8 +131,10 @@ function veilFor(under: number, ink: number, veilS: number): number {
   return hi;
 }
 
-export function HeroSplit({ name, lead, items, line, link, photo = "right", variant = "naad", className = "" }: Props) {
+export function HeroSplit({ name, lead, items, accent, line, link, photo = "right", variant = "naad", className = "" }: Props) {
   const root = useRef<HTMLElement>(null);
+  // The headline is the lead and the cycling words: the accent is marked where it first stands in that order.
+  const [leadShown, ...wordsShown] = accentLines([lead, ...items.map((item) => item.word)], accent);
   const left = photo === "left";
   const flat = variant === "liggend";
   const opening = variant === "opening";
@@ -242,7 +254,8 @@ export function HeroSplit({ name, lead, items, line, link, photo = "right", vari
       gsap.set(rise, { y: 0, yPercent: shown ? 0 : 115 });
       el.dataset.ready = "";
       const refit = () => fit(true);
-      document.fonts?.ready.then(() => {
+      // The accent face too, when a word is marked: the fit measures the italic as it will stand.
+      document.fonts?.ready.then(() => accentFaceReady(el)).then(() => {
         refit();
         ScrollTrigger.refresh();
       });
@@ -514,11 +527,11 @@ export function HeroSplit({ name, lead, items, line, link, photo = "right", vari
         wide.removeEventListener("change", onWide);
       };
     },
-    { scope: root, dependencies: [variant] },
+    { scope: root, dependencies: [variant, accent] },
   );
 
   const mask = (child: React.ReactNode, key?: number | string) => (
-    <span key={key} className="struq-line-mask block overflow-hidden">
+    <span key={key} className="struq-line-mask block">
       <span data-rise="" className="block">
         {child}
       </span>
@@ -530,12 +543,12 @@ export function HeroSplit({ name, lead, items, line, link, photo = "right", vari
     <>
       {mask(
         <span data-fit="" className="inline-block whitespace-nowrap">
-          {lead}
+          {leadShown}
         </span>,
         `${copy}-lead`,
       )}
       {mask(
-        <span data-fit="" className="struq-line-mask inline-grid overflow-hidden whitespace-nowrap align-top">
+        <span data-fit="" className="struq-line-mask inline-grid whitespace-nowrap align-top">
           {items.map((item, i) => (
             <span
               key={item.word}
@@ -544,7 +557,7 @@ export function HeroSplit({ name, lead, items, line, link, photo = "right", vari
               className="[grid-area:1/1]"
               style={i === 0 ? undefined : { transform: `translateY(${AWAY}%)` }}
             >
-              {item.word}
+              {wordsShown[i]}
             </span>
           ))}
         </span>,
@@ -556,7 +569,7 @@ export function HeroSplit({ name, lead, items, line, link, photo = "right", vari
   // Lying down the headline stands on the seam (58% down) and the seam cuts the cycling word through its middle.
   const headClass = `font-display absolute ${
     flat ? "top-[calc(58%-1.45em)]" : "bottom-[calc(5vh+5.5rem)]"
-  } leading-[0.92] tracking-[-0.035em] text-[length:var(--hsp-size,9vw)] px-[4vw] left-0`;
+  } leading-[0.92] tracking-[-0.035em] text-[length:var(--hsp-size,9vw)] px-sheet-margin left-0`;
 
   const grid = flat
     ? "md:grid-cols-1 md:grid-rows-[58fr_42fr]"
@@ -612,7 +625,7 @@ export function HeroSplit({ name, lead, items, line, link, photo = "right", vari
           Lying down, the name, the line and the link share one row at the foot. */}
       <div
         data-type=""
-        className={`row-start-2 flex flex-col justify-between gap-8 px-6 pb-8 pt-7 md:px-[4vw] md:pb-[5vh] md:pt-[4vh] ${
+        className={`row-start-2 flex flex-col justify-between gap-8 px-sheet-margin pb-8 pt-7 md:pb-[5vh] md:pt-[4vh] ${
           flat ? "md:col-start-1 md:row-start-2 md:flex-row md:items-end" : `md:row-start-1 ${left ? "md:col-start-2" : "md:col-start-1"}`
         }`}
       >

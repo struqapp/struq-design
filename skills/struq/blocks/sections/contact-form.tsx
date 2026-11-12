@@ -379,7 +379,7 @@ export function ContactForm({
       <p
         className={`font-display ${size === "display" ? "text-[clamp(2.5rem,1.1rem+4.6vw,6rem)] leading-[1.02]" : "text-h2"} tracking-[-0.02em]`}
       >
-        <span className="struq-line-mask block overflow-hidden">
+        <span className="struq-line-mask block">
           <span data-cf-rise="" className="block">
             {firstName ? `Dank je, ${firstName}.` : "Dank je."}
           </span>

@@ -1,0 +1,426 @@
+{
+  "source": {
+    "repo": "Struq blocks/film/arcs.ts",
+    "ref": "origin/main",
+    "commit": "95e54a2"
+  },
+  "ARC_RULES": [
+    "A loud scene moves with the scroll (a pin, a scrub, a reveal to full bleed); a quiet scene is type and a photo that enter once and sit still. Tag a scene (loud) when the block's energy is 2 or more, (quiet) at 1 or less or for an own scene.",
+    "Pick the language by the client's sector. Another language only when the brief asks for that feel in its own words; then quote those words on the Language line. The idea may pick another motif of the six.",
+    "preloader-gate is neutral by default (a hairline ring an accent arc fills once, or the client's own marks); its leader dial (dial=\"leader\" with marks 3, 2, 1) is for a film client only.",
+    "The header is header-bar:quiet or :settle; sections say their ground with data-bar-tone.",
+    "Each arc is loud only at the opening, the centerpiece and at most one gentle scene with a quiet scene on each side. Swap at most one scene; a block the user names goes in first.",
+    "The Statement is the first type moment: an own scene, one sentence at 12 to 16vw with SplitHeadline, still. Only the Statement and the Close are type alone: every other own scene sets a photo (MediaFrame) beside its type on the 12 column grid, so a quiet scene is composed, never empty."
+  ],
+  "FILM_ARCS": [
+    {
+      "language": "weight",
+      "scenes": [
+        {
+          "name": "Arrival",
+          "tag": "frame",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [
+            "preloader-stack"
+          ],
+          "own": false,
+          "note": "The print lands on the hero photo."
+        },
+        {
+          "name": "Opening",
+          "tag": "loud",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [
+            "hero-framed:wand",
+            "hero-framed:portret",
+            "hero-still:frame",
+            "hero-still:still"
+          ],
+          "own": false,
+          "note": "A short hold. Calmer: hero-still:still (quiet)."
+        },
+        {
+          "name": "Statement",
+          "tag": "quiet",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [],
+          "own": true,
+          "kit": "Statement",
+          "note": "Own scene: one sentence at 12 to 16vw with SplitHeadline, still."
+        },
+        {
+          "name": "About",
+          "tag": "loud",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [
+            "about-studio:wandeling",
+            "about-studio:plaat"
+          ],
+          "own": true,
+          "kit": "PhotoText",
+          "note": "The gentle loud scene. about-studio:plaat is a full-bleed reveal; or a quiet own scene."
+        },
+        {
+          "name": "Approach",
+          "tag": "quiet",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [
+            "approach:schuif"
+          ],
+          "own": true,
+          "kit": "Rows",
+          "note": "Or an own scene of hairline rows."
+        },
+        {
+          "name": "Centerpiece",
+          "tag": "loud",
+          "tone": [
+            "ink"
+          ],
+          "blocks": [
+            "image-to-fullbleed",
+            "grid-assembly",
+            "zoom-through",
+            "project-stack"
+          ],
+          "own": false,
+          "note": "project-stack only with real projects."
+        },
+        {
+          "name": "Release",
+          "tag": "quiet",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [],
+          "own": true,
+          "kit": "PhotoText",
+          "note": "Own scene, a photo and a short text."
+        },
+        {
+          "name": "Close",
+          "tag": "quiet",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [],
+          "own": true,
+          "kit": "Close",
+          "footer": [
+            "wordmark-finale"
+          ],
+          "note": "Own scene echoing the opening, type only after a full-bleed centerpiece."
+        }
+      ]
+    },
+    {
+      "language": "cut",
+      "scenes": [
+        {
+          "name": "Arrival",
+          "tag": "frame",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [
+            "preloader-slices"
+          ],
+          "own": false,
+          "note": "Its caption from the lexicon."
+        },
+        {
+          "name": "Opening",
+          "tag": "loud",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [
+            "hero-poster",
+            "hero-index:lijst",
+            "hero-index:venster",
+            "hero-split:naad",
+            "hero-split:liggend"
+          ],
+          "own": false,
+          "note": "hero-poster in poster type; quiet: hero-index:lijst, :venster, hero-split:naad, :liggend."
+        },
+        {
+          "name": "Work",
+          "tag": "quiet",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [
+            "hover-list",
+            "image-trail",
+            "reveals:clip"
+          ],
+          "own": false,
+          "note": "After hero-index, already a list, reveals:clip."
+        },
+        {
+          "name": "Statement",
+          "tag": "quiet",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [],
+          "own": true,
+          "kit": "Statement",
+          "note": "Own scene: one sentence at 12 to 16vw with SplitHeadline, still."
+        },
+        {
+          "name": "Centerpiece",
+          "tag": "loud",
+          "tone": [
+            "ink"
+          ],
+          "blocks": [
+            "split-pair",
+            "panel-wipe",
+            "project-stack",
+            "fanned-cards",
+            "film-strip"
+          ],
+          "own": false,
+          "note": "film-strip for film clients."
+        },
+        {
+          "name": "Release",
+          "tag": "quiet",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [
+            "fill-rows"
+          ],
+          "own": true,
+          "kit": "Rows",
+          "note": "Or an own scene of hairline rows."
+        },
+        {
+          "name": "Close",
+          "tag": "quiet",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [
+            "cta-closing:pointer"
+          ],
+          "own": true,
+          "ownFirst": true,
+          "kit": "Close",
+          "footer": [
+            "footer-contact"
+          ],
+          "note": "Type only in an own scene, or cta-closing:pointer."
+        }
+      ]
+    },
+    {
+      "language": "curtain",
+      "scenes": [
+        {
+          "name": "Arrival",
+          "tag": "frame",
+          "tone": [
+            "field",
+            "ink"
+          ],
+          "blocks": [
+            "preloader-gate",
+            "preloader-wordmark:split"
+          ],
+          "own": false,
+          "note": "The gate opens on its lit line onto the opening, its dial neutral; or preloader-wordmark:split, the name parting on its line."
+        },
+        {
+          "name": "Opening",
+          "tag": "loud",
+          "tone": [
+            "field",
+            "ink"
+          ],
+          "blocks": [
+            "hero-opener",
+            "background-aurora",
+            "background-silk",
+            "background-facets",
+            "hero-still:horizon"
+          ],
+          "own": false,
+          "note": "hero-opener or a background block, the line at poster scale; calmer, hero-still:horizon (quiet)."
+        },
+        {
+          "name": "Statement",
+          "tag": "quiet",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [],
+          "own": true,
+          "kit": "Statement",
+          "note": "Own scene: one sentence at 12 to 16vw with SplitHeadline, still."
+        },
+        {
+          "name": "Details",
+          "tag": "loud",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [
+            "sticky-chapters",
+            "panel-accordion"
+          ],
+          "own": false,
+          "note": "The gentle loud scene, or quiet panel-accordion: the programme, places and dates given."
+        },
+        {
+          "name": "Build",
+          "tag": "quiet",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [],
+          "own": true,
+          "kit": "PhotoText",
+          "note": "Own scene, who makes it."
+        },
+        {
+          "name": "Centerpiece",
+          "tag": "loud",
+          "tone": [
+            "ink"
+          ],
+          "blocks": [
+            "scrub-connector",
+            "zoom-through",
+            "manifesto-scrub",
+            "panel-wipe"
+          ],
+          "own": false,
+          "note": "The one centerpiece, on ink."
+        },
+        {
+          "name": "Release",
+          "tag": "quiet",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [],
+          "own": true,
+          "kit": "PhotoText",
+          "note": "Own scene, a photo and a short text."
+        },
+        {
+          "name": "Close",
+          "tag": "quiet",
+          "tone": [
+            "paper"
+          ],
+          "blocks": [
+            "cta-closing:pointer"
+          ],
+          "own": false,
+          "footer": [
+            "footer-reveal"
+          ],
+          "note": "The line returning. Footer footer-reveal, the curtain closing."
+        }
+      ]
+    }
+  ],
+  "FILM_BUDGETS": [
+    "Exactly one centerpiece; nothing pins after it. The opening holds at most 1.5 screens, all pins together about 4.5.",
+    "Never two loud scenes side by side. At least four in ten scenes are quiet.",
+    "Every frame from the site's language. A page transition only when the site has more than one route.",
+    "Install only what the storyboard names, plus the header and the language's menu.",
+    "One motif on the page. At most two full-bleed photo reveals, built the same way.",
+    "At most one marquee (cta-closing:marquee, velocity-type) and one custom cursor. An accent face, if loaded, sets one word of the h1 and returns in the close.",
+    "A block with a live clock goes without it unless the lexicon is about time: wordmark-finale without timeZone, header-bar:quiet or :settle, never :split. hero-still, footer-contact and menu-curtain always tick: at most one of them on the page, and it is the one clock.",
+    "Two or three type moments at poster scale (12 to 20vw) on the page; everything else from the scale.",
+    "Labels: no eyebrows above headings, no mono, no uppercase labels, no numbered steps. A small sentence-case label in the body face may sit beside a headline in the margin column or under a photo, in words from the lexicon."
+  ],
+  "FILM_HEADER": [
+    "header-bar:quiet",
+    "header-bar:settle"
+  ],
+  "FILM_LANGUAGES": [
+    {
+      "id": "weight",
+      "for": [
+        "architecture",
+        "hotels",
+        "craft",
+        "interiors"
+      ],
+      "feel": "photographic and slow; a print grows into place; long holds",
+      "frames": {
+        "preloader": "preloader-stack",
+        "pageTransition": "page-transition-stack",
+        "menu": "menu-curtain:stack"
+      },
+      "motifs": [
+        "frame"
+      ],
+      "ground": "Paper throughout, ink at the centerpiece."
+    },
+    {
+      "id": "cut",
+      "for": [
+        "fashion",
+        "agencies",
+        "portfolios",
+        "music"
+      ],
+      "feel": "hard cuts, short masks, no fades, short holds",
+      "frames": {
+        "preloader": "preloader-slices",
+        "pageTransition": "page-transition-slices",
+        "menu": "menu-curtain:slices"
+      },
+      "motifs": [
+        "cut",
+        "word"
+      ],
+      "ground": "Paper and ink in hard alternation, never a fade."
+    },
+    {
+      "id": "curtain",
+      "for": [
+        "campaigns",
+        "launches",
+        "events",
+        "culture"
+      ],
+      "feel": "a light line, panels part, a long hold before the reveal",
+      "frames": {
+        "preloader": "preloader-gate",
+        "preloaderAlternative": "preloader-wordmark:split",
+        "pageTransition": "page-transition-gate",
+        "menu": "menu-curtain:gate"
+      },
+      "motifs": [
+        "line",
+        "aperture"
+      ],
+      "ground": "Field or ink at the opening, paper between, ink at the centerpiece."
+    }
+  ],
+  "KIT_SCENES": [
+    "Statement",
+    "PhotoText",
+    "Rows",
+    "Close"
+  ]
+}

@@ -354,12 +354,13 @@ export function PanelAccordion({ title, items, className = "" }: Props) {
               className="absolute bottom-0 left-[-1px] w-[calc(100%+2px)] bg-surface-0 group-focus-visible:shadow-[inset_0_2px_0_var(--focus,var(--accent))]"
             >
               <div className="grid items-start px-4 pb-4 pt-3 md:px-5 md:pb-5 md:pt-4">
-                <span className="block overflow-hidden [grid-area:1/1]">
+                {/* Two shared line masks in one cell; the big one carries the name's size, so its room is the name's. */}
+                <span className="struq-line-mask block [grid-area:1/1]">
                   <span data-small="" className="text-small block whitespace-nowrap">
                     {item.title}
                   </span>
                 </span>
-                <span className="block overflow-hidden pb-[0.14em] [grid-area:1/1]">
+                <span className="struq-line-mask block text-h3 [grid-area:1/1] md:text-[clamp(2.5rem,1rem_+_3.6vw,5.5rem)]">
                   <span data-big="" className="flex flex-col items-start gap-2 md:gap-3" style={{ transform: "translateY(115%)" }}>
                     <span
                       data-name=""

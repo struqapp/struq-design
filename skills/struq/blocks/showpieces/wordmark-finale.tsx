@@ -69,6 +69,8 @@ export function WordmarkFinale({ name, line, place, timeZone, children, classNam
         const split = SplitText.create(el, {
           type: "chars",
           mask: "chars",
+          // The shared mask (blocks.css): room for accents and descenders in every face.
+          charsClass: "struq-char",
           onSplit(self) {
             return gsap.from(self.chars, {
               yPercent: 105,
@@ -87,7 +89,7 @@ export function WordmarkFinale({ name, line, place, timeZone, children, classNam
   );
 
   return (
-    <footer ref={root} data-showpiece="wordmark-finale" className={`overflow-hidden bg-surface-0 px-6 pb-6 pt-24 md:px-[3vw] ${className}`}>
+    <footer ref={root} data-showpiece="wordmark-finale" className={`overflow-hidden bg-surface-0 px-sheet-margin pb-6 pt-24 ${className}`}>
       <div className="flex flex-col gap-6 border-t border-line pt-6 md:flex-row md:items-end md:justify-between">
         {line ? <p className="font-display text-h3 max-w-[24ch]">{line}</p> : <span />}
         {children}

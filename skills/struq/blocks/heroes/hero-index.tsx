@@ -22,6 +22,10 @@
 //
 // <HeroIndex items={[{ title: "Olijfhof", place: "Alentejo", year: "2025", image: images.hero[2], href: "/werk/olijfhof" }, ...]} />
 //
+// `accent` (optional) is the site's one accent word: the names are this hero's headline, and where the word first
+// stands in one of them it is set in the pairing's italic accent face, inside the name's mask, as the Statement and
+// the Close set the same word. Left out, or in no name, the list is exactly as it was.
+//
 // The photo box carries data-stack-target, so preloader-stack and page-transition-stack land on the first photograph.
 // Keyboard: focus swaps like hover; one focus ring, on the link. Phones and touch: the list over the first photograph,
 // a tap follows the link. Reduced motion: swaps are hard cuts, no drift, the names simply stand. Without scripts: the
@@ -37,6 +41,7 @@
 //   Reduced motion: the same stretches, cuts instead of wipes.
 import Image from "next/image";
 import { useRef } from "react";
+import { accentLines } from "../kit/accent";
 import { ScrollTrigger, gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances, type PhotoBox } from "../kit/photo-read";
@@ -62,6 +67,9 @@ type Props = {
   side?: Side;
   /** Five or six projects; the first is the photograph at rest. */
   items: Item[];
+  /** The site's one accent word: where it first stands in the list of names it is set in the pairing's italic accent
+   * face (--face-accent), as the Statement and the Close set it. A word no name holds changes nothing. */
+  accent?: string;
   /** The composition; the first is the default. */
   variant?: HeroIndexVariant;
   className?: string;
@@ -101,6 +109,8 @@ const WIPE = 0.85;
 const RETURN = 0.45;
 
 const FINE = "(hover: hover) and (pointer: fine) and (min-width: 1024px)";
+/** A name's size, set on the name and on its mask (the mask's room for accents and descenders is in its own em). */
+const NAME_SIZE = "text-[min(11.5vw,7.6svh)] md:text-[min(clamp(2.75rem,1rem_+_5.2vw,7.5rem),8.4svh)]";
 
 const linear = (c: number) =>
   c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
@@ -162,8 +172,12 @@ function texture(
   return Math.sqrt(at(ys, 0.75)) - Math.sqrt(at(ys, 0.25));
 }
 
-export function HeroIndex({ items, side, variant = "lijst", className = "" }: Props) {
+export function HeroIndex({ items, side, accent, variant = "lijst", className = "" }: Props) {
   const root = useRef<HTMLElement>(null);
+  const names = accentLines(
+    items.map((item) => item.title),
+    accent,
+  );
   // Over a photograph the names need a measured ink; in the window they stand on the ground.
   const overPhoto = variant !== "venster";
   const walks = variant === "doorlopen";
@@ -236,9 +250,12 @@ export function HeroIndex({ items, side, variant = "lijst", className = "" }: Pr
         return rows.map((row) => {
           const name = row.querySelector<HTMLElement>("[data-name]")!;
           const meta = row.querySelector<HTMLElement>("[data-meta]")!;
-          const mask = row
-            .querySelector<HTMLElement>(".struq-line-mask")!
-            .getBoundingClientRect();
+          // Where the line stands: the mask's box less its room for accents and descenders (blocks.css), read as
+          // laid out, so the rise in flight does not move it.
+          const maskEl = row.querySelector<HTMLElement>(".struq-line-mask")!;
+          const box = maskEl.getBoundingClientRect();
+          const cs = getComputedStyle(maskEl);
+          const mask = { top: box.top + parseFloat(cs.paddingTop), bottom: box.bottom - parseFloat(cs.paddingBottom) };
           const range = document.createRange();
           range.selectNodeContents(name);
           const g = range.getBoundingClientRect();
@@ -745,8 +762,10 @@ export function HeroIndex({ items, side, variant = "lijst", className = "" }: Pr
   // The window stands on the side away from the list: wide screens beside it, phones above it.
   const windowBox =
     listSide === "left"
-      ? "absolute inset-x-6 top-6 h-[38svh] overflow-hidden md:inset-x-auto md:top-[7svh] md:bottom-[7svh] md:left-[54vw] md:right-[4vw] md:h-auto"
-      : "absolute inset-x-6 top-6 h-[38svh] overflow-hidden md:inset-x-auto md:top-[7svh] md:bottom-[7svh] md:left-[4vw] md:right-[54vw] md:h-auto";
+      ? // sheet-allow: the window's inner edge at 54vw leaves the list its half
+        "absolute inset-x-sheet-margin top-6 h-[38svh] overflow-hidden md:inset-x-auto md:top-[7svh] md:bottom-[7svh] md:left-[54vw] md:right-sheet-margin md:h-auto"
+      : // sheet-allow: the window's inner edge at 54vw leaves the list its half
+        "absolute inset-x-sheet-margin top-6 h-[38svh] overflow-hidden md:inset-x-auto md:top-[7svh] md:bottom-[7svh] md:left-sheet-margin md:right-[54vw] md:h-auto";
 
   return (
     <section
@@ -797,8 +816,8 @@ export function HeroIndex({ items, side, variant = "lijst", className = "" }: Pr
         aria-label="Werk"
         className={
           walks
-            ? "absolute inset-0 z-10 flex flex-col items-center justify-center px-6 md:px-[4vw]"
-            : "absolute inset-x-0 bottom-0 z-10 px-6 pb-[7svh] md:px-[4vw] md:pb-[6svh]"
+            ? "absolute inset-0 z-10 flex flex-col items-center justify-center px-sheet-margin"
+            : "absolute inset-x-0 bottom-0 z-10 px-sheet-margin pb-[7svh] md:pb-[6svh]"
         }
       >
         <ul
@@ -817,7 +836,9 @@ export function HeroIndex({ items, side, variant = "lijst", className = "" }: Pr
                 href={item.href}
                 className="group/row block w-fit rounded-[0.15rem] py-[0.2svh] outline-offset-[0.35rem] transition-opacity duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-current group-data-[active]/list:not-data-[current]:opacity-80"
               >
-                <span className="struq-line-mask block overflow-x-visible overflow-y-clip">
+                {/* The shared line mask carries the name's size, so its room is the name's; leading 0 keeps the
+                    line box to the name and its place line. */}
+                <span className={`struq-line-mask block leading-[0] ${NAME_SIZE}`}>
                   <span data-rise="" className="block">
                     {/* The place line stands right-aligned under its name. */}
                     <span
@@ -826,9 +847,9 @@ export function HeroIndex({ items, side, variant = "lijst", className = "" }: Pr
                     >
                       <span
                         data-name=""
-                        className="font-display whitespace-nowrap text-[min(11.5vw,7.6svh)] leading-[0.98] tracking-[-0.035em] md:text-[min(clamp(2.75rem,1rem_+_5.2vw,7.5rem),8.4svh)]"
+                        className={`font-display whitespace-nowrap leading-[0.98] tracking-[-0.035em] ${NAME_SIZE}`}
                       >
-                        {item.title}
+                        {names[i]}
                       </span>
                       <span
                         data-meta=""

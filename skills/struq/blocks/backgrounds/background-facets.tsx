@@ -8,8 +8,12 @@
 // and one link sit on the calm side, where the surface lies flat and is the page ground itself. The surface lies flat
 // into the ground over the bottom fifth of the hero, so the hand-over to the next section has no seam.
 //
-// <BackgroundFacets variant="shard" lines={["Ruimte die", "licht vangt"]}
+// <BackgroundFacets variant="shard" lines={["Ruimte die", "licht vangt"]} accent="licht"
 //   lead="Noord ontwerpt woningen en ateliers in Rotterdam." link={{ label: "Bekijk het werk", href: "#werk" }} />
+//
+// `accent` (optional) is the site's one accent word: where it first stands in the two lines it is set in the pairing's
+// italic accent face, inside its line's mask, and the type's rect is measured again once that face is in. The
+// Statement and the Close carry the same word. Left out, or not in the lines, the hero is exactly as it was.
 //
 // Variants (different compositions and moves of the same surface, each in light and dark):
 //   shard   a few cut shards standing apart in the right third, each a pyramid of unequal planes on its own
@@ -40,6 +44,7 @@
 // 2D canvas. No scripts: the composed
 // hero on the plain ground (blocks.css, "--- background-facets ---", with the 3 s fallback for the lines).
 import { useEffect, useRef } from "react";
+import { accentFaceReady, accentLines } from "../kit/accent";
 import { gsap } from "../kit/gsap";
 import { whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
@@ -68,6 +73,9 @@ type Props = {
   variant?: FacetsVariant;
   /** Two short display lines. */
   lines: [string, string];
+  /** The site's one accent word: where it first stands in the two lines it is set in the pairing's italic accent face
+   * (--face-accent), as the Statement and the Close set it. A word the lines do not hold changes nothing. */
+  accent?: string;
   /** One lead sentence. */
   lead: string;
   /** One text link. */
@@ -980,7 +988,7 @@ function toRGB(probe: CanvasRenderingContext2D, color: string): RGB {
   return [r / 255, g / 255, b / 255];
 }
 
-export function BackgroundFacets({ variant = "shard", lines, lead, link, className = "" }: Props) {
+export function BackgroundFacets({ variant = "shard", lines, accent, lead, link, className = "" }: Props) {
   const root = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -1216,8 +1224,8 @@ export function BackgroundFacets({ variant = "shard", lines, lead, link, classNa
     const frameEl = el.closest("[data-blocks]");
     if (frameEl) mo.observe(frameEl, { attributes: true, attributeFilter: ["style", "class", "data-theme"] });
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme", "style"] });
-    // The face arriving late moves the type: measure its rect again.
-    document.fonts?.ready.then(() => {
+    // The face arriving late moves the type: measure its rect again (with the accent face in, when a word is marked).
+    document.fonts?.ready.then(() => accentFaceReady(el)).then(() => {
       if (gone) return;
       measure();
       if (!raf) render();
@@ -1248,7 +1256,7 @@ export function BackgroundFacets({ variant = "shard", lines, lead, link, classNa
   }, [variant]);
 
   const mask = (child: React.ReactNode, key?: number) => (
-    <span key={key} className="struq-line-mask block overflow-hidden pb-[0.06em]">
+    <span key={key} className="struq-line-mask block">
       <span data-rise="" className="block">
         {child}
       </span>
@@ -1265,7 +1273,7 @@ export function BackgroundFacets({ variant = "shard", lines, lead, link, classNa
     >
       <canvas ref={canvasRef} data-bf-canvas="" aria-hidden="true" className="absolute inset-0 h-full w-full" />
       <div data-copy="" className="absolute">
-        <h1 className="m-0 font-display leading-[0.95] tracking-[-0.03em]">{lines.map((line, i) => mask(line, i))}</h1>
+        <h1 className="m-0 font-display leading-[0.95] tracking-[-0.03em]">{accentLines(lines, accent).map((line, i) => mask(line, i))}</h1>
         <div className="mt-6 md:mt-8">
           {/* Full ink: the muted ink measures about 4:1 on the lightest grounds, short of 4.5 for body text. */}
           {mask(<span className="text-body block max-w-[40ch] text-ink">{lead}</span>)}

@@ -10,7 +10,9 @@
 // CSS sections that belong only to blocks that are not admitted. It writes:
 //
 //   skills/struq/blocks/            the files, laid out as in Struq, so the relative imports hold
-//   skills/struq/blocks/catalog.json and CATALOG.md   the generated catalogue the skill reads
+//   skills/struq/blocks/catalog.json and CATALOG.md   the generated catalogue the skill reads, film fields included
+//   skills/struq/blocks/film.json   blocks/film/arcs.ts: the three languages and their arcs, every export by name
+//   skills/struq/scripts/film-check.mjs   Struq's blocks/film/film-check.mjs verbatim, for check.mjs
 //   skills/struq/canon/canon.json   palettes, pairings, font weights and providers, for canon.mjs offline
 //   plugin/                         the lean Claude plugin, through scripts/build-plugin.mjs
 //
@@ -32,6 +34,7 @@ const struq = resolve(opt("--struq", join(repo, "..", "StruqMain", "StruqVisual"
 const ref = opt("--ref", "staging");
 const OUT = join(repo, "skills", "struq", "blocks");
 const CANON_OUT = join(repo, "skills", "struq", "canon");
+const FILM_OUT = join(repo, "skills", "struq", "scripts", "film-check.mjs");
 
 const git = (...a) => execFileSync("git", ["-C", struq, ...a], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
 const show = (path) => git("show", `${ref}:${path}`);
@@ -49,6 +52,14 @@ const { BLOCKS } = await load("blocks/catalog.ts");
 const { CANON_PALETTES } = await load("lib/canon/palettes.ts");
 const { CANON_TYPOGRAPHY } = await load("lib/canon/typography.ts");
 const { FONT_WEIGHTS, FONT_SOURCES } = await load("lib/canon/font-sources.ts");
+// The film check resolves a block's film fields per variant; the catalogue lines below use the same resolution, so
+// what CATALOG.md says a variant does is what the check will hold it to.
+const FILM_CHECK = "blocks/film/film-check.mjs";
+const { resolveBlock } = await load(FILM_CHECK);
+// The three languages and their arcs, as data: blocks.mjs arc prints a storyboard skeleton from them. Every value the
+// module exports goes into film.json under its export name, so nothing is reshaped between Struq and the skill.
+const FILM_ARCS = "blocks/film/arcs.ts";
+const arcs = Object.fromEntries(Object.entries(await load(FILM_ARCS)));
 rmSync(tmp, { recursive: true, force: true });
 
 // --- the closure of a block: every file it reaches by relative import -------------------------------------------
@@ -101,6 +112,12 @@ function packagesOf(files) {
 
 // --- the admitted set -----------------------------------------------------------------------------------------
 const admitted = BLOCKS.filter((b) => b.status === "admitted");
+// A block without a role cannot be cast into a film: the plan check and the film check would read it as nothing.
+const roleless = admitted.filter((b) => typeof b.role !== "string" || !b.role).map((b) => b.slug);
+if (roleless.length) {
+  console.error(`Refused: ${roleless.length} admitted block(s) at ${ref} have no film role: ${roleless.join(", ")}. Give each a role in blocks/catalog.ts first.`);
+  process.exit(1);
+}
 const notAdmitted = new Set(BLOCKS.filter((b) => b.status !== "admitted").map((b) => b.slug));
 const kitFiles = [...tree].filter((f) => f.startsWith("blocks/kit/"));
 
@@ -118,6 +135,21 @@ const entries = admitted
       does: b.does,
       reference: b.reference ?? null,
       variants: (b.variants ?? []).map(({ id, title, does }) => ({ id, title, does })),
+      // The film fields describe the default variant; byVariant carries what the other variants change, as Struq
+      // writes it, because scripts/film-check.mjs resolves a variant from exactly these.
+      role: b.role,
+      home: b.home ?? null,
+      motif: b.motif ?? "neutral",
+      metaphor: b.metaphor ?? null,
+      energy: b.energy ?? 0,
+      pins: b.pins === true,
+      scroll: b.scroll ?? 0,
+      fullBleed: b.fullBleed === true,
+      interactions: b.interactions ?? [],
+      // The prop that turns the block's live clock on (`clock`, or `timeZone` on wordmark-finale); every clock is off
+      // without it, and the film check counts a clock only where the page passes this prop.
+      clockProp: b.clockProp ?? null,
+      byVariant: b.byVariant ?? {},
       packages: [...packages].sort(),
       exports: [...new Set(exports)],
       file: b.file,
@@ -154,6 +186,33 @@ for (const path of [...everyFile].sort()) {
 const source = { repo: "Struq blocks/", ref, commit };
 writeFileSync(join(OUT, "catalog.json"), `${JSON.stringify({ source, blocks: entries }, null, 2)}\n`);
 
+// The film check, verbatim: check.mjs runs it on the plan and on the built page. It has no imports, so it runs as is.
+writeFileSync(FILM_OUT, show(FILM_CHECK));
+
+// The languages and arcs, verbatim from blocks/film/arcs.ts, each export under its own name.
+writeFileSync(join(OUT, "film.json"), `${JSON.stringify({ source: { repo: "Struq blocks/film/arcs.ts", ref, commit }, ...arcs }, null, 2)}\n`);
+
+// One greppable film line per block, and a second one only when a variant changes its energy or its pins.
+const pinsOf = (f) => (f.pins ? f.scroll : 0);
+function filmLines(e) {
+  const base = resolveBlock(entries, e.slug, e.variants[0]?.id);
+  const lines = [
+    `film: role ${base.role} · home ${base.home ?? "none"} · motif ${base.motif} · energy ${base.energy} · pins ${pinsOf(base)} · ${base.interactions.join(", ") || "none"}${base.clockProp ? ` · clock by prop ${base.clockProp}` : ""}`,
+  ];
+  const differ = e.variants
+    .slice(1)
+    .map((v) => {
+      const f = resolveBlock(entries, e.slug, v.id);
+      const parts = [];
+      if (f.energy !== base.energy) parts.push(`energy ${f.energy}`);
+      if (pinsOf(f) !== pinsOf(base)) parts.push(`pins ${pinsOf(f)}`);
+      return parts.length ? `${v.id} ${parts.join(" ")}` : null;
+    })
+    .filter(Boolean);
+  if (differ.length) lines.push(`film variants: ${differ.join("; ")}`);
+  return lines;
+}
+
 const LABEL = {
   preloader: "Preloaders",
   "page-transition": "Page transitions",
@@ -179,7 +238,7 @@ for (const kind of KIND_ORDER) {
   if (!group.length) continue;
   md.push(`## ${LABEL[kind]}`, "");
   for (const e of group) {
-    md.push(`### ${e.slug}`, "", `${e.title}. ${e.does}`, "");
+    md.push(`### ${e.slug}`, ...filmLines(e), "", `${e.title}. ${e.does}`, "");
     if (e.variants.length) {
       md.push(`Variants (\`variant\`, the first is the default):`);
       for (const v of e.variants) md.push(`- \`${v.id}\`: ${v.does}`);

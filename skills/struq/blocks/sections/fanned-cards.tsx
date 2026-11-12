@@ -407,10 +407,11 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
   // `js` in a client project and `sq-js` on struq.nl.
   const gate =
     "lg:motion-safe:[.js_&]:invisible lg:motion-safe:[.sq-js_&]:invisible lg:motion-safe:animate-[struq-show_0s_3s_forwards]";
-  // Masks clip only top and bottom, so a wide face never loses the end of a word.
-  const mask = "struq-line-mask block overflow-x-visible overflow-y-clip";
-  const display =
-    "font-display block w-fit whitespace-nowrap text-[length:calc(var(--d)*var(--fit,1))] leading-[0.92] tracking-[-0.04em]";
+  // The shared line mask (blocks.css): it clips only top and bottom, with room for accents and descenders measured
+  // in its own em, so each mask carries the size of the line it holds.
+  const mask = "struq-line-mask block";
+  const size = "text-[length:calc(var(--d)*var(--fit,1))]";
+  const display = `font-display block w-fit whitespace-nowrap ${size} leading-[0.92] tracking-[-0.04em]`;
   // A soft shadow made from the ground itself, deeper than the ground in light and dark palettes alike.
   const shadow =
     "0 2px 6px oklch(from var(--surface-0) calc(l * 0.3) c h / 0.3), 0 36px 64px -28px oklch(from var(--surface-0) calc(l * 0.22) c h / 0.62)";
@@ -427,13 +428,13 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
         data-type=""
         className={`relative z-0 px-6 lg:static lg:px-0 ${gate}`}
       >
-        <span className={`${mask} lg:absolute lg:left-[4vw] lg:top-[5svh]`}>
+        <span className={`${mask} ${size} lg:absolute lg:left-[4vw] lg:top-[5svh]`}>
           <span data-rise="" data-line-one="" className={display}>
             {title}
           </span>
         </span>
         {accent ? (
-          <span className={`${mask} ml-auto w-fit lg:absolute lg:bottom-[4svh] lg:right-[4vw]`}>
+          <span className={`${mask} ${size} ml-auto w-fit lg:absolute lg:bottom-[4svh] lg:right-[4vw]`}>
             <span
               data-line-two=""
               className={`${display} font-accent font-light italic tracking-[-0.03em]`}
@@ -523,7 +524,7 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
               } ${lead0 ? "lg:w-[min(34svh,26vw)]" : ""} ${gate}`}
               style={pos as React.CSSProperties}
             >
-              <span className={mask}>
+              <span className={`${mask} text-h3 ${lead0 ? "lg:text-[clamp(2rem,1rem_+_1.7vw,3rem)]" : ""}`}>
                 <span
                   data-cap-line=""
                   className={`font-display block text-h3 text-ink hyphens-auto ${
@@ -533,9 +534,12 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
                   {item.title}
                 </span>
               </span>
-              <span className={`${mask} mt-1.5`}>
-                <span data-cap-line="" className="block text-small text-ink-muted">
-                  {item.text}
+              {/* The spacing sits on a plain wrapper: the mask's own negative margins would cancel it. */}
+              <span className="mt-1.5 block">
+                <span className={`${mask} text-small`}>
+                  <span data-cap-line="" className="block text-small text-ink-muted">
+                    {item.text}
+                  </span>
                 </span>
               </span>
             </div>

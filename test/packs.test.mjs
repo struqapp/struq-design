@@ -3,7 +3,8 @@
 // halide) and the alt filter that keeps a pack's off-subject photos out of a site.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fitImages, packForBrief } from '../skills/struq/scripts/packs.mjs';
+import { readFileSync } from 'node:fs';
+import { fitImages, packForBrief, wordMatches } from '../skills/struq/scripts/packs.mjs';
 
 test('a sector word picks its pack, as whole words', () => {
   assert.equal(packForBrief('Zout, een visrestaurant in Amsterdam-Noord'), 'proof');
@@ -62,4 +63,54 @@ test('a pack the brief does not point at only keeps photos whose alt shares the 
 test('a sector pack keeps its photos as before', () => {
   const { fit } = fitImages('proof', 'Zout, een visrestaurant', proofImages);
   assert.equal(fit, 'full');
+});
+
+// why: a Haiku build for an architecture studio ended with one photo. "architectenstudio" did not
+// read as architecture, so the brief got halide; with datum named by hand, 23 of its 24 photos were
+// left out because their alts did not repeat a word of the brief. The fixture is datum's live alts.
+const kadeBrief = 'Atelier Kade, een kleine architectenstudio in Utrecht (drie mensen) die woonhuizen en verbouwingen van oude panden ontwerpt';
+const datumImages = JSON.parse(readFileSync(new URL('./fixtures/datum-pack.json', import.meta.url), 'utf8'));
+
+test('Dutch and English compounds and inflections reach their sector', () => {
+  for (const b of ['architectenstudio', 'architectenbureau', 'architectuurstudio', 'architect', 'Architects in Leeds']) assert.equal(packForBrief(b), 'datum', b);
+  assert.equal(packForBrief(kadeBrief), 'datum');
+  assert.equal(packForBrief('Een boetiekhotel in Gent'), 'portico');
+  assert.equal(packForBrief('Een modelabel uit Amsterdam'), 'bolt');
+  assert.equal(packForBrief('Een koffiebranderij in Gent'), 'proof');
+  assert.equal(packForBrief('Een keramiekatelier'), 'vitrine');
+});
+
+test('short stems match only whole words, and a stem never matches a lookalike', () => {
+  assert.equal(wordMatches('smart', 'art'), false);
+  assert.equal(wordMatches('art', 'art'), true);
+  assert.equal(wordMatches('modern', 'mode'), false);
+  assert.equal(wordMatches('moderne', 'mode'), false);
+  assert.equal(packForBrief('Een moderne website voor een smart home app'), 'halide');
+});
+
+// why: the stem rule read everyday words as a sector: "zorgvuldig" (careful) sent a brief to the care pack and
+// "natuurlijk" (natural) to the nature pack. A short stoplist, the same as the MCP's, is checked before the stem.
+test('everyday words that hold a sector stem never pick a pack, and true compounds still do', () => {
+  assert.equal(wordMatches('zorgvuldig', 'zorg'), false);
+  assert.equal(wordMatches('zorgvuldige', 'zorg'), false);
+  assert.equal(wordMatches('natuurlijk', 'natuur'), false);
+  assert.equal(wordMatches('natuurlijke', 'natuur'), false);
+  assert.equal(wordMatches('kunstmatig', 'kunst'), false);
+  assert.equal(wordMatches('zorg', 'zorg'), true);
+  assert.equal(packForBrief('Een zorgvuldig gemaakte website'), 'halide');
+  assert.equal(packForBrief('Natuurlijk licht en een kunstmatig gazon'), 'halide');
+  assert.equal(packForBrief('Een architectenstudio in Delft'), 'datum');
+  assert.equal(packForBrief('Een boetiekhotel in Gent'), 'portico');
+  assert.equal(packForBrief('Een koffiebranderij in Gent'), 'proof');
+});
+
+test('the Duin brief still picks a hospitality or coast pack', () => {
+  const pack = packForBrief('Bouw een website voor Duin, een boetiekhotel met twaalf kamers achter de duinen bij Bergen aan Zee.');
+  assert.ok(['portico', 'brume'].includes(pack), pack);
+});
+
+test('the Kade brief keeps the datum photos', () => {
+  const { keep, fit } = fitImages('datum', kadeBrief, datumImages);
+  assert.equal(fit, 'full');
+  assert.ok(keep.length >= 12, `kept ${keep.length}`);
 });

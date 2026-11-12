@@ -48,10 +48,10 @@ step: append only, one entry per step with what you did and why.
 ```
 ## Build checklist
 - [ ] 1 Project: Next.js App Router + Tailwind v4
-- [ ] 2 Direction and approval: palette, pairing, pack and the block order in STRUQ.md; the one stop sent and answered
+- [ ] 2 Treatment and approval: the treatment and storyboard in STRUQ.md within the budgets; the one stop sent and answered
 - [ ] 3 Canon: struq_richting's token block and fonts written
 - [ ] 4 Images: only photos whose alt fits the client, placed with their alt and calm side
-- [ ] 5 Blocks: every block on the order taken with struq_blok and composed in app/page.tsx with real copy
+- [ ] 5 Scenes: frames and the centerpiece taken with struq_blok, every other scene built as the storyboard says, composed in app/page.tsx with real copy
 - [ ] 6 Build: the project's production build passes
 - [ ] 7 Look: 390 and 1440 screenshots and one full scroll, fixes made (or "Verify: not seen, no browser")
 - [ ] 8 Check: struq_controle's detectors find no FAIL
@@ -61,31 +61,45 @@ step: append only, one entry per step with what you did and why.
 create one (create-next-app with TypeScript, Tailwind and the App Router) or create it with their approval. Your own
 layout and stylesheet stay; merge the setup lines from `struq_blok` into them.
 
-**2 Direction and the one stop.** Call `struq_richting` with the brief in the user's words; never invent a palette or
+**2 Treatment and the one stop.** Call `struq_richting` with the brief in the user's words; never invent a palette or
 pairing while the canon has one that fits. Palette by the brief's mood, then its sector; a cool palette (blue, purple,
 teal) only for a brand that is that colour, declared as `Cool hue: declared because <brand colour>`. The brand's own
 colours and faces beat the canon: write them into the same token names. Pairing by temperament: Fraunces
 (serif-editorial) warm and premium, Newsreader literate, Sora calm and architectural, Urbanist soft and current, Bodoni
 Moda for fashion, Big Shoulders (condensed-poster) for a campaign at poster scale, Unbounded for a wide agency voice;
-ask again with `palette` or `type` to change one. Then choose the order (below) and write the top of STRUQ.md:
+ask again with `palette` or `type` to change one. Then pick the language, cast the brief into its arc (The film,
+below; swap at most one scene; a block the user names goes in first) and write the treatment at the top of STRUQ.md,
+every line filled:
 
 ```
 # STRUQ.md: <name>
 Brief: <one line: what, for whom, where>
-Idea: <the one idea the site is about>
+Idea: <one sentence the whole site is about>
+Language: <weight | cut | curtain>
+Motif: <line | frame | aperture | cut | word | field>: <what it is in this client's world and how it changes down the page>
+Lexicon: <three to five words or numbers from the client's own world; every label, counter and caption uses these, never film or studio jargon the client does not own>
 Palette: <id> (<mood>)
 Type: <pairing id>: <display> + <body>
 Images: pack <id> (or the client's photos, then pack <id>)
-Order: <block slug:variant>, <block slug:variant>, ...
+Centerpiece: <block>: <why this is this site's one moment>
+Tone arc: <ground per scene, for example paper, paper, paper, ink, paper, field>
+Storyboard:
+1. Arrival   (frame)  <preloader of the language> | lands on: <what>
+2. Opening   (loud)   <block:variant> | on screen: <...> | enters: <...> | hands over: <...>
+3. <scene>   (quiet)  <block:variant or "own scene"> | on screen: <...> | enters: <...> | hands over: <...>
+...
+N. Close     (quiet)  <block or own scene> | echoes the opening: <how> | footer: <block>
 Assumptions: <every drafted line and every fact left out>
 Verify: <filled in at step 7>
 ```
 
-Then **stop once**, in the user's language: the plan in five lines (idea, palette, type, pack, order) and
-"Akkoord? Heb je een logo, foto's of echte cijfers, stuur ze nu." (English: "Approve? If you have a logo, photos or
-real numbers, send them now."). The build request is not the approval. Log the reply word for word. Any yes builds
-the plan; what they send replaces the matching pick; a veto changes only what it names. Never ask a second time. When
-no pack shows the client's own product, add: "Ik heb geen foto's van je <product>: stuur ze, dan komen ze in de hero."
+Then **stop once**, in the user's language, and show the treatment, never a list of block slugs: idea, language,
+motif and centerpiece in plain words; the storyboard as numbered lines, one sentence each of what the visitor sees;
+palette, type and pack on one line; then "Akkoord? Heb je een logo, foto's of echte cijfers, stuur ze nu." (English:
+"Approve? If you have a logo, photos or real numbers, send them now."). The build request is not the approval. Log
+the reply word for word. Any yes builds the treatment; what they send replaces the matching pick; a veto changes only
+what it names. Never ask twice. When no pack shows the client's product, add: "Ik heb geen foto's van je <product>:
+stuur ze, dan komen ze in de hero."
 
 **3 Canon.** Write `struq_richting`'s token block after the `blocks.css` import in `app/globals.css`, in place of any
 earlier token block, and load every font URL it returns in the layout. Never drop a weight it asks for: each URL
@@ -97,17 +111,18 @@ width, height and calm side together in `lib/struq-images.ts`, in the shape the 
 `components/struq/kit/images.ts`). With no fitting pack, use no stock photos and let a background block carry the
 hero. Set the title, description and `lang` in the layout.
 
-**5 Blocks.** Take each block on the order with `struq_blok(slug, variant)`, install the packages it names, read its
-props and usage, and compose `app/page.tsx` with the brief's real copy. When several blocks each bring `blocks.css`,
-keep one file with the kit base once and every block's marked sections. Glue between blocks uses the kit (`Reveal`,
-`MediaFrame`, `SplitHeadline`, `MagneticButton`) and the craft rules, never a fresh motion system.
+**5 Scenes.** Take the language's frames and the centerpiece first with `struq_blok(slug, variant)`, then each scene
+as its storyboard line says; install the packages each names and read its props and usage. Fill every label, counter
+and caption from the lexicon; wrap the tone arc's ink or field scenes in `scene-inverse` or `scene-field`. When
+several blocks each bring `blocks.css`, keep one file with the kit base once and every block's marked sections. Own
+scenes and glue use the kit (`Reveal`, `MediaFrame`, `SplitHeadline`) and the craft rules.
 
 **6 to 8.** The production build passes (fix your code, never delete a block to get green). Look at the production
 build at 390 and 1440 and scroll it once: the preloader lands on the hero, every frame fills, each pin engages and
 releases without a jump, nothing overflows at 390, scrolling back reverses. Never claim you saw what you did not. Then
 run `struq_controle`'s detectors on your files until nothing fails.
 
-<!-- section: The order of a studio site -->
+<!-- section: The film -->
 
 <!-- section: What makes it feel high end -->
 

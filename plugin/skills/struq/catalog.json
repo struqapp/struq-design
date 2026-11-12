@@ -2,7 +2,7 @@
   "source": {
     "repo": "Struq blocks/",
     "ref": "origin/main",
-    "commit": "a2b7d56"
+    "commit": "95e54a2"
   },
   "tool": "struq_blok(slug, variant)",
   "blocks": [
@@ -38,7 +38,7 @@
       "slug": "preloader-stack",
       "kind": "preloader",
       "title": "Preloader: the stack",
-      "does": "The first paint is the page's ground with the client's name, a quiet count and the first print in a small portrait frame; five or six prints cut inside that frame, each held shorter than the last, ending on the hero's own photo, and the frame then grows to the hero image's exact place and crop (the page marks it data-stack-target) so the cover becomes the hero with no seam, within 2.4 seconds of the first paint, once per session (helper: preloaders/preloader-slices-uncovered.ts).",
+      "does": "The first paint is the page's ground with the client's name, a quiet count and the first print in a small portrait frame; five or six prints cut inside that frame, each held shorter than the last, ending on the hero's own photo, and the frame then grows to the hero image's exact place and crop (the page marks it data-stack-target) so the cover becomes the hero with no seam, within 2.4 seconds of the first paint, once per session.",
       "reference": "Kinetic Studio and Lowlight for pacing and the counter (v4vision/projects/kinetic-studio/index.html, Opus55/build/template.html); the grow follows image-to-fullbleed's numeric clip.",
       "variants": [],
       "packages": [
@@ -50,7 +50,7 @@
       "slug": "preloader-slices",
       "kind": "preloader",
       "title": "Preloader: the slices",
-      "does": "The first paint is a dark cover cut into four vertical slices (three on phones), already composed: the client's name large, a caption, a hairline and the count at 000; the count runs to 100 in one move, then the slices drop away left to right, each carrying its strip of the name and count down and off behind a 5px accent edge, uncovering the page from the top onto its own entrance, within 2.4 seconds of the first paint, once per session (helper: preloaders/preloader-slices-uncovered.ts).",
+      "does": "The first paint is a dark cover cut into four vertical slices (three on phones), already composed: the client's name large, a caption, a hairline and the count at 000; the count runs to 100 in one move, then the slices drop away left to right, each carrying its strip of the name and count down and off behind a 5px accent edge, uncovering the page from the top onto its own entrance, within 2.4 seconds of the first paint, once per session.",
       "reference": "Kinetic Studio, the counter preloader whose four slices lift away (v4vision/projects/kinetic-studio/index.html, script near line 879).",
       "variants": [],
       "packages": [
@@ -62,7 +62,7 @@
       "slug": "preloader-gate",
       "kind": "preloader",
       "title": "Preloader: the gate",
-      "does": "The first paint is a shut gate with a whole film-leader dial and one figure; only the sweep moves, counting 3, 2, 1 on an eased count that waits for the fonts and the hero image, then the line through the middle lights and the two bars open top and bottom onto the hero, by 2.4 seconds from the first paint, once per session.",
+      "does": "The first paint is a shut gate with a hairline ring on its middle line; an accent arc fills the ring on an eased count that waits for the fonts and the hero image (cutting through the client's own marks, one per beat, when given), then the line through the middle lights and the two bars open top and bottom onto the hero, by 2.4 seconds from the first paint, once per session (helper: preloaders/preloader-slices-uncovered.ts).",
       "reference": "Lowlight (Opus55/build/template.html): the leader countdown and the bars that open as a gate onto the hero (CSS line 143, markup line 600, initLoader line 1024).",
       "variants": [],
       "packages": [
@@ -100,7 +100,7 @@
       "slug": "page-transition-gate",
       "kind": "page-transition",
       "title": "Page transition: the gate",
-      "does": "On every navigation, back button included, the preloader's bars close carrying the two halves of a slate (the dial and the destination's name), lock into one frame as the line and the dial light, hold while the route changes, then split the name and open onto the finished page, 0.9 seconds door to door.",
+      "does": "On every navigation, back button included, the preloader's bars close carrying the two halves of a frame (a hairline ring and the destination's name), lock into one as the line and the ring light, hold while the route changes, then split the name and open onto the finished page, 0.9 seconds door to door (helper: preloaders/preloader-slices-uncovered.ts).",
       "reference": "Lowlight (Opus55/build/template.html): the gate of its loader, carried over to navigation so the site arrives and moves in one voice.",
       "variants": [],
       "packages": [
@@ -113,7 +113,7 @@
       "slug": "header-bar",
       "kind": "header",
       "title": "Header: the bar",
-      "does": "A fixed bar with the wordmark Noord, four links and one quiet text action, its ink changing per pixel at the edges of the sections under it, taking the ground once the page scrolls and keeping the hero's type clear; it hides and returns with the scroll and rolls each label, lands a large hero wordmark in the bar, or carries centred links, Rotterdam's live time and a progress rule; on phones it collapses to the wordmark and one Menu link.",
+      "does": "A fixed bar with the wordmark Noord, four links and one quiet text action, its ink changing per pixel at the edges of the sections under it, taking the ground once the page scrolls and keeping the hero's type clear; it hides and returns with the scroll and rolls each label, lands a large hero wordmark in the bar, or carries centred links, the studio's place (its live time only with clock) and a progress rule; on phones it collapses to the wordmark and one Menu link.",
       "reference": "Lowlight's header (Opus55/build/template.html: the three-part header grid with its time near line 170, the roll mask near line 131), Kinetic Studio's nav-link underline (kinetic-studio/index.html near line 95), and the menu curtain's ink split on data-bar-tone.",
       "variants": [
         {
@@ -129,7 +129,7 @@
         {
           "id": "split",
           "title": "De gedeelde balk",
-          "does": "Wordmark left, links centred with a line gliding under the hovered one, Rotterdam's live time and the action right, and a thin rule filling with the page's progress."
+          "does": "Wordmark left, links centred with a line gliding under the hovered one, the studio's place (its live time only with clock) and the action right, and a thin rule filling with the page's progress."
         }
       ],
       "packages": [
@@ -141,7 +141,7 @@
       "slug": "menu-curtain",
       "kind": "header",
       "title": "Menu: the curtain",
-      "does": "A minimal bar (wordmark Noord, one button that rolls Menu to Sluiten) whose ink changes exactly at the edge of the section under it, opening a full-screen menu as a curtain in the gate, slices or stack language: five large links rise through masks, the hovered or focused link shows its decoded photo on the calm side, and a foot line carries the contact address and Rotterdam local time; it closes the same way reversed, a close overtaken by an open turns round, and the page under it is held still and inert while it is open.",
+      "does": "A minimal bar (wordmark Noord, one button that rolls Menu to Sluiten) whose ink changes exactly at the edge of the section under it, opening a full-screen menu as a curtain in the gate, slices or stack language: five large links rise through masks, the hovered or focused link shows its decoded photo on the calm side, and a foot line carries the contact address and the place of the studio (its live local time only with clock); it closes the same way reversed, a close overtaken by an open turns round, and the page under it is held still and inert while it is open.",
       "reference": "Lowlight's menu curtain (Opus55/build/template.html: .menu CSS near line 210, initMenu near line 1606), carried into the gate, slices and stack page transitions, with the bar's ink split exactly at section edges.",
       "variants": [
         {
@@ -254,7 +254,7 @@
       "slug": "hero-still",
       "kind": "hero",
       "title": "Hero: full-bleed still",
-      "does": "One photograph with a title in three compositions: full bleed with a slow push-in and the headline on its measured calm side, held in a frame of page ground opening to full bleed by registration on the first scroll, or the headline split across the photo's horizon; the caption strip with place, live time and one link under all three, and preloaders land on its photo box.",
+      "does": "One photograph with a title in three compositions: full bleed with a slow push-in and the headline on its measured calm side, held in a frame of page ground opening to full bleed by registration on the first scroll, or the headline split across the photo's horizon; a caption strip with the place, one fact in the client's words (or, with clock, the live time) and one link under all three, and preloaders land on its photo box.",
       "reference": "Lowlight's hero (Opus55/build/template.html, the hero frame and content near lines 240 to 290): a film still with a title and a caption line.",
       "variants": [
         {
@@ -818,7 +818,7 @@
       "slug": "footer-contact",
       "kind": "footer",
       "title": "Footer: contact",
-      "does": "The page ends on the way to reach the studio: the mail address as a real link at display size (or a live clock, or a quiet three-column grid), the city's local time with an honest open marker computed from it, a phone line, the address and a few plain links, entering scrubbed to the scroll.",
+      "does": "The page ends on the way to reach the studio: the mail address as a real link at display size (or the city at display size, or a quiet three-column grid), the city and its opening hours, a phone line, the address and a few plain links, entering scrubbed to the scroll; with clock the city keeps its live local time with an honest open marker computed from it.",
       "reference": "Lowlight's contact footer and roll-host labels (Opus55/build/template.html), Kinetic Studio's footer mailto, and the slot-text roll from the FWA studio footers.",
       "variants": [
         {
@@ -829,7 +829,7 @@
         {
           "id": "clock",
           "title": "Klok",
-          "does": "A live Rotterdam clock at display size is the centre, its colon breathing once a second; mail, phone, address and hours stand around it like a timetable."
+          "does": "The city at display size is the centre (with clock, a live clock whose colon breathes once a second); mail, phone, address and hours stand around it like a timetable."
         },
         {
           "id": "columns",

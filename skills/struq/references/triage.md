@@ -9,6 +9,9 @@ The principle: **fix the execution, preserve the identity.** Type, spacing, surf
 motion, scaling, and icon misuse are execution, so they are fair game. Brand color, words,
 and the component foundation are identity, so leave them unless explicitly asked.
 
+A redesign writes a treatment too, with the kept sections as own scenes, and stops once for the user's approval as a
+build does: no block and no canon goes in before the reply is logged.
+
 ---
 
 ## Preserve by default: do NOT touch unless the user asks

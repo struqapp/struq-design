@@ -1,23 +1,27 @@
 "use client";
 // footer-contact (Struq footer recipe)
-// A footer whose hero is the way to reach the studio: the mail address as a real mailto link, the studio's city with
-// its live local time and a calm marker of whether the studio is open (computed from that time and the opening hours,
-// never invented), a phone line, the address, three or four plain links and a small foot line. Three compositions:
+// A footer whose hero is the way to reach the studio: the mail address as a real mailto link, the studio's city and
+// its opening hours, a phone line, the address, three or four plain links and a small foot line. With `clock` the city
+// also keeps its live local time and a calm marker of whether the studio is open (computed from that time and the
+// opening hours, never invented); without it nothing reads the time and the hours stand as plain text. One live clock
+// per site at most, so the clock is off unless asked. Three compositions:
 //
 // - address: the mail address is the footer's headline, set at the top and fitted to the width with the loaded face
 //   (on a phone it breaks at the @ when one line would set too small). Its characters roll up into their own slots
 //   from blank as the footer arrives, staggered across the width, and on hover or focus each rolls up again to the
 //   same character, staggered from the side the pointer came in. The details close the footer as one ruled line.
-// - clock: a large live clock for the studio's city is the centre, hours and minutes at display size, the colon
-//   breathing once a second and a changed digit rolling over on the minute (every digit in a slot as wide as the
-//   face's widest, so nothing shifts). The mail address leads the ruled rows under it, the phone, the address and the
-//   hours beneath it, like a timetable. Without scripts the slot holds the opening hours instead of a time.
+// - clock: the studio's city at display size is the centre, fitted to the width and sliding out of its mask. With
+//   `clock` it is a large live clock instead, hours and minutes at display size, the colon breathing once a second and
+//   a changed digit rolling over on the minute (every digit in a slot as wide as the face's widest, so nothing shifts);
+//   without scripts that slot holds the opening hours instead of a time. The mail address leads the ruled rows under
+//   it, the phone, the address and the hours beneath it, like a timetable.
 // - columns: a quiet editorial grid. A short closing line at display size, then three columns (Contact, Studio, Volg
 //   ons); the address is a link whose underline draws from the side the pointer came in. The most restrained.
 //
 // <FooterContact variant="address" studio="Noord" email="hallo@noord.studio" phone={{ label: "010 214 63 80",
 //   href: "tel:+31102146380" }} address={["Maashaven Noordzijde 12", "3072 AA Rotterdam"]} city="Rotterdam"
-//   timeZone="Europe/Amsterdam" hours={{ days: [1, 2, 3, 4, 5], from: "9:00", to: "18:00" }} links={[...]} foot="..." />
+//   hours={{ days: [1, 2, 3, 4, 5], from: "9:00", to: "18:00" }} links={[...]} foot="..." />
+// Add `clock timeZone="Europe/Amsterdam"` for the live time and the open marker.
 //
 // The entrance is scrubbed to the scroll over the footer's own arrival (from its top meeting the bottom of the screen
 // to its bottom meeting it), with 0.4 s of smoothing, so scrolling back runs it backwards and a flick never stacks
@@ -29,8 +33,8 @@
 // ---"); the fitted type stays unseen until it is measured with the face it is read in (capped), and refits when a face
 // lands or the width changes.
 //
-// The time is never rendered on the server: the first paint holds a stable placeholder (an unseen 00:00, an empty
-// marker) and the real time arrives after mount, so there is nothing to mismatch. It ticks on the minute.
+// With `clock` the time is never rendered on the server: the first paint holds a stable placeholder (an unseen 00:00,
+// an empty marker) and the real time arrives after mount, so there is nothing to mismatch. It ticks on the minute.
 // Reduced motion: the composed footer, no travel; the colon holds and the digits cut; hovers show a plain underline.
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import { gsap, ScrollTrigger, SplitText, useGSAP } from "../kit/gsap";
@@ -53,7 +57,10 @@ type Props = {
   /** The visiting address, one entry per line. */
   address: string[];
   city: string;
-  timeZone: string;
+  /** The city's live local time and the open marker computed from it. Off unless asked: one clock per site at most. */
+  clock?: boolean;
+  /** IANA zone for the clock. */
+  timeZone?: string;
   /** Opening hours: weekdays 1 (Monday) to 7 (Sunday), times as "9:00". */
   hours: { days: number[]; from: string; to: string };
   /** The closing line the columns variant opens with. */
@@ -145,10 +152,11 @@ function faceReady() {
   return Promise.race([fonts ?? Promise.resolve(), new Promise((res) => window.setTimeout(res, FONT_CAP))]);
 }
 
-/** The time now, only after mount (null on the server and the first paint), ticking on the minute. */
-function useNow() {
+/** The time now, only when `on` and only after mount (null on the server and the first paint), ticking on the minute. */
+function useNow(on: boolean) {
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
+    if (!on) return;
     let timer = 0;
     const tick = () => {
       const d = new Date();
@@ -166,8 +174,8 @@ function useNow() {
       window.clearTimeout(timer);
       document.removeEventListener("visibilitychange", onShow);
     };
-  }, []);
-  return now;
+  }, [on]);
+  return on ? now : null;
 }
 
 type Wall = { dow: number; h: number; m: number; hh: string; mm: string; date: string };
@@ -237,8 +245,9 @@ function OpenMark({ status }: { status: { open: boolean; text: string } | null }
   );
 }
 
-/** "Rotterdam 14:32": the city, and the local time once it is known (an unseen placeholder until then). */
-function CityTime({ city, wall }: { city: string; wall: Wall | null }) {
+/** "Rotterdam 14:32": the city, and with the clock its local time once it is known (an unseen placeholder until then). */
+function CityTime({ city, wall, clock }: { city: string; wall: Wall | null; clock: boolean }) {
+  if (!clock) return <span>{city}</span>;
   return (
     <span className="tabular-nums">
       {city}{" "}
@@ -309,7 +318,7 @@ function RollAddress({ email, parts, className = "", enter = false }: { email: s
                 </span>
               );
               return (
-                <span key={i} data-fc-ch="" style={{ "--d": `${((i / Math.max(1, total - 1)) * ROLL_SPAN).toFixed(3)}s` } as CSSProperties}>
+                <span key={i} data-fc-ch="" className="struq-char-mask" style={{ "--d": `${((i / Math.max(1, total - 1)) * ROLL_SPAN).toFixed(3)}s` } as CSSProperties}>
                   {enter ? <span data-fc-enter="">{roll}</span> : roll}
                 </span>
               );
@@ -355,7 +364,8 @@ export function FooterContact({
   phone,
   address,
   city,
-  timeZone,
+  clock = false,
+  timeZone = "Europe/Amsterdam",
   hours,
   line = "Zullen we een keer komen kijken?",
   links,
@@ -363,7 +373,7 @@ export function FooterContact({
   className = "",
 }: Props) {
   const root = useRef<HTMLElement>(null);
-  const now = useNow();
+  const now = useNow(clock);
   const { wall, status } = useWall(now, timeZone, hours);
   const known = wall !== null;
   const at = email.indexOf("@");
@@ -431,7 +441,7 @@ export function FooterContact({
       ro.disconnect();
       document.fonts?.removeEventListener?.("loadingdone", onFonts);
     };
-  }, [variant, email]);
+  }, [variant, email, city, clock]);
 
   // The clock refits once the real digits replace the placeholder.
   useEffect(() => {
@@ -661,42 +671,56 @@ export function FooterContact({
       <footer
         ref={root}
         data-footer-contact="clock"
-        className={`relative flex min-h-svh flex-col bg-surface-0 px-6 pb-6 pt-16 text-ink md:px-[3vw] md:pt-[10svh] ${className}`}
+        className={`relative flex min-h-svh flex-col bg-surface-0 px-sheet-margin pb-6 pt-16 text-ink md:pt-[10svh] ${className}`}
       >
         <div className="flex flex-wrap items-start justify-between gap-x-10 gap-y-4 text-body">
-          <p data-fc-soft="">
-            {studio}, {city}
-          </p>
-          <p data-fc-soft="" className="text-ink-muted">
-            <OpenMark status={status} />
-          </p>
+          <p data-fc-soft="">{clock ? `${studio}, ${city}` : studio}</p>
+          {clock ? (
+            <p data-fc-soft="" className="text-ink-muted">
+              <OpenMark status={status} />
+            </p>
+          ) : null}
         </div>
 
         <div className="flex flex-1 flex-col items-center justify-center py-[8svh]">
-          <p className="relative w-full text-center">
-            <span className="sr-only">{wall ? `Het is nu ${time} in ${city}.` : `De tijd in ${city}.`}</span>
-            <span aria-hidden data-fc-clock="" data-pending={known ? undefined : ""} className="font-display">
-              <span data-fc-hmask="">
-                <span data-fc-h="" className="block">
-                  {known ? digits(wall.hh) : "00"}
+          {clock ? (
+            <p className="relative w-full text-center">
+              <span className="sr-only">{wall ? `Het is nu ${time} in ${city}.` : `De tijd in ${city}.`}</span>
+              <span aria-hidden data-fc-clock="" data-pending={known ? undefined : ""} className="font-display">
+                <span data-fc-hmask="">
+                  <span data-fc-h="" className="block">
+                    {known ? digits(wall.hh) : "00"}
+                  </span>
+                </span>
+                <span data-fc-colon-wrap="">
+                  <span ref={colon} data-fc-colon="">
+                    :
+                  </span>
+                </span>
+                <span data-fc-mmask="">
+                  <span data-fc-m="" className="block">
+                    {known ? digits(wall.mm) : "00"}
+                  </span>
                 </span>
               </span>
-              <span data-fc-colon-wrap="">
-                <span ref={colon} data-fc-colon="">
-                  :
+              <noscript>
+                <span className="block font-display text-h2">{hoursText(hours)}</span>
+              </noscript>
+            </p>
+          ) : (
+            // Without the clock the city holds the centre at display size, sliding out of its mask as the hours do.
+            <p className="relative w-full text-center">
+              <span className="sr-only">{city}</span>
+              <span aria-hidden data-fc-clock="" className="font-display">
+                <span data-fc-hmask="">
+                  <span data-fc-h="" className="block">
+                    {city}
+                  </span>
                 </span>
               </span>
-              <span data-fc-mmask="">
-                <span data-fc-m="" className="block">
-                  {known ? digits(wall.mm) : "00"}
-                </span>
-              </span>
-            </span>
-            <noscript>
-              <span className="block font-display text-h2">{hoursText(hours)}</span>
-            </noscript>
-          </p>
-          <p data-fc-soft="" className="mt-4 text-body text-ink-muted">
+            </p>
+          )}
+          <p data-fc-soft="" hidden={!clock} className="mt-4 text-body text-ink-muted">
             <span data-fc-fade="" data-pending={known ? undefined : ""}>{wall ? cap(wall.date) : " "}</span>
           </p>
         </div>
@@ -717,7 +741,7 @@ export function FooterContact({
       <footer
         ref={root}
         data-footer-contact="columns"
-        className={`relative bg-surface-0 px-6 pb-6 pt-[14svh] text-ink md:px-[4vw] md:pt-[18svh] ${className}`}
+        className={`relative bg-surface-0 px-sheet-margin pb-6 pt-[14svh] text-ink md:pt-[18svh] ${className}`}
       >
         <h2 data-fc-split="" className="font-display max-w-[13ch] text-display">
           {line}
@@ -743,11 +767,13 @@ export function FooterContact({
               ))}
             </address>
             <p className="mt-4 text-body">
-              <CityTime city={city} wall={wall} />
+              <CityTime city={city} wall={wall} clock={clock} />
             </p>
-            <p className="mt-1 text-small text-ink-muted">
-              <OpenMark status={status} />
-            </p>
+            {clock ? (
+              <p className="mt-1 text-small text-ink-muted">
+                <OpenMark status={status} />
+              </p>
+            ) : null}
           </div>
           <div data-fc-soft="" className="md:col-span-2 md:col-start-11">
             <h3 className="text-small text-ink-muted">Volg ons</h3>
@@ -766,7 +792,7 @@ export function FooterContact({
     <footer
       ref={root}
       data-footer-contact="address"
-      className={`relative bg-surface-0 px-6 pb-6 pt-[14svh] text-ink md:px-[3vw] ${className}`}
+      className={`relative bg-surface-0 px-sheet-margin pb-6 pt-[14svh] text-ink ${className}`}
     >
       <div>
         <RollAddress email={email} parts={halves} enter className="font-display" />
@@ -778,8 +804,8 @@ export function FooterContact({
         </p>
         <p data-fc-soft="">{oneLine(address)}</p>
         <p data-fc-soft="" className="flex flex-wrap gap-x-4">
-          <CityTime city={city} wall={wall} />
-          <OpenMark status={status} />
+          <CityTime city={city} wall={wall} clock={clock} />
+          {clock ? <OpenMark status={status} /> : <span>{hoursText(hours)}</span>}
         </p>
         <div data-fc-soft="">{linkList("flex gap-x-5 text-ink")}</div>
         <p data-fc-soft="">{foot}</p>

@@ -1,12 +1,17 @@
 "use client";
 // page-transition-gate (Struq page transition): the gate, on every navigation
-// The preloader's leader carried into navigation. The click shuts the gate: two bars come in from
-// top and bottom, each carrying one half of a slate (the dial's rings and the destination's name in
-// the display face), while the page recedes behind them. The halves meet on the middle line and
-// lock into one frame: the line lights in the accent and an accent arc runs once round the dial.
-// The route changes under the locked frame. Then the gate opens on that line, the name and the
-// rings split in two and ride away with the bars, and the new page settles forward through it while
-// its own entrance (onGateReveal) starts in the gap.
+// The preloader's gate carried into navigation. The click shuts the gate: two bars come in from
+// top and bottom, each carrying one half of a frame (the dial and the destination's name in the
+// display face), while the page recedes behind them. The halves meet on the middle line and lock
+// into one frame: the line lights in the accent and an accent arc runs once round the dial. The
+// route changes under the locked frame. Then the gate opens on that line, the name and the dial
+// split in two and ride away with the bars, and the new page settles forward through it while its
+// own entrance starts in the gap.
+//
+// The words on the frame are the client's: the link's `label`, its text when short, else `name`.
+// The dial is neutral by default, one hairline ring round the name; `dial="leader"` draws the
+// preloader's film leader (two rings and a crosshair), which with the name makes a slate, the lab's
+// look; `dial="none"` leaves the name alone on the line.
 //
 // 0.00  click: the bars close (0.38s), the page behind recedes to 0.97
 // 0.30  the line lights from the centre; the arc runs round the dial (0.26s)
@@ -23,8 +28,11 @@
 //   <GateLink href="/werk" label="Werk">Bekijk het werk</GateLink>
 //   const router = useGateRouter(); router.push("/contact", "Contact");
 //
-// A page's own entrance: set its start state only while transitionCovers() is true and play it in
-// onGateReveal(), so it starts as the gate opens instead of half played under the shut frame.
+// The hand-over is the one every frame family uses (helper in preloaders/preloader-slices-uncovered.ts,
+// which ships with it): once the frame is locked <html> carries data-curtain="closed", and as the gate
+// starts to open the attribute goes and "curtain:lift" fires, so every Struq hero on the new page
+// waits behind the frame with no wiring. A page's own entrance does the same with whenUncovered;
+// transitionCovers() and onGateReveal() still work, and fire at the same moment.
 //
 // Back and forward get the same gate over the live page (canvases, video and a fixed header stay as
 // they are). The browser's traversal is undone at once with history.go, the gate shuts, and the
@@ -41,6 +49,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, type ComponentProps, type ReactNode } from "react";
 import { gsap, useGSAP } from "../kit/gsap";
 import { getLenis } from "../kit/SmoothScroll";
+import { closeCurtain, covered, liftCurtain, whenUncovered } from "../preloaders/preloader-slices-uncovered";
+
+export { whenUncovered };
 
 /** Fired on window when the gate starts to open on a new page. */
 export const GATE_REVEAL_EVENT = "struq:gate-reveal";
@@ -92,6 +103,10 @@ const store = {
   instant: false,
   landed: false,
   arriving: false,
+  /** This gate closed the shared curtain on <html> and owes the lift. */
+  curtain: false,
+  /** A lift owed by a provider torn down mid-journey; a provider that mounts again takes it back. */
+  pendingLift: 0,
   onCovered: null as (() => void) | null,
   gate: null as Gate | null,
   ceiling: null as gsap.core.Tween | null,
@@ -118,7 +133,7 @@ function entryKey() {
   return nav()?.currentEntry?.key ?? urlKey();
 }
 
-/** The slate's word for the entry `delta` steps from the page on screen. */
+/** The frame's word for the entry `delta` steps from the page on screen. */
 function labelAt(delta: number) {
   const entry = nav()?.entries?.()[store.index + delta];
   return (entry && store.labels.get(entry.key)) || store.name;
@@ -187,9 +202,21 @@ function undo(delta: number) {
   });
 }
 
-/** The cover reached the locked frame: run what waits on it, and open if the page has already landed. */
+/** The gate starts to open on the new page: the curtain lifts, so every entrance waiting on it starts in the gap. */
+function revealed() {
+  if (store.curtain) {
+    store.curtain = false;
+    liftCurtain();
+  }
+  window.dispatchEvent(new Event(GATE_REVEAL_EVENT));
+}
+
+/** The cover reached the locked frame: close the curtain, run what waits on it, open if the page has already landed. */
 function coverDone() {
   store.phase = "covered";
+  // Closed before the route is asked for, so the page that mounts under the frame finds it closed.
+  closeCurtain();
+  store.curtain = true;
   const next = store.onCovered;
   store.onCovered = null;
   next?.();
@@ -247,7 +274,7 @@ function arrive() {
   const gate = store.gate;
   if (!gate || gate.reduce || store.instant) {
     store.arriving = false;
-    window.dispatchEvent(new Event(GATE_REVEAL_EVENT));
+    revealed();
     finish();
     return;
   }
@@ -289,6 +316,8 @@ function finish() {
   store.phase = "idle";
   store.instant = false;
   store.passing = false;
+  // Never leave a closed curtain behind.
+  if (store.curtain) revealed();
   store.release?.();
   getLenis()?.start();
   if (store.after !== 0) {
@@ -298,7 +327,7 @@ function finish() {
   }
 }
 
-/** Starts a journey: the label goes on the slate, the gate shuts, `then` runs on the locked frame. */
+/** Starts a journey: the label goes on the frame, the gate shuts, `then` runs on the locked frame. */
 function begin(kind: "push" | "pop", label: string, then: (() => void) | null) {
   store.kind = kind;
   store.from = store.rendered || urlKey();
@@ -416,7 +445,7 @@ export function useGateRouter() {
   };
 }
 
-/** The name the slate shows for a link: its `label`, else its text when short, else the site's name. */
+/** The name the frame shows for a link: its `label`, else its text when short, else the site's name. */
 function linkLabel(a: HTMLAnchorElement, label?: string) {
   if (label) return label;
   const text = a.textContent?.trim() ?? "";
@@ -491,31 +520,41 @@ function UrlWatch({ onUrl }: { onUrl: (key: string) => void }) {
   return null;
 }
 
-/** One half of the slate: the full screen's leader, clipped by its bar, so the halves meet into one frame. */
-function Slate({ side }: { side: "top" | "bottom" }) {
+type Dial = "ring" | "leader" | "none";
+
+/** One half of the frame: the full screen's dial and name, clipped by its bar, so the halves meet into one frame. */
+function Frame({ side, dial }: { side: "top" | "bottom"; dial: Dial }) {
   const ring = "color-mix(in oklch, var(--on-gate) 46%, transparent)";
   const inner = "color-mix(in oklch, var(--on-gate) 30%, transparent)";
   const cross = "color-mix(in oklch, var(--on-gate) 24%, transparent)";
   return (
     <div className={`absolute inset-x-0 h-[200%] ${side === "top" ? "top-0" : "bottom-0"}`}>
       <div className="absolute left-1/2 top-1/2 aspect-square w-[min(64vw,22rem)] -translate-x-1/2 -translate-y-1/2">
-        <svg viewBox="0 0 200 200" className="absolute inset-0 size-full overflow-visible" fill="none">
-          <circle cx="100" cy="100" r="92" style={{ stroke: ring, strokeWidth: 0.8 }} />
-          <circle cx="100" cy="100" r="78" style={{ stroke: inner, strokeWidth: 0.7 }} />
-          <line x1="100" y1="-14" x2="100" y2="214" style={{ stroke: cross, strokeWidth: 0.7 }} />
-          <circle
-            data-arc=""
-            cx="100"
-            cy="100"
-            r="78"
-            pathLength={1}
-            strokeDasharray="1 1"
-            strokeDashoffset="1"
-            transform="rotate(-90 100 100)"
-            className="stroke-accent"
-            style={{ strokeWidth: 1.4 }}
-          />
-        </svg>
+        {dial === "none" ? null : (
+          <svg viewBox="0 0 200 200" className="absolute inset-0 size-full overflow-visible" fill="none">
+            {dial === "leader" ? (
+              <>
+                <circle cx="100" cy="100" r="92" style={{ stroke: ring, strokeWidth: 0.8 }} />
+                <circle cx="100" cy="100" r="78" style={{ stroke: inner, strokeWidth: 0.7 }} />
+                <line x1="100" y1="-14" x2="100" y2="214" style={{ stroke: cross, strokeWidth: 0.7 }} />
+              </>
+            ) : (
+              <circle cx="100" cy="100" r="78" style={{ stroke: ring, strokeWidth: 0.7 }} />
+            )}
+            <circle
+              data-arc=""
+              cx="100"
+              cy="100"
+              r="78"
+              pathLength={1}
+              strokeDasharray="1 1"
+              strokeDashoffset="1"
+              transform="rotate(-90 100 100)"
+              className="stroke-accent"
+              style={{ strokeWidth: 1.4 }}
+            />
+          </svg>
+        )}
         <div className="absolute inset-0 grid place-items-center">
           <span
             data-gate-label=""
@@ -529,11 +568,14 @@ function Slate({ side }: { side: "top" | "bottom" }) {
 
 export function PageTransitionGate({
   name = "",
+  dial = "ring",
   tone = "deep",
   children,
 }: {
-  /** The site's name: the slate's word when a journey has no label of its own. */
+  /** The site's name: the frame's word when a journey has no label of its own. */
   name?: string;
+  /** The drawing round the name: one ring (default), the film leader's two rings and crosshair (a slate), or none. */
+  dial?: Dial;
   tone?: "deep" | "inverse" | "field";
   /** Rendered as is, never wrapped: put the page content in GateStage. */
   children?: ReactNode;
@@ -547,6 +589,7 @@ export function PageTransitionGate({
     () => {
       const el = root.current;
       if (!el) return;
+      window.clearTimeout(store.pendingLift);
       const q = gsap.utils.selector(el);
       const [top, bottom] = q("[data-bar]");
       const lights = q("[data-light]");
@@ -608,7 +651,7 @@ export function PageTransitionGate({
             })
             .to(top, { yPercent: -100, duration: OPEN, ease: "power4.inOut" }, 0)
             .to(bottom, { yPercent: 100, duration: OPEN, ease: "power4.inOut" }, 0)
-            .call(() => window.dispatchEvent(new Event(GATE_REVEAL_EVENT)), [], 0.04);
+            .call(revealed, [], 0.04);
           // The page comes forward through the opening gate; its own tween, so the gate is free once open.
           const page = stage();
           if (page) {
@@ -649,6 +692,14 @@ export function PageTransitionGate({
         window.removeEventListener("scroll", record);
         history.scrollRestoration = previous;
         if (store.gate === gate) store.gate = null;
+        // Torn down with the curtain closed: lift it unless a provider mounts again and picks the journey up.
+        if (store.curtain) {
+          store.pendingLift = window.setTimeout(() => {
+            if (store.gate || !store.curtain) return;
+            store.curtain = false;
+            if (covered()) liftCurtain();
+          }, 0);
+        }
       };
     },
     { scope: root },
@@ -686,7 +737,7 @@ export function PageTransitionGate({
             data-bar={side}
             className={`absolute inset-x-0 h-1/2 overflow-hidden bg-[var(--gate)] ${side === "top" ? "top-0" : "bottom-0 shadow-[0_-1px_0_0_var(--gate)]"}`}
           >
-            <Slate side={side} />
+            <Frame side={side} dial={dial} />
             {/* The leading edge carries a hairline, so the bar reads on a page as dark as itself; when the frame
                 locks, the accent runs along it from the centre. */}
             <div
