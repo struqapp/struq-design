@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="https://struq.nl/skill">
+  <a href="https://struq.app/skill">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/banner-dark.svg">
       <img alt="Struq skill: studio-grade sites from the AI you already use." src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/banner-light.svg" width="100%">
@@ -12,13 +12,13 @@
 </p>
 
 <p align="center">
-  <a href="https://struq.nl/skill">Website</a>
+  <a href="https://struq.app/skill">Website</a>
   &nbsp;&middot;&nbsp;
   <a href="https://www.npmjs.com/package/@struq/skill">npm</a>
   &nbsp;&middot;&nbsp;
   <a href="skills/struq/blocks/CATALOG.md">The blocks</a>
   &nbsp;&middot;&nbsp;
-  <a href="https://struq.nl/iconen">Struq Icons</a>
+  <a href="https://struq.app/icons">Struq Icons</a>
   &nbsp;&middot;&nbsp;
   <a href="CHANGELOG.md">Changelog</a>
 </p>
@@ -206,9 +206,9 @@ The screenshot step uses whatever browser tool your agent has (Playwright or sim
 
 ## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/palette-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/palette-light.svg" width="26" height="26" alt=""></picture> The icons it reaches for
 
-Struq builds use [Struq Icons](https://struq.nl/iconen) by default: 182 icons in two tones, and each of the 118 full icons makes one small move under the cursor that says what it does. Every icon on this page is one of them.
+Struq builds use [Struq Icons](https://struq.app/icons) by default: 182 icons in two tones, and each of the 118 full icons makes one small move under the cursor that says what it does. Every icon on this page is one of them.
 
-<a href="https://struq.nl/iconen">
+<a href="https://struq.app/icons">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/npm/@struq/icons@1/readme/motion-dark.svg">
     <img alt="Eight Struq icons playing their hover motion: lock, delete, settings, mail, history, sound, hint, bug." src="https://cdn.jsdelivr.net/npm/@struq/icons@1/readme/motion-light.svg" width="100%">
@@ -227,12 +227,12 @@ The Struq skill is instructions, the block files and five small Node scripts (`b
 
 - **Blocks and canon** ship inside the skill. Nothing is fetched to install a block or write the tokens.
 - **Fonts** load from Google Fonts (or Fontshare, for a face that lives there) in the visitor's browser, as on any site with web fonts.
-- **Photos**, for every slot your own photos do not fill: `images.mjs` reads the public pack list at `https://struq.nl/api/media/packs` and downloads the chosen images from `https://struq.nl/media/packs/`. Offline it writes plates graded to your palette instead.
-- **The MCP**, if you connect it: your agent calls Struq's tools with your brief. Nothing else leaves your machine.
+- **Photos**, for every slot your own photos do not fill: `images.mjs` reads the public pack list at `https://struq.app/api/media/packs` and downloads the chosen images from `https://struq.app/media/packs/`, or from the same paths on the old domain when struq.app does not answer. Offline it writes plates graded to your palette instead.
+- **The MCP** (`https://struq.app/api/mcp`), if you connect it: your agent calls Struq's tools with your brief. Nothing else leaves your machine.
 - **The installer** downloads the package from npm, looks for your AI tools' folders in your home folder and copies the skill into them. It sends nothing.
 
 <br>
 
 ## License
 
-MIT. Made by [Struq](https://struq.nl).
+MIT. Made by [Struq](https://struq.app).

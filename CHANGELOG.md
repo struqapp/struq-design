@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.1 (unreleased)
+
+Struq moved to struq.app; the MCP is at https://struq.app/api/mcp. Old struq.nl links redirect.
+
+- If you connected the Struq MCP before, sign in once more: the plugin and every install snippet now point at
+  `https://struq.app/api/mcp`, and the old connection does not carry over.
+- `images.mjs` reads the packs from struq.app and falls back to struq.nl when struq.app gives a network error or a
+  non-2xx answer, so it works on either side of the move. Its output and `lib/struq-images.ts` keep their shape; the
+  credit links to struq.app/photos.
+- `check.mjs` flags hotlinked images on either domain and accepts a credit to struq.app/photos.
+- Every link to the website (README, plugin manifests, package metadata, the installer, the icons reference) points
+  at struq.app.
+
 ## 0.5.0 (2026-11-12)
 
 The film grammar. The skill plans a site as one film before it installs a block: one motion language, one idea, one

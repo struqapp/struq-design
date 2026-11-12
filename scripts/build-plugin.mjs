@@ -23,7 +23,7 @@ export const PLUGIN_DIR = join(repo, "plugin");
 const SKILL = join(repo, "skills", "struq");
 const SOURCE = join(repo, "scripts", "plugin");
 
-export const MCP_URL = "https://struq.nl/api/mcp";
+export const MCP_URL = "https://struq.app/api/mcp";
 
 // The fields the manifest may carry: the Claude Code plugins reference's metadata fields plus the directory listing
 // fields. The test holds plugin/ to this list.
@@ -101,13 +101,13 @@ export function buildPlugin() {
     version: pkg.version,
     description:
       "Award-tier studio sites for coding agents, built through the Struq MCP from Struq's admitted blocks: preloaders, page transitions, headers, heroes, WebGL backgrounds, showpieces, sections and footers, on Struq's palettes and type pairings, with a check against the AI tells.",
-    author: { name: "Struq", url: "https://struq.nl" },
-    homepage: "https://struq.nl",
+    author: { name: "Struq", url: "https://struq.app" },
+    homepage: "https://struq.app",
     repository: "https://github.com/struqapp/struq-design",
     license: pkg.license,
     keywords: ["design", "web-design", "gsap", "lenis", "three.js", "awwwards", "mcp", "skill"],
     icon: "./icon.png",
-    privacyPolicyUrl: "https://struq.nl/privacy-policy",
+    privacyPolicyUrl: "https://struq.app/privacy",
   };
   for (const key of Object.keys(manifest)) if (!MANIFEST_FIELDS.includes(key)) throw new Error(`plugin.json field ${key} is not allowed`);
   files.set(".claude-plugin/plugin.json", `${JSON.stringify(manifest, null, 2)}\n`);
