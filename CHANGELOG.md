@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.3 (2026-11-12)
+
+The skill itself is unchanged; this release carries the new README to npm.
+
+### Docs
+- The README is rebuilt around what the skill shows: an animated banner, the three with-and-without pairs with a
+  plain-words reveal under each, the blocks as a moving catalogue, and the reference material in collapsed sections.
+  Every image comes in a light and a dark version and loads from jsDelivr, because npm cannot show an SVG served
+  from raw.githubusercontent.com.
+- The blind-review counts are gone from the README for good.
+
 ## 0.4.2 (2026-11-10)
 
 Two bugs from the first Haiku build on 0.4.1, both past a passing check.
