@@ -103,7 +103,7 @@ export function buildPlugin() {
       "Award-tier studio sites for coding agents, built through the Struq MCP from Struq's admitted blocks: preloaders, page transitions, headers, heroes, WebGL backgrounds, showpieces, sections and footers, on Struq's palettes and type pairings, with a check against the AI tells.",
     author: { name: "Struq", url: "https://struq.nl" },
     homepage: "https://struq.nl",
-    repository: "https://github.com/struqnl/struq-design",
+    repository: "https://github.com/struqapp/struq-design",
     license: pkg.license,
     keywords: ["design", "web-design", "gsap", "lenis", "three.js", "awwwards", "mcp", "skill"],
     icon: "./icon.png",

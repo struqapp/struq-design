@@ -1,8 +1,8 @@
 <h1 align="center">
   <a href="https://struq.nl/skill">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/banner-dark.svg">
-      <img alt="Struq skill: studio-grade sites from the AI you already use." src="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/banner-light.svg" width="100%">
+      <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/banner-dark.svg">
+      <img alt="Struq skill: studio-grade sites from the AI you already use." src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/banner-light.svg" width="100%">
     </picture>
   </a>
 </h1>
@@ -45,7 +45,7 @@ It plans the site, stops once to show you the plan, and builds only after you sa
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/agents-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/agents-light.svg" width="26" height="26" alt=""></picture> Same brief, two agents
+## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/agents-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/agents-light.svg" width="26" height="26" alt=""></picture> Same brief, two agents
 
 Three briefs, each built twice by the same model with the same materials: once as a plain coding agent, once with `/struq`. Look at the left column first.
 
@@ -53,7 +53,7 @@ Three briefs, each built twice by the same model with the same materials: once a
 
 | Plain agent | With the Struq skill |
 |---|---|
-| ![Tidewater, built by a plain agent](https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/docs/compare/saas-plain.webp) | ![Tidewater, built with the Struq skill](https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/docs/compare/saas-struq.webp) |
+| ![Tidewater, built by a plain agent](https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/docs/compare/saas-plain.webp) | ![Tidewater, built with the Struq skill](https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/docs/compare/saas-struq.webp) |
 
 <details>
 <summary><b>Seen the left one before?</b></summary>
@@ -67,7 +67,7 @@ You have. It is the dark developer-tool template, item for item: the green glow,
 
 | Plain agent | With the Struq skill |
 |---|---|
-| ![Ana Ferreira, built by a plain agent](https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/docs/compare/ceramics-plain.webp) | ![Ana Ferreira, built with the Struq skill](https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/docs/compare/ceramics-struq.webp) |
+| ![Ana Ferreira, built by a plain agent](https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/docs/compare/ceramics-plain.webp) | ![Ana Ferreira, built with the Struq skill](https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/docs/compare/ceramics-struq.webp) |
 
 <details>
 <summary><b>Where did "12 restaurants" come from?</b></summary>
@@ -81,7 +81,7 @@ Nowhere. The brief gave no figures, no quote and no bio, and the plain agent wro
 
 | Plain agent | With the Struq skill |
 |---|---|
-| ![Vela Mono, built by a plain agent](https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/docs/compare/ebike-plain.webp) | ![Vela Mono, built with the Struq skill](https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/docs/compare/ebike-struq.webp) |
+| ![Vela Mono, built by a plain agent](https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/docs/compare/ebike-plain.webp) | ![Vela Mono, built with the Struq skill](https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/docs/compare/ebike-struq.webp) |
 
 <details>
 <summary><b>Both built a pinned 3D bike. So what is the difference?</b></summary>
@@ -95,13 +95,13 @@ Where the Struq skill still loses: craft. The plain builds aim lower and break l
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/layers-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/layers-light.svg" width="26" height="26" alt=""></picture> The blocks carry the motion
+## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/layers-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/layers-light.svg" width="26" height="26" alt=""></picture> The blocks carry the motion
 
 Your agent picks the direction, sets the order and writes the copy. The motion comes from Struq's own catalogue: 44 admitted blocks, each a real React file with three variants, working in light and dark.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/blocks-dark.webp">
-  <img alt="Six Struq blocks playing at once: a preloader, a hero, a page transition, a manifesto scrub, an image growing to full bleed and a WebGL background." src="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/blocks-light.webp" width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/blocks-dark.webp">
+  <img alt="Six Struq blocks playing at once: a preloader, a hero, a page transition, a manifesto scrub, an image growing to full bleed and a WebGL background." src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/blocks-light.webp" width="100%">
 </picture>
 
 <details>
@@ -126,11 +126,11 @@ Each one with its files, packages, props and variants: [the catalogue](skills/st
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/brush-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/brush-light.svg" width="26" height="26" alt=""></picture> What is in the skill
+## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/brush-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/brush-light.svg" width="26" height="26" alt=""></picture> What is in the skill
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/kit-dark.svg">
-  <img alt="Six parts: blocks, direction, photos, craft, a check, and the Struq MCP." src="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/kit-light.svg" width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/kit-dark.svg">
+  <img alt="Six parts: blocks, direction, photos, craft, a check, and the Struq MCP." src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/kit-light.svg" width="100%">
 </picture>
 
 <details>
@@ -152,7 +152,7 @@ Stack: Next.js App Router and Tailwind v4 (Vite by hand, see `references/stack-t
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/compass-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/compass-light.svg" width="26" height="26" alt=""></picture> How a build runs
+## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/compass-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/compass-light.svg" width="26" height="26" alt=""></picture> How a build runs
 
 - **Direction.** The site is planned as one film: a motion language (weight, cut or curtain), one idea, one motif, and a storyboard of scenes with the handovers between them. Then a palette, a type pairing and a photo pack from Struq's canon. All of it in one `STRUQ.md`, and no block goes in until that plan passes its own check.
 - **One stop.** It shows you that plan and asks once: approve it, and send a logo, photos or real numbers if you have them. It does not ask again.
@@ -170,7 +170,7 @@ In Codex the command is `$struq`; as a Claude Code plugin it is `/struq:struq`.
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/download-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/download-light.svg" width="26" height="26" alt=""></picture> Install
+## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/download-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/download-light.svg" width="26" height="26" alt=""></picture> Install
 
 ```bash
 npx @struq/skill@latest
@@ -188,13 +188,13 @@ npx @struq/skill@latest --claude
 npx @struq/skill@latest --project
 
 # with the open skills CLI, which knows 70+ agents
-npx skills add struqnl/struq-design -g
+npx skills add struqapp/struq-design -g
 ```
 
 As a Claude Code plugin (the command is then `/struq:struq`):
 
 ```text
-/plugin marketplace add struqnl/struq-design
+/plugin marketplace add struqapp/struq-design
 /plugin install struq@struq
 ```
 
@@ -204,7 +204,7 @@ The screenshot step uses whatever browser tool your agent has (Playwright or sim
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/palette-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/palette-light.svg" width="26" height="26" alt=""></picture> The icons it reaches for
+## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/palette-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/palette-light.svg" width="26" height="26" alt=""></picture> The icons it reaches for
 
 Struq builds use [Struq Icons](https://struq.nl/iconen) by default: 182 icons in two tones, and each of the 118 full icons makes one small move under the cursor that says what it does. Every icon on this page is one of them.
 
@@ -221,7 +221,7 @@ npm install @struq/icons
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/shield-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqnl/struq-design@main/assets/readme/h/shield-light.svg" width="26" height="26" alt=""></picture> What it fetches and sends
+## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/shield-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/shield-light.svg" width="26" height="26" alt=""></picture> What it fetches and sends
 
 The Struq skill is instructions, the block files and five small Node scripts (`blocks.mjs`, `canon.mjs`, `images.mjs`, `check.mjs`, `log.mjs`) that your agent runs in your project. They read and write files there, including a build log, `STRUQ-LOG.md`.
 

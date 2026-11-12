@@ -7,9 +7,9 @@
   "homepage": "https://struq.nl/skill",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/struqnl/struq-design.git"
+    "url": "git+https://github.com/struqapp/struq-design.git"
   },
-  "bugs": "https://github.com/struqnl/struq-design/issues",
+  "bugs": "https://github.com/struqapp/struq-design/issues",
   "keywords": [
     "agent-skill",
     "skills",

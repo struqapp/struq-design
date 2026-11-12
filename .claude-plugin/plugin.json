@@ -8,7 +8,7 @@
   },
   "homepage": "https://struq.nl",
   "privacyPolicyUrl": "https://struq.nl/privacy-policy",
-  "repository": "https://github.com/struqnl/struq-design",
+  "repository": "https://github.com/struqapp/struq-design",
   "license": "MIT",
   "keywords": ["design", "web-design", "gsap", "lenis", "three.js", "awwwards", "skill"]
 }
