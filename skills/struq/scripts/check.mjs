@@ -159,7 +159,7 @@ const plan = read("STRUQ.md");
     const pack = mod.match(/imagePack = "([^"]+)"/)?.[1] ?? "?";
     if (imageFit === "none" && !srcs.length) add(G, "PASS", `No photo of pack "${pack}" fits this brief (imageFit none): the opener carries the first screen, and the approval stop asks for photos`);
     else if (missing.length) add(G, "FAIL", `${missing.length} image(s) in ${libFile} are not on disk. Run images.mjs ${pack} again.`, missing);
-    else if (plates.length === srcs.length) add(G, "WARN", `struq.nl was unreachable: all ${srcs.length} images are fallback plates. Run images.mjs ${pack} again when online.`);
+    else if (plates.length === srcs.length) add(G, "WARN", `Struq was unreachable: all ${srcs.length} images are fallback plates. Run images.mjs ${pack} again when online.`);
     else if (plates.length) add(G, "WARN", `${plates.length} fallback plate(s) among the pack images. Run images.mjs ${pack} again when online.`, plates);
     else add(G, "PASS", `${srcs.length} beeldbank images from pack "${pack}", each a verified image file`);
     // An off-topic photo is worse than no photo: a pack the brief does not point at must show
@@ -234,13 +234,14 @@ const plan = read("STRUQ.md");
     { scope: own, exclude: /placeholder=["'{]/ },
   );
   const emptyFrames = hits(/<(div|figure|span)\b[^>]*(aspect-|aspectRatio)[^>]*(\/>|>\s*<\/(div|figure|span)>)/, { scope: own });
-  const hotlinks = hits(/https?:\/\/(www\.)?struq\.nl\/media\//, { scope: own });
+  // Both domains: struq.app is home, and struq.nl still serves the media for older installs.
+  const hotlinks = hits(/https?:\/\/(www\.)?struq\.(app|nl)\/media\//, { scope: own });
   if (placeholders.length || emptyFrames.length) {
     add(G, "FAIL", "Placeholder or empty frames. A Struq site never ships an empty frame: put a MediaFrame with a pack image in each.", [...placeholders, ...emptyFrames]);
   } else add(G, "PASS", "No placeholder or empty image frames");
-  if (hotlinks.length) add(G, "FAIL", "Hotlinked struq.nl images: download them with images.mjs and use the local /images/ path.", hotlinks);
+  if (hotlinks.length) add(G, "FAIL", "Hotlinked Struq images: download them with images.mjs and use the local /images/ path.", hotlinks);
 
-  const credit = uses(/imageCredit|struq\.nl\/beeldbank/);
+  const credit = uses(/imageCredit|struq\.app\/photos|struq\.nl\/beeldbank/);
   if (libFile && !credit) add(G, "WARN", "No image credit. Put imageCredit (\"Beeld: Struq\") in the footer as one quiet text-small link.");
 }
 

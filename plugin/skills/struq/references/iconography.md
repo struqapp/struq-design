@@ -1,7 +1,7 @@
 # Icons
 
 Struq Icons is the default: `npm i @struq/icons` (MIT), the Iconify set `struq` for non-React stacks, browsable at
-[struq.nl/iconen](https://struq.nl/iconen). A two-tone set on one 24 grid, the base tone for the shape and the accent
+[struq.app/icons](https://struq.app/icons). A two-tone set on one 24 grid, the base tone for the shape and the accent
 on the part that carries the meaning, each icon with its own hover motion.
 
 ## Whether an icon earns its place

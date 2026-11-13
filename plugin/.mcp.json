@@ -2,7 +2,7 @@
   "mcpServers": {
     "struq": {
       "type": "http",
-      "url": "https://struq.nl/api/mcp"
+      "url": "https://struq.app/api/mcp"
     }
   }
 }

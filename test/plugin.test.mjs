@@ -108,7 +108,7 @@ test('the MCP config connects by URL and carries no credentials', () => {
   for (const [name, server] of Object.entries(mcpServers)) {
     assert.deepEqual(Object.keys(server).sort(), ['type', 'url'], `${name}: only type and url`);
     assert.equal(server.type, 'http');
-    assert.match(server.url, /^https:\/\/struq\.nl\//);
+    assert.equal(server.url, 'https://struq.app/api/mcp');
   }
 });
 

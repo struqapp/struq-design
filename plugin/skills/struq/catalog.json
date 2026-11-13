@@ -2,7 +2,7 @@
   "source": {
     "repo": "Struq blocks/",
     "ref": "origin/main",
-    "commit": "95e54a2"
+    "commit": "a538491"
   },
   "tool": "struq_blok(slug, variant)",
   "blocks": [

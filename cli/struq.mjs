@@ -34,7 +34,7 @@ Usage
   npx @struq/skill@latest remove       remove the skill again (takes the same flags)
   npx @struq/skill@latest --help       show this
 
-Run it again at any time to update. More: https://struq.nl/skill
+Run it again at any time to update. More: https://struq.app/skill
 `;
 
 function parse(argv) {
@@ -119,7 +119,7 @@ function run(argv) {
     for (const tool of new Map(list.map(({ tool }) => [tool.label, tool])).values()) {
       out.push(`  ${tool.label.padEnd(15)}${tool.use}`);
     }
-    out.push('', 'Run this again at any time to update. More: https://struq.nl/skill');
+    out.push('', 'Run this again at any time to update. More: https://struq.app/skill');
   }
   process.stdout.write(`${out.join('\n')}\n`);
 }

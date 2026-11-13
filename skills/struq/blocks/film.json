@@ -2,7 +2,7 @@
   "source": {
     "repo": "Struq blocks/film/arcs.ts",
     "ref": "origin/main",
-    "commit": "95e54a2"
+    "commit": "a538491"
   },
   "ARC_RULES": [
     "A loud scene moves with the scroll (a pin, a scrub, a reveal to full bleed); a quiet scene is type and a photo that enter once and sit still. Tag a scene (loud) when the block's energy is 2 or more, (quiet) at 1 or less or for an own scene.",
