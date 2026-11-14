@@ -1,8 +1,8 @@
 <h1 align="center">
   <a href="https://struq.app/skill">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/banner-dark.svg">
-      <img alt="Struq skill: studio-grade sites from the AI you already use." src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/banner-light.svg" width="100%">
+      <source media="(prefers-color-scheme: dark)" srcset="assets/readme/hero-dark.svg">
+      <img alt="Struq skill: studio-grade sites from the AI you already use." src="assets/readme/hero-light.svg" width="100%">
     </picture>
   </a>
 </h1>
@@ -16,21 +16,13 @@
   &nbsp;&middot;&nbsp;
   <a href="https://struq.app/docs">Docs</a>
   &nbsp;&middot;&nbsp;
-  <a href="skills/struq/blocks/CATALOG.md">The blocks</a>
+  <a href="https://struq.app/showcase">Showcase</a>
   &nbsp;&middot;&nbsp;
   <a href="#the-struq-mcp">Struq MCP</a>
   &nbsp;&middot;&nbsp;
   <a href="https://struq.app/icons">Struq Icons</a>
   &nbsp;&middot;&nbsp;
   <a href="https://github.com/struqapp/struq-design/discussions">Discussions</a>
-  &nbsp;&middot;&nbsp;
-  <a href="CHANGELOG.md">Changelog</a>
-</p>
-
-<p align="center">
-  <a href="https://www.npmjs.com/package/@struq/skill"><img alt="npm version of @struq/skill" src="https://img.shields.io/npm/v/@struq/skill?style=flat-square&label=%40struq%2Fskill&labelColor=12100e&color=e5532d"></a>
-  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-e5532d?style=flat-square&labelColor=12100e"></a>
-  <a href="https://struq.app/docs/install"><img alt="Works with Claude Code, Cursor, Codex, OpenCode and more" src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Cursor%20%C2%B7%20Codex%20%C2%B7%20OpenCode-e5532d?style=flat-square&labelColor=12100e"></a>
 </p>
 
 <br>
@@ -39,80 +31,64 @@
 npx @struq/skill@latest
 ```
 
-It finds the AI tools on your machine and installs the skill into each of them. Then give your agent a brief:
+It finds the AI tools on your machine and installs the skill into each one. Then give your agent a brief:
 
 ```text
 /struq a portfolio for an architecture studio in Rotterdam, dark, calm, lots of photography
 ```
 
-It plans the site, stops once to show you the plan, and builds only after you say yes.
-
-| Agent | How to call it |
-|---|---|
-| Claude Code | `/struq <brief>`, or `/struq:struq <brief>` when installed as a plugin |
-| Codex | `$struq <brief>` |
-| Cursor, OpenCode | name it: "use the struq skill to build ..." |
+<p align="center"><sub>MIT &nbsp;&middot;&nbsp; no account &nbsp;&middot;&nbsp; Node 18 or newer &nbsp;&middot;&nbsp; Claude Code, Cursor, Codex, OpenCode, Gemini CLI, Copilot and Windsurf</sub></p>
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/agents-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/agents-light.svg" width="26" height="26" alt=""></picture> Same brief, two agents
+## <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/h/film-dark.svg"><img src="assets/readme/h/film-light.svg" width="26" height="26" alt=""></picture> Watch the Struq skill in 58 seconds
 
-Three briefs, each built twice by the same model with the same materials: once as a plain coding agent, once with `/struq`. Look at the left column first.
+https://github.com/user-attachments/assets/19587b11-ef4c-4cf6-81ef-87230923e567
 
-**Dev-tool landing page**
-
-| Plain agent | With the Struq skill |
-|---|---|
-| ![Tidewater, built by a plain agent](https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/docs/compare/saas-plain.webp) | ![Tidewater, built with the Struq skill](https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/docs/compare/saas-struq.webp) |
-
-<details>
-<summary><b>Seen the left one before?</b></summary>
-<br>
-
-You have. It is the dark developer-tool template, item for item: the green glow, the pill above the headline, the install line in a terminal box. The Struq build went light and built the page around the trace waterfall itself, assembling as you scroll.
-
-</details>
-
-**Ceramicist portfolio, no logo, no photos**
-
-| Plain agent | With the Struq skill |
-|---|---|
-| ![Ana Ferreira, built by a plain agent](https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/docs/compare/ceramics-plain.webp) | ![Ana Ferreira, built with the Struq skill](https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/docs/compare/ceramics-struq.webp) |
-
-<details>
-<summary><b>Where did "12 restaurants" come from?</b></summary>
-<br>
-
-Nowhere. The brief gave no figures, no quote and no bio, and the plain agent wrote all of them: a stat strip, a chef's quote, a life story. The Struq skill never invents a testimonial or a number. With no photos to work from, it drew a single-line profile of each piece instead, and that line became the motif of the whole site.
-
-</details>
-
-**E-bike launch, existing brand, wants 3D**
-
-| Plain agent | With the Struq skill |
-|---|---|
-| ![Vela Mono, built by a plain agent](https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/docs/compare/ebike-plain.webp) | ![Vela Mono, built with the Struq skill](https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/docs/compare/ebike-struq.webp) |
-
-<details>
-<summary><b>Both built a pinned 3D bike. So what is the difference?</b></summary>
-<br>
-
-The closest pair of the three. The plain build filled the page with a spec sheet the brand never published. The Struq build took the lime belt as its one motif and left the unknown specs out, openly, rather than guessing them.
-
-</details>
-
-Where the Struq skill still loses: craft. The plain builds aim lower and break less; some Struq builds had reveal states that captured empty. That is what gets fixed next.
+<p align="center"><sub>The launch film, silent. Also on <a href="https://struq.app">struq.app</a>.</sub></p>
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/layers-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/layers-light.svg" width="26" height="26" alt=""></picture> The blocks carry the motion
-
-Your agent picks the direction, sets the order and writes the copy. The motion comes from Struq's own catalogue: 44 admitted blocks, each a real React file with three variants, working in light and dark.
+## <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/h/story-dark.svg"><img src="assets/readme/h/story-light.svg" width="26" height="26" alt=""></picture> One brief, one stop, one site
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/blocks-dark.webp">
-  <img alt="Six Struq blocks playing at once: a preloader, a hero, a page transition, a manifesto scrub, an image growing to full bleed and a WebGL background." src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/blocks-light.webp" width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/story-dark.svg">
+  <img alt="Three frames: a brief typed into the agent, the plan the skill stops once to show, and the site assembling and passing its check." src="assets/readme/story-light.svg" width="100%">
 </picture>
+
+Your agent settles the idea, the motion language, the motif and a storyboard of scenes before it writes any markup. It stops once to show you that plan and asks for a logo, photos or real numbers if you have them. Then it builds from the plan and runs its own check until the page passes. It never invents a testimonial or a number the brief did not give.
+
+<br>
+
+## <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/h/showcase-dark.svg"><img src="assets/readme/h/showcase-light.svg" width="26" height="26" alt=""></picture> What a directed site looks like
+
+<p align="center">
+  <a href="https://struq.app/showcase/vuur"><img alt="Vuur, a restaurant site built with the Struq skill, playing its opening and first scene." src="assets/readme/showcase/vuur.webp" width="100%"></a>
+</p>
+
+<p align="center"><sub><b>Vuur</b>, a restaurant with a wood-fired oven. Built with the Struq skill by Claude Opus 5.5.</sub></p>
+
+<p align="center">
+  <a href="https://struq.app/showcase/forge"><img alt="Ostrava Steel, a knife forge site." src="assets/readme/showcase/forge.webp" width="49%"></a>
+  <a href="https://struq.app/showcase/brume"><img alt="Brume, a lighthouse hotel site." src="assets/readme/showcase/brume.webp" width="49%"></a>
+  <a href="https://struq.app/showcase/lowlight"><img alt="Lowlight, a film studio site." src="assets/readme/showcase/lowlight.webp" width="49%"></a>
+  <a href="https://struq.app/showcase/halide"><img alt="Halide, a site directed in ink." src="assets/readme/showcase/halide.webp" width="49%"></a>
+</p>
+
+<p align="center"><sub><b>Ostrava Steel</b>, <b>Brume</b>, <b>Lowlight</b> and <b>Halide</b> were directed the Struq way and written by Claude Opus as one file, before the skill carried the method. Much of what the skill knows about craft came from them. All five run live on <a href="https://struq.app/showcase">struq.app/showcase</a>.</sub></p>
+
+Where the skill still loses: craft under pressure. An ambitious page with pinned scenes has more that can break than a plain one, and a reveal can still come out empty on a first build. The check catches most of it, and each release works on the rest.
+
+<br>
+
+## <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/h/blocks-dark.svg"><img src="assets/readme/h/blocks-light.svg" width="26" height="26" alt=""></picture> The blocks carry the motion
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/blocks-dark.webp">
+  <img alt="Six Struq blocks playing at once: a preloader, a hero, a page transition, a manifesto scrub, an image growing to full bleed and a WebGL background." src="assets/readme/blocks-light.webp" width="100%">
+</picture>
+
+Your agent picks the direction, sets the order and writes the copy. The motion comes from Struq's own catalogue: 44 admitted blocks, each a real React file that works in light and dark, with a still version for phones and for reduced motion.
 
 <details>
 <summary><b>All 44, by kind</b></summary>
@@ -130,93 +106,31 @@ Your agent picks the direction, sets the order and writes the copy. The motion c
 | Sections | 15 |
 | Footers | 2 |
 
-Each one with its files, packages, props and variants: [the catalogue](skills/struq/blocks/CATALOG.md). Every GSAP plugin they use is free on npm.
+Each one with its files, packages and props: [the catalogue](skills/struq/blocks/CATALOG.md). Every GSAP plugin they use is free on npm.
 
 </details>
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/brush-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/brush-light.svg" width="26" height="26" alt=""></picture> What is in the skill
+## <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/h/direction-dark.svg"><img src="assets/readme/h/direction-light.svg" width="26" height="26" alt=""></picture> Direction before markup
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/kit-dark.svg">
-  <img alt="Six parts: blocks, direction, photos, craft, a check, and the Struq MCP." src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/kit-light.svg" width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/direction-dark.svg">
+  <img alt="Three directions from the skill's canon, each in its own palette, type pairing and motion language: weight, cut and curtain." src="assets/readme/direction-light.svg" width="100%">
 </picture>
 
-<details>
-<summary><b>The parts, in detail</b></summary>
-<br>
-
-| Part | What it is |
-|---|---|
-| Blocks | The 44 admitted blocks in `skills/struq/blocks/`, with the kit they stand on. A copy of Struq's own set, refreshed at every release. |
-| Direction | Struq's palettes and type pairings, written as the one token block the blocks read (surface ladder, contrast scenes, the accent's ink) with each face loaded at its real weights. Offline, no account. |
-| Photos | Art-directed CC0 packs from the Struq beeldbank, picked by the brief and filtered to what fits the client. |
-| Craft | The rules for the code between the blocks: clips from numbers, whole pixels, decode before show, scroll-tied and reversing, a gate with a 3 s fallback, type on the measured calm side of a photo. |
-| Check | `check.mjs`: the tell list (eyebrows, pills, gradients, glow, mono, Inter, default purple, numbered steps, icon grids, dashes) and what a page owes its blocks. |
-| MCP | With the Struq MCP connected, the same four jobs come from `struq_richting`, `struq_blokken`, `struq_blok` and `struq_controle`. Without it the skill works from its own copy. |
-
-Stack: Next.js App Router and Tailwind v4 (Vite by hand, see `references/stack-targets.md`).
-
-</details>
+Three briefs from the skill's worked examples, three directions from its canon. Each gets a palette, a type pairing and a motion language: weight settles, cut cuts, curtain lifts. The skill writes the choice into one token block that every block reads, so the whole page holds to it.
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/compass-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/compass-light.svg" width="26" height="26" alt=""></picture> How a build runs
+## <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/h/mcp-dark.svg"><img src="assets/readme/h/mcp-light.svg" width="26" height="26" alt=""></picture> The Struq MCP
 
-- **Direction.** The site is planned as one film: a motion language (weight, cut or curtain), one idea, one motif, and a storyboard of scenes with the handovers between them. Then a palette, a type pairing and a photo pack from Struq's canon. All of it in one `STRUQ.md`, and no block goes in until that plan passes its own check.
-- **One stop.** It shows you that plan and asks once: approve it, and send a logo, photos or real numbers if you have them. It does not ask again.
-- **Blocks.** It installs each block with everything it imports, writes the tokens and fonts, and composes the page with your real copy.
-- **Check.** `check.mjs` runs until the page passes. With a browser tool it also looks at the page at phone and desktop width and fixes what it sees.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/mcp-dark.svg">
+  <img alt="Your agent calling the Struq MCP's seven read-only tools at struq.app/api/mcp." src="assets/readme/mcp-light.svg" width="100%">
+</picture>
 
-| Command | What it does |
-|---|---|
-| `/struq <brief>` | Plans, stops once for your approval, builds, checks and fixes |
-| `/struq redesign <path>` | Keeps your brand, copy and components; swaps in blocks where the page is weakest |
-| `/struq audit <path-or-url>` | Changes nothing. Returns every tell with its fix and the three changes that pay off most |
-| `/struq direct <brief>` | Directed mode, for one continuous 3D experience across chapters |
-
-In Codex the command is `$struq`; as a Claude Code plugin it is `/struq:struq`.
-
-<br>
-
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/download-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/download-light.svg" width="26" height="26" alt=""></picture> Install
-
-```bash
-npx @struq/skill@latest
-```
-
-That covers Claude Code, Cursor, Codex, OpenCode, Gemini CLI, Copilot and Windsurf. Run it again to update; `npx @struq/skill@latest remove` takes it out. Node 18 or newer.
-
-<details>
-<summary><b>One tool only, per project, or another installer</b></summary>
-<br>
-
-```bash
-# one tool only, or into the current project instead of your home folder
-npx @struq/skill@latest --claude
-npx @struq/skill@latest --project
-
-# with the open skills CLI, which knows 70+ agents
-npx skills add struqapp/struq-design -g
-```
-
-As a Claude Code plugin (the command is then `/struq:struq`):
-
-```text
-/plugin marketplace add struqapp/struq-design
-/plugin install struq@struq
-```
-
-The screenshot step uses whatever browser tool your agent has (Playwright or similar).
-
-</details>
-
-<br>
-
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/integration-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/integration-light.svg" width="26" height="26" alt=""></picture> The Struq MCP
-
-The skill works on its own, from the copy of the catalogue it ships with. Connect the Struq MCP and your agent reads the live catalogue instead: the newest blocks, palettes and photo packs the moment they are admitted, plus the whole Struq library. It is free; it asks for a free account because your AI tool connects as you.
+The skill works on its own, from the catalogue it ships with. Connect the Struq MCP and your agent reads the live catalogue instead, plus the whole Struq library. It is free; it asks for a free account because your AI tool connects as you.
 
 ```bash
 claude mcp add --transport http --scope user struq https://struq.app/api/mcp
@@ -248,7 +162,7 @@ VS Code, Windsurf, Antigravity and the Claude app each want a slightly different
 </details>
 
 <details>
-<summary><b>The tools</b></summary>
+<summary><b>The seven tools</b></summary>
 <br>
 
 | Tool | What it does |
@@ -267,16 +181,16 @@ All of them read; none of them changes anything in your account or your project.
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/palette-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/palette-light.svg" width="26" height="26" alt=""></picture> The icons it reaches for
-
-Struq builds use [Struq Icons](https://struq.app/icons) by default: 182 icons in two tones, and each of the 118 full icons makes one small move under the cursor that says what it does. Every icon on this page is one of them.
+## <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/h/icons-dark.svg"><img src="assets/readme/h/icons-light.svg" width="26" height="26" alt=""></picture> Struq Icons
 
 <a href="https://struq.app/icons">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/npm/@struq/icons@1/readme/motion-dark.svg">
-    <img alt="Eight Struq icons playing their hover motion: lock, delete, settings, mail, history, sound, hint, bug." src="https://cdn.jsdelivr.net/npm/@struq/icons@1/readme/motion-light.svg" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/icons-dark.svg">
+    <img alt="Sixteen Struq Icons, each playing its own hover move." src="assets/readme/icons-light.svg" width="100%">
   </picture>
 </a>
+
+Struq builds reach for Struq Icons by default. Each moving icon makes one small move under the cursor that says what it does, and every icon on this page is one of them.
 
 ```bash
 npm install @struq/icons
@@ -284,7 +198,53 @@ npm install @struq/icons
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/shield-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/shield-light.svg" width="26" height="26" alt=""></picture> What it fetches and sends
+## <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/h/details-dark.svg"><img src="assets/readme/h/details-light.svg" width="26" height="26" alt=""></picture> The details
+
+<details>
+<summary><b>Commands, per agent</b></summary>
+<br>
+
+| Command | What it does |
+|---|---|
+| `/struq <brief>` | Plans, stops once for your approval, builds, checks and fixes |
+| `/struq redesign <path>` | Keeps your brand, copy and components; swaps in blocks where the page is weakest |
+| `/struq audit <path-or-url>` | Changes nothing. Returns every tell with its fix and the three changes that pay off most |
+| `/struq direct <brief>` | Directed mode, for one continuous 3D experience across chapters |
+
+In Codex the command is `$struq`. As a Claude Code plugin it is `/struq:struq`. In Cursor and OpenCode, ask for the struq skill by name.
+
+</details>
+
+<details>
+<summary><b>Install options</b></summary>
+<br>
+
+```bash
+# one tool only, or into the current project instead of your home folder
+npx @struq/skill@latest --claude
+npx @struq/skill@latest --project
+
+# update by running it again, or take it out
+npx @struq/skill@latest remove
+
+# with the open skills CLI, which knows 70+ agents
+npx skills add struqapp/struq-design -g
+```
+
+As a Claude Code plugin (the command is then `/struq:struq`):
+
+```text
+/plugin marketplace add struqapp/struq-design
+/plugin install struq@struq
+```
+
+The screenshot step uses whatever browser tool your agent has (Playwright or similar).
+
+</details>
+
+<details>
+<summary><b>What it fetches and sends</b></summary>
+<br>
 
 The Struq skill is instructions, the block files and five small Node scripts (`blocks.mjs`, `canon.mjs`, `images.mjs`, `check.mjs`, `log.mjs`) that your agent runs in your project. They read and write files there, including a build log, `STRUQ-LOG.md`.
 
@@ -294,17 +254,19 @@ The Struq skill is instructions, the block files and five small Node scripts (`b
 - **The MCP** (`https://struq.app/api/mcp`), if you connect it: your agent calls Struq's tools with your brief. Nothing else leaves your machine.
 - **The installer** downloads the package from npm, looks for your AI tools' folders in your home folder and copies the skill into them. It sends nothing.
 
-<br>
-
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/chat-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/chat-light.svg" width="26" height="26" alt=""></picture> Help and feedback
+</details>
 
 - **Something went wrong?** [Open an issue](https://github.com/struqapp/struq-design/issues/new/choose) and paste your `STRUQ-LOG.md`: it shows where the build went off.
 - **A question, or a site you built?** [Discussions](https://github.com/struqapp/struq-design/discussions). Before and after screenshots are the most useful thing you can share.
-- **Want to change the skill?** [CONTRIBUTING.md](CONTRIBUTING.md) maps the repository and the house rules.
-- **Docs:** [install](https://struq.app/docs/install), [commands](https://struq.app/docs/commands), [connecting the MCP](https://struq.app/docs/connect), [troubleshooting](https://struq.app/docs/troubleshooting).
+- **Want to change the skill?** [CONTRIBUTING.md](https://github.com/struqapp/struq-design/blob/main/CONTRIBUTING.md) maps the repository and the house rules. Every release is in the [changelog](https://github.com/struqapp/struq-design/blob/main/CHANGELOG.md).
 
 <br>
 
-## License
-
-MIT. Made by [Struq](https://struq.app).
+<p align="center">
+  <a href="https://struq.app">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/readme/outro-dark.svg">
+      <img alt="Struq. Free and open source, MIT." src="assets/readme/outro-light.svg" width="100%">
+    </picture>
+  </a>
+</p>
