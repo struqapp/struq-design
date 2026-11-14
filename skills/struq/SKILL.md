@@ -40,7 +40,7 @@ folder. Worked treatments: [references/film.md](references/film.md); craft: [ref
 
 | Need | MCP connected | Offline |
 |---|---|---|
-| Palette, pairing, photo pack as tokens and fonts | `struq_richting(brief)` | `canon.mjs list`, `canon.mjs palette <id>`, `canon.mjs type <id>`; `images.mjs --brief` |
+| Palette, pairing, photo pack as tokens and fonts | `struq_richting(brief)` | `canon.mjs draw` (this site's hand), `canon.mjs palette <id>`, `canon.mjs type <id>`; `images.mjs --brief` |
 | What blocks exist | `struq_blokken(kind?, query?)` | `blocks.mjs list [kind]` |
 | A block as files | `struq_blok(slug, variant?)` | `blocks.mjs add <slug>` |
 | The self-check | `struq_controle()` | `check.mjs` |
@@ -69,14 +69,17 @@ step has no entry.
 `node <skill-dir>/scripts/blocks.mjs init` (the kit, layout, tokens, fonts, gsap and lenis; it never overwrites your
 files, merge from `recipes/app/`).
 
-**2 Treatment, then stop once.** Think like a studio pitching this client. Write the Idea (a point of view, not a
-description), then the Unlike line: the site any agent would build, and Struq's own reflexes, which you must also
-avoid: a framed photo with the name small beside it; a light serif headline with one italic word; Fraunces for
-anything warm; a middle of one-word rows, a sentence with a small photo and a photo beside text; an echo close over a
-full-width wordmark; cream paper with brown ink. Then pick the language, run
-`node <skill-dir>/scripts/blocks.mjs arc <language>` and cast every line of the storyboard it prints, each pick with
-its reason after "because". `canon.mjs list` and the arc print their options in random order; the first is never a
-hint. Invent own scenes wherever the idea wants a moment no block gives. A block the user names goes in first.
+**2 Treatment, then stop once.** Think like a studio pitching this client. First run
+`node <skill-dir>/scripts/canon.mjs draw`: it deals this site a hand, two languages, three type pairings and four
+palettes, the way a creative director hands a team its constraints. Every site gets a different hand, so no two start
+from the same place; your craft is choosing well within it. Write the Idea (a point of view, not a description), then
+the Unlike line: the site any agent would build, and Struq's own reflexes, which you must also avoid (a framed photo
+with the name small beside it; one italic word in every headline; a middle of one-word rows, a sentence with a small
+photo and a photo beside text; an echo close over a full-width wordmark). Pick the language from the hand, run
+`node <skill-dir>/scripts/blocks.mjs arc <language>`, and cast every line of the storyboard it prints, each pick with
+its reason after "because": the Opening and the Centerpiece from the five each it deals. Invent own scenes wherever the
+idea wants a moment no block gives. Outside the hand only what the client gave: their brand colours or faces, marked
+`(brand)`, or a block they named, marked `(named)`.
 
 ```
 # STRUQ.md: <name>
