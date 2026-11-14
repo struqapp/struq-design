@@ -1,6 +1,15 @@
 # Changelog
 
-## 0.5.1 (unreleased)
+## 0.5.2 (2026-11-14)
+
+The README is rebuilt as a landing page in the struq.app look. Nothing in the skill's behaviour changes.
+
+- The README shows the launch film, a storyboard of one build, the showcase sites built with the skill, an English
+  blocks reel, three canon directions, the MCP and its seven tools, and Struq Icons, each in light and dark.
+- On npm the README art loads from jsDelivr, pinned to this version's tag.
+- The repository gained community files, issue forms and a pull request template.
+
+## 0.5.1 (2026-11-12)
 
 Struq moved to struq.app; the MCP is at https://struq.app/api/mcp. Old struq.nl links redirect.
 
