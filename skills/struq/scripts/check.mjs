@@ -64,6 +64,20 @@ if (args.includes("--plan")) {
   const appDir = ["app", "src/app"].map((d) => join(root, d)).find((d) => existsSync(d));
   const routes = Math.max(1, appDir ? walk(appDir).filter((p) => /(^|[\\/])page\.(tsx|jsx|js)$/.test(p)).length : 0);
   const { findings } = planCheck({ plan: planText, catalog: CATALOG, routes });
+  // The hand canon.mjs draw dealt: Palette and Type come from it, unless the line says the client's own (brand).
+  const drawFile = join(root, ".struq", "draw.json");
+  if (existsSync(drawFile)) {
+    const hand = JSON.parse(readFileSync(drawFile, "utf8"));
+    for (const [field, ids] of [["Palette", hand.palettes], ["Type", hand.pairings]]) {
+      const line = planText.match(new RegExp(`^${field}:\\s*(.*)$`, "m"))?.[1] ?? "";
+      const id = line.match(/^[\w-]+/)?.[0];
+      if (id && !ids.includes(id) && !/\(brand\b|\bbrand\)/i.test(line)) {
+        findings.push({ severity: "fail", id: "off-draw", detail: `${field} ${id} is not in this site's hand (${ids.join(", ")})`, fix: `choose the ${field} from the hand canon.mjs draw dealt, or mark the client's own brand ${field === "Type" ? "faces" : "colours"} with (brand)` });
+      }
+    }
+  } else {
+    findings.push({ severity: "warn", id: "no-draw", detail: "No hand dealt for this site", fix: "run canon.mjs draw and choose the Palette and Type from it" });
+  }
   for (const f of findings) console.log(`${f.severity === "fail" ? "FAIL" : "WARN"} ${f.id}: ${f.detail.replace(/\.$/, "")}. Fix: ${f.fix}`);
   const failed = findings.some((f) => f.severity === "fail");
   console.log(`PLAN: ${failed ? "FAIL" : "PASS"}`);
