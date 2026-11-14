@@ -62,7 +62,7 @@ step has no entry.
 - [ ] 4 Images: images.mjs --brief printed OK; only photos whose alt fits the client
 - [ ] 5 Scenes: frames and the centerpiece installed, every other scene built as the storyboard says, composed in app/page.tsx with real copy
 - [ ] 6 Build: npm run build passes
-- [ ] 7 Look: 390 and 1440 screenshots and one full scroll, fixes made (or "Verify: not seen, no browser")
+- [ ] 7 Look: look.mjs prints LOOK: PASS on the served build; the screenshots it names opened and read
 - [ ] 8 Check: check.mjs prints RESULT: PASS
 ```
 
@@ -132,12 +132,16 @@ props. Wrap ink or field scenes in
 `scene-inverse` or `scene-field`. Every section, the hero too, says its ground with `data-bar-tone` ("photo" only
 where the bar sits over the photo); the bar never repeats a name the hero sets at poster scale.
 
-**6 to 8.** `npm run build` passes (fix your code; never delete a block for green). Serve with
-`npx next start -p 4321` and look at 390 and 1440 with one full scroll: the preloader lands, every pin engages and lets
-go, nothing overflows or collides, scrolling back reverses. No browser to hand? `npx -y playwright install chromium`,
-then `npx -y playwright screenshot --viewport-size=390,844 --full-page http://localhost:4321 phone.png` (and
-1440,900) and read the images; "not seen" only after that fails. Then `check.mjs` to `RESULT: PASS`; a FAIL you are
-sure is false goes in the final report with the reason, never worked around.
+**6 to 8.** `npm run build` passes (fix your code; never delete a block for green). Serve it with
+`npx next start -p 4321`, leave it running, and run `node <skill-dir>/scripts/look.mjs` (the first run installs
+Playwright into the project). It scrolls the page at 390 and 1440 with motion on, saves every step to
+`.struq/look/`, and fails on text under the header, the site name twice on the first screen, letters cut by a mask
+or the screen edge, a page wider than the screen, low contrast on a solid ground, and console or image errors; it
+warns on text over a photo and on a screen-high empty stretch. Open the screenshots and crops it names and read
+them as a studio's art director would: the preloader lands, every pin engages and lets go, the first screen is bold
+enough to stop a visitor. Fix, rebuild, restart the server and run it again until `LOOK: PASS`. Then `check.mjs` to
+`RESULT: PASS`; it fails while `.struq/look.json` is missing, failing or older than app/ and components/. A FAIL you
+are sure is false goes in the final report with the reason, never worked around. Stop the server when done.
 
 ## The film
 
