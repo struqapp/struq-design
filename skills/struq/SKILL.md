@@ -30,7 +30,8 @@ For a dashboard or product UI keep the tokens, faces and tells; drop the preload
 2. **Never invent, never stand in.** No testimonials, logos, stats, awards, prices, addresses, hours, bios, quotes,
    product features, programme, process, equipment (a wood oven) or name the brief did not give. A missing fact
    leaves no trace: no "to follow", "to be announced", "Your Name", example.com, and no button for an action with no
-   real destination (shop, booking, contact, sign-up). Drop the line, the field or the button and list it under
+   real destination (shop, booking, contact, sign-up), no "come by" without the address. Drop the line, the field or
+   the button and list it under
    Assumptions in STRUQ.md. The self-check fails stand-ins and links to anchors that do not exist.
 3. **Never the tells** ([references/tells.md](references/tells.md)): no eyebrows, pills, gradients or gradient text,
    glow, mono on marketing, Inter or the other generator faces, default purple or blue, numbered steps, icon grids,
