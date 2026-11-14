@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/struqapp/struq-design/discussions/categories/q-a
+    about: How to use the skill, which tool to pick, why it chose what it chose.
+  - name: Show what you built
+    url: https://github.com/struqapp/struq-design/discussions/categories/show-and-tell
+    about: A site you built with /struq. Before and after screenshots are the most useful thing you can share.
+  - name: Suggest a block or an idea
+    url: https://github.com/struqapp/struq-design/discussions/categories/ideas
+    about: A block, a direction or a rule you think the skill is missing.
+  - name: Report a security problem
+    url: https://github.com/struqapp/struq-design/security/advisories/new
+    about: Privately, please. Not in a public issue.
+  - name: Docs
+    url: https://struq.app/docs
+    about: Install, commands, connecting the Struq MCP and troubleshooting.
