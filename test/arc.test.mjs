@@ -177,12 +177,17 @@ test('arc prints one storyboard line per scene, the frames and how to use it', (
     arc.scenes.forEach((s, at) => {
       // why: with a pick pre-filled, 11 of 12 proof sites on two unrelated briefs opened the same way (2026-11-14).
       // Only the arrival, a frame of the language, comes filled; every other scene is left to the agent to cast.
-      if (s.tag === 'frame') assert.match(board[at], new RegExp(`^${at + 1}\\.\\s+${s.name}\\s+\\(frame\\)\\s+\\S`), board[at]);
-      else assert.match(board[at], new RegExp(`^${at + 1}\\.\\s+${s.name}\\s+\\(<loud\\|quiet>\\) <cast: `), board[at]);
-      if (s.footer) assert.match(board[at], new RegExp(`\\| footer: <${s.footer[0]}`));
+      // why: middle names like Statement and Release read as a script and gave every site the same middle
+      // (2026-11-15), so the middle scenes print as a plain Scene the agent names, offering an own scene first.
+      const middle = s.tag !== 'frame' && at !== arc.scenes.length - 1 && !['Opening', 'Centerpiece'].includes(s.name);
+      const name = middle ? 'Scene' : s.name;
+      if (s.tag === 'frame') assert.match(board[at], new RegExp(`^${at + 1}\\.\\s+${name}\\s+\\(frame\\)\\s+\\S`), board[at]);
+      else assert.match(board[at], new RegExp(`^${at + 1}\\.\\s+${name}\\s+\\(<loud\\|quiet>\\) <cast: `), board[at]);
+      if (middle) assert.match(board[at], /\| options: own scene\b/, board[at]);
+      if (s.footer) assert.match(board[at], new RegExp(`\\| footer: <[^>]*${s.footer[0]}`));
     });
     assert.match(board[0], /\| lands on: <what>$/);
-    assert.match(board.at(-1), /\| echoes the opening: <how>/);
+    assert.match(board.at(-1), /\| ends on: </);
     const frames = film.FILM_LANGUAGES.find((l) => l.id === language).frames;
     assert.ok(out.includes(`preloader ${frames.preloader}`) && out.includes(frames.pageTransition) && out.includes(frames.menu), out);
     assert.match(out, /^Use: .*check\.mjs --plan\.$/m);

@@ -78,7 +78,8 @@ the Unlike line: the site any agent would build, and Struq's own reflexes, which
 with the name small beside it; one italic word in every headline; a middle of one-word rows, a sentence with a small
 photo and a photo beside text; an echo close over a full-width wordmark). Pick the language from the hand, run
 `node <skill-dir>/scripts/blocks.mjs arc <language>`, and cast every line of the storyboard it prints, each pick with
-its reason after "because": the Opening and the Centerpiece from the five each it deals. Invent own scenes wherever the
+its reason after "because": the Opening and the Centerpiece from the five each it deals (look at the photos first,
+step 4), the middle scenes named and designed for this client, the close ending where the idea ends. Invent own scenes wherever the
 idea wants a moment no block gives. Outside the hand only what the client gave: their brand colours or faces, marked
 `(brand)`, or a block they named, marked `(named)`.
 
@@ -110,14 +111,23 @@ Any yes builds it; what they send replaces the matching pick; whatever stays una
 
 **3 Canon.** `canon.mjs palette <id>` and `canon.mjs type <id>` write the one STRUQ TOKENS block and `app/fonts.ts`.
 
-**4 Images.** `node <skill-dir>/scripts/images.mjs --brief "<the user's words>"` writes the pack's fitting photos to
-`public/images/` and `lib/struq-images.ts`. Never widen the brief to make a pack fit; look at each photo before you
-place it and leave out any that shows another place or trade. With `imageFit` "none" the hero is type or WebGL.
+**4 Images, done before you cast the Opening.** In step 2, before the storyboard, run
+`node <skill-dir>/scripts/images.mjs --brief "<the user's words>"` and open the hero photos it wrote
+(`public/images/hero-*.webp`) with your image reader. A photo opens the site only if it shows this client's own
+subject: a tap or a bathroom for a plumber, a mug for a mug shop, a city lot for a city garden. If none does, run it
+again with `--no-hero`, and the Opening is type-led or WebGL (the hand always holds one). Never widen the brief to
+make a pack fit; the other photos serve the middle only where they show this client's world, never under a
+first-person claim.
 
-**5 Scenes.** Install the frames and the centerpiece (`blocks.mjs add <slug>:<variant>`), then build each scene as the
-storyboard says: blocks, the kit's quiet scenes (`Statement`, `PhotoText`, `Rows`, `Close` from
-`@/components/struq/kit/quiet`, each at most once) or your own scenes from `SplitHeadline`, `MediaFrame` and `Reveal`
-with `data-scene="<name>"` on the root. Read each file header for its props. Wrap ink or field scenes in
+**5 Scenes.** Install the frames, the opening, the centerpiece and the footer (`blocks.mjs add <slug>:<variant>`):
+these are the signatures, hardened blocks. The middle is yours. Compose each middle scene for this client from the
+primitives (`SplitHeadline` for fitted type, `Reveal`, `MediaFrame`, the grid and the tokens), from what only this
+trade has: a price board for a bakery, a tide table for a guesthouse, a joint drawn to scale for a plumber, a menu set
+like a chalkboard for a restaurant. No two middle scenes share a layout, and none is a one-word list, a big sentence
+with a small photo, or a photo beside text unless the idea truly asks for it. Each own scene enters once and sits
+still, its root marked `data-scene="<name>"`. The kit's `Statement`, `PhotoText`, `Rows` and `Close`
+(`@/components/struq/kit/quiet`) remain for a plain moment, at most one per page. Read each file header for its
+props. Wrap ink or field scenes in
 `scene-inverse` or `scene-field`. Every section, the hero too, says its ground with `data-bar-tone` ("photo" only
 where the bar sits over the photo); the bar never repeats a name the hero sets at poster scale.
 

@@ -554,7 +554,9 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   const G = "HERO";
   // A WebGL background opener (background-silk, -aurora, -facets) is a hero too: the catalogue casts it as an opening.
   const heroBlock = usesKind("heroes") || usesKind("backgrounds") || usedBlocks.has("showpieces/hero-opener");
-  const noFit = /imageFit[^=]*=\s*"none"/.test(read("lib/struq-images.ts") + read("src/lib/struq-images.ts"));
+  // No fitting photo (imageFit none), or no hero photo on purpose (images.mjs --no-hero): a type-led first screen.
+  const imageModule = read("lib/struq-images.ts") + read("src/lib/struq-images.ts");
+  const noFit = /imageFit[^=]*=\s*"none"/.test(imageModule) || /\bhero:\s*\[\s*\]/.test(imageModule);
   if (heroBlock) {
     add(G, "PASS", "A hero block opens the page");
     const heroUse = own.flatMap((f) => [...f.text.matchAll(/<(Hero[A-Z]\w*)\b[^>]*?\/?>/gs)].map((m) => ({ f, tag: m[0] })));

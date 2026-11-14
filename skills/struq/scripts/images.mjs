@@ -6,6 +6,7 @@
 //   node <skill-dir>/scripts/images.mjs --list                every pack, with what it shows
 //   node <skill-dir>/scripts/images.mjs --brief "<the brief>"  picks the pack and the fitting photos
 //   node <skill-dir>/scripts/images.mjs <pack-slug> --brief "<the brief>"
+//   add --no-hero when no hero photo shows the client's own subject: the first screen is then type-led or WebGL
 //
 // With --brief (always pass it): the pack follows Struq's rule (scripts/packs.mjs) when no slug is
 // given, and photos whose alt names a subject the client does not do are left out, best fit first.
@@ -60,6 +61,9 @@ const flag = (name) => {
 };
 const root = resolve(flag("--dir") ?? process.cwd());
 const brief = flag("--brief");
+// --no-hero: you looked at the hero photos and none shows this client's own subject, so the pack only serves the
+// supporting slots and the first screen is type-led or WebGL (Roy, 2026-11-15: never an off-topic first screen).
+const noHero = args.includes("--no-hero");
 const slug = args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--dir" && args[i - 1] !== "--brief") ?? (brief ? packForBrief(brief) : undefined);
 const why = brief && !args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--dir" && args[i - 1] !== "--brief") ? packReason(brief) : "named on the command line";
 
@@ -306,6 +310,11 @@ async function main() {
       imageFit = fit.fit;
     } else {
       console.warn('WARN no --brief: every photo of the pack is used. Pass --brief so photos of subjects this client does not do are left out.');
+    }
+    if (noHero) {
+      pack.images = pack.images.filter((img) => img.slot !== "hero");
+      if (imageFit === "full") imageFit = "partial";
+      console.log("--no-hero: no hero photo; open with a type-led or WebGL opening (background-*, hero-opener, or type alone).");
     }
     const jobs = pack.images
       .filter((img) => SLOTS.includes(img.slot))

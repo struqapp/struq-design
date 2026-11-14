@@ -117,7 +117,12 @@ function hand(role) {
   const draw = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : {};
   const key = role === "opening" ? "openings" : "centerpieces";
   if (!draw[key]) {
-    draw[key] = shuffled(CATALOG.filter((b) => b.role === role && !b.home)).slice(0, HAND).map((b) => b.slug);
+    const all = shuffled(CATALOG.filter((b) => b.role === role && !b.home));
+    // Every opening hand holds at least one opener that needs no photo (a WebGL background or hero-opener), so a
+    // site whose pack shows nothing of the client can still open well (Roy, 2026-11-15: type-led when no photo fits).
+    const photoless = (b) => b.kind === "backgrounds" || b.slug === "hero-opener";
+    const first = role === "opening" ? all.find(photoless) : null;
+    draw[key] = [...(first ? [first] : []), ...all.filter((b) => b !== first)].slice(0, HAND).map((b) => b.slug);
     mkdirSync(join(root, ".struq"), { recursive: true });
     writeFileSync(file, JSON.stringify(draw, null, 2) + "\n");
     appendLog(root, `Step 2 Draw ${key}`, [`blocks.mjs arc dealt the ${role} hand: ${draw[key].join(", ")}.`]);
@@ -145,24 +150,26 @@ function pool(role) {
  * since no opening or centerpiece belongs to one language; the middle scenes list what suits the language, plus an own
  * scene. The arc's own suggestions are not ranked above the rest.
  */
-function arcLines(arc) {
-  const width = Math.max(...arc.scenes.map((s) => s.name.length));
+function arcLines(arc, footers = []) {
   const last = arc.scenes.length - 1;
+  // The middle scenes carry no name of their own: names like Statement and Release read as a script, and every site
+  // that followed them came out with the same middle (Roy, 2026-11-15: the middle is composed per client).
+  const nameOf = (scene, at) => (scene.tag === "frame" || at === last || ["Opening", "Centerpiece"].includes(scene.name) ? scene.name : "Scene");
+  const width = Math.max(...arc.scenes.map((s, at) => nameOf(s, at).length));
   const lines = [`Tone arc: ${arc.scenes.map((s) => s.tone[0]).join(", ")}`, "Storyboard:"];
   arc.scenes.forEach((scene, at) => {
     const role = scene.name === "Opening" ? "opening" : scene.name === "Centerpiece" ? "centerpiece" : null;
-    const options = role
-      ? pool(role)
-      : [...scene.blocks, ...(scene.kit ? [scene.kit] : []), ...(scene.own || !scene.blocks.length ? ["own scene"] : [])];
+    // An own scene first, then the language's blocks. The kit's quiet scenes are no longer offered.
+    const options = scene.tag === "frame" ? scene.blocks : role ? pool(role) : ["own scene", ...shuffled(scene.blocks)];
     const tag = scene.tag === "frame" ? "frame" : "<loud|quiet>";
-    const cast = scene.tag === "frame" ? options[0] : "<cast: what this idea needs here, and why>";
-    const head = `${`${at + 1}.`.padEnd(at + 1 >= 10 ? 4 : 3)}${scene.name.padEnd(width)} (${tag}) ${cast}`;
+    const cast = scene.tag === "frame" ? options[0] : at === last ? "<cast: how this site ends, and why>" : role ? "<cast: what this idea needs here, and why>" : "<cast: name this scene, what it shows of this client, and why>";
+    const head = `${`${at + 1}.`.padEnd(at + 1 >= 10 ? 4 : 3)}${nameOf(scene, at).padEnd(width)} (${tag}) ${cast}`;
     const parts = [head];
     if (scene.tag === "frame") parts.push("lands on: <what>");
-    else if (at === last) parts.push("echoes the opening: <how>");
+    else if (at === last) parts.push("ends on: <what the visitor is left with>");
     else parts.push("on screen: <...>", "enters: <...>", "hands over: <...>");
     if (scene.tag !== "frame" && options.length) parts.push(`options: ${options.join(", ")}`);
-    if (scene.footer?.length) parts.push(`footer: <${scene.footer.join(" | ")}>`);
+    if (scene.footer?.length) parts.push(`footer: <${shuffled([...new Set([...scene.footer, ...footers])]).join(" | ")}>`);
     lines.push(parts.join(" | "));
   });
   return lines;
@@ -220,7 +227,7 @@ const commands = {
     const language = languages.find((l) => l.id === id);
     const arc = film.FILM_ARCS.find((a) => a.language === id);
     if (!language || !arc) throw new Error(`No language "${id}". The languages: ${languages.map((l) => l.id).join(", ")}.`);
-    for (const line of arcLines(arc)) console.log(line);
+    for (const line of arcLines(arc, film.FILM_ARCS.flatMap((a) => a.scenes.flatMap((s) => s.footer ?? [])))) console.log(line);
     const f = language.frames;
     console.log(`\nFrames of ${id}: preloader ${f.preloader}, page transition ${f.pageTransition} (only with a second route), menu ${f.menu}. Header: ${film.FILM_HEADER.join(" or ")}.`);
     console.log(`The Opening and the Centerpiece options are this site's hand, dealt once (.struq/draw.json): cast from it; a block the client named goes outside it, marked (named) on its line.`);
