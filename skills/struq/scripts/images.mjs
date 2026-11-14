@@ -186,7 +186,7 @@ function writeModule(entries, packSlug, fallback, imageFit = "full") {
     return `  ${s}: [\n${rows}\n  ],`;
   }).join("\n");
   const source = `// Written by the Struq skill (scripts/images.mjs). Do not hand-edit the list: run the script again
-// to change pack. Pack: ${packSlug}${fallback ? " (FALLBACK PLATES: Struq was unreachable, run the script again when online)" : ""}.
+// to change pack. Pack: ${packSlug}${fallback ? " (FALLBACK PLATES: Struq was unreachable, run the script again when online)" : ""}.${brief ? "\n// Fitted to the brief: images.mjs --brief kept only the photos that fit." : ""}
 // Beeldbank images are CC0. Translate the alt texts when the site is not in Dutch.
 
 export type StruqImage = {

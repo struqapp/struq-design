@@ -3,6 +3,7 @@
 // blocks read. The same block, derivation and font requests as Struq's block lab and the MCP's struq_richting
 // (scripts/tokens.mjs), from the snapshot in canon/canon.json that the skill's release copies from Struq.
 //
+//   node <skill-dir>/scripts/canon.mjs draw                       this site's hand: 2 languages, 3 pairings, 4 palettes
 //   node <skill-dir>/scripts/canon.mjs list                       every palette and pairing
 //   node <skill-dir>/scripts/canon.mjs palette <id>               writes the STRUQ TOKENS block in app/globals.css
 //   node <skill-dir>/scripts/canon.mjs type <id>                  the same block with the pairing, and app/fonts.ts
@@ -13,7 +14,7 @@
 // reply to the treatment (gate.mjs). list and print never ask.
 //
 // Node 18 or later, no network, no dependencies.
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { refuse, stopRefusal } from "./gate.mjs";
@@ -38,6 +39,7 @@ const pairing = (id) => {
   return t;
 };
 const faces = (t) => [t.display, t.body, t.accentItalic].filter(Boolean).map(headFamily);
+const shuffled = (list) => list.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(([, x]) => x);
 
 export function tokenBlock(p, t) {
   const lines = paletteTokens(p, t).map(([k, v]) => `  ${k}: ${v};`);
@@ -84,7 +86,6 @@ export const fontHrefs: string[] = ${JSON.stringify(hrefs, null, 2)};
 const commands = {
   list() {
     // Random order on every call: the first line is never a recommendation.
-    const shuffled = (list) => list.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(([, x]) => x);
     console.log(`PALETTES (${CANON.palettes.length}), in random order: id, mood, ground. "kept out" means kept for a brand that asks, never picked unasked.`);
     for (const p of shuffled(CANON.palettes)) {
       const ground = lightness(p.colors.background) < 0.5 ? "dark" : "light";
@@ -96,6 +97,39 @@ const commands = {
       console.log(`  ${t.id.padEnd(26)} ${d} + ${bo}${ac ? ` (+ ${ac} italic)` : ""}, ${t.displayScale?.weight ?? 300}${t.autoPick === false ? "  kept out" : ""}`);
     }
     console.log(`\nSnapshot: Struq ${CANON.source.ref} ${CANON.source.commit}.`);
+  },
+  // The hand this site chooses from: two of the three languages, three pairings and four palettes (two light, two
+  // dark) at random, saved to .struq/draw.json so the plan check holds the Language, Palette and Type lines to it.
+  // Dealt once: drawing again shows the same hand (blocks.mjs arc adds the opening and centerpiece hands to it).
+  draw() {
+    const pick = (list, n) => shuffled(list).slice(0, n);
+    const open = (list) => list.filter((x) => x.autoPick !== false);
+    const file = join(root, ".struq", "draw.json");
+    const draw = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : {};
+    const fresh = !draw.pairings;
+    if (fresh) {
+      const light = open(CANON.palettes).filter((p) => lightness(p.colors.background) >= 0.5);
+      const dark = open(CANON.palettes).filter((p) => lightness(p.colors.background) < 0.5);
+      draw.languages = pick(["weight", "cut", "curtain"], 2);
+      draw.palettes = [...pick(light, 2), ...pick(dark, 2)].map((p) => p.id);
+      draw.pairings = pick(open(CANON.pairings), 3).map((t) => t.id);
+      mkdirSync(join(root, ".struq"), { recursive: true });
+      writeFileSync(file, JSON.stringify(draw, null, 2) + "\n");
+    }
+    const palettes = draw.palettes.map(palette);
+    const pairings = draw.pairings.map(pairing);
+    console.log(`Your hand for this site${fresh ? "" : " (dealt before, the same hand)"}. Choose the Language, the Palette and the Type from it,`);
+    console.log("for the idea; only the client's own brand colours or faces go outside it, marked (brand) on the line.\n");
+    console.log(`LANGUAGES  ${draw.languages.join(", ")}\n`);
+    console.log("PALETTES");
+    for (const p of palettes) console.log(`  ${p.id.padEnd(40)} ${(p.mood ?? "").padEnd(44)} ${lightness(p.colors.background) < 0.5 ? "dark" : "light"}`);
+    console.log("\nPAIRINGS");
+    for (const t of pairings) {
+      const [d, bo, ac] = [t.display, t.body, t.accentItalic].map((s) => (s ? headFamily(s) : null));
+      console.log(`  ${t.id.padEnd(26)} ${d} + ${bo}${ac ? ` (+ ${ac} italic, optional)` : ""}, display weight ${t.displayScale?.weight ?? 300}`);
+    }
+    if (fresh) appendLog(root, "Step 2 Draw", [`canon.mjs draw dealt languages ${draw.languages.join(", ")}, palettes ${draw.palettes.join(", ")} and pairings ${draw.pairings.join(", ")}.`]);
+    console.log("\nOK hand saved to .struq/draw.json");
   },
   palette() {
     const p = palette(a);
@@ -127,8 +161,8 @@ const commands = {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const run = commands[cmd];
-  if (!run || (cmd !== "list" && !a)) {
-    console.error("Usage: canon.mjs list | palette <id> | type <id> | print <palette> [pairing]   [--dir <project>]");
+  if (!run || (cmd !== "list" && cmd !== "draw" && !a)) {
+    console.error("Usage: canon.mjs draw | list | palette <id> | type <id> | print <palette> [pairing]   [--dir <project>]");
     process.exit(2);
   }
   try {
