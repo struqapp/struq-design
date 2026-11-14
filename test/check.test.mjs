@@ -348,3 +348,24 @@ test('the FILM group fails a page transition on a site with one route', () => {
   assert.ok(!fails(two, 'transition-needs-routes'));
   assert.ok(!fails(run(fixture()), 'transition-needs-routes'));
 });
+
+test('the LOOK group fails without a look, on a failing look and on a look older than the source', async () => {
+  const { sourceStamp } = await import('../skills/struq/scripts/stamp.mjs');
+  const dir = fixture();
+  assert.ok(fails(run(dir), '.struq/look.json missing'));
+  const write = (result, findings = []) => {
+    mkdirSync(join(dir, '.struq'), { recursive: true });
+    writeFileSync(join(dir, '.struq', 'look.json'), JSON.stringify({ at: new Date().toISOString(), result, findings, source: sourceStamp(dir) }));
+  };
+  write('PASS', [{ kind: 'empty', severity: 'WARN', detail: 'a stretch' }]);
+  const ok = run(dir);
+  assert.ok(!fails(ok, 'look'), ok);
+  assert.match(ok, /PASS {2}look\.mjs passed on the current source \(1 warn/);
+  write('FAIL', [{ kind: 'collision', severity: 'FAIL', viewport: 'desktop', text: 'Breath', detail: 'under the header', shot: '.struq/look/desktop-15.png' }]);
+  const bad = run(dir);
+  assert.ok(fails(bad, 'look.mjs found 1 fail'), bad);
+  assert.match(bad, /collision desktop: "Breath" under the header {2}\.struq\/look\/desktop-15\.png/);
+  write('PASS');
+  writeFileSync(join(dir, 'app', 'page.tsx'), `${PAGE_OK}// changed after the look\n`);
+  assert.ok(fails(run(dir), 'The look is older than the source: app/page.tsx'));
+});

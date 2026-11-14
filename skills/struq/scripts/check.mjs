@@ -7,7 +7,8 @@
 //
 // It needs no browser and no dependencies. It reads the source and the public folder and prints
 // PASS, WARN or FAIL per check, in groups: images, AI tells, the motion floor, the hero, the film
-// (film-check.mjs, the budgets Struq's MCP holds too), typography, plus the plan in STRUQ.md. Every
+// (film-check.mjs, the budgets Struq's MCP holds too), typography, plus the plan in STRUQ.md, and the
+// look look.mjs took of the rendered page (.struq/look.json, which must pass and be newer than the source). Every
 // FAIL names the file and line and the fix. Exit code 1 while any FAIL remains. Fix, run again, and
 // only report done on "RESULT: PASS".
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -18,6 +19,7 @@ import { savedHand } from "./draw.mjs";
 import { filmCheck, planCheck } from "./film-check.mjs";
 import { checkHand } from "./hand.mjs";
 import { hasApproval } from "./gate.mjs";
+import { sourceStamp } from "./stamp.mjs";
 
 const CANON = JSON.parse(readFileSync(new URL("../canon/canon.json", import.meta.url), "utf8"));
 const CATALOG = JSON.parse(readFileSync(new URL("../blocks/catalog.json", import.meta.url), "utf8")).blocks;
@@ -593,6 +595,33 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   }
 }
 
+/* -------------------------------------------------------------------- LOOK */
+// look.mjs renders the built page and writes .struq/look.json with what it measured and a stamp of the source. The
+// check holds to it: no look, a failing look, or a look of an older page than the source on disk all fail.
+{
+  const G = "LOOK";
+  const again = "Serve the build (npx next build && npx next start -p 4321) and run node <skill-dir>/scripts/look.mjs.";
+  let look = null;
+  try {
+    look = JSON.parse(readFileSync(join(root, ".struq", "look.json"), "utf8"));
+  } catch {
+    look = null;
+  }
+  if (!look) add(G, "FAIL", `No look at the rendered page (.struq/look.json missing). ${again}`);
+  else {
+    const now = sourceStamp(root);
+    const fails = (look.findings ?? []).filter((f) => f.severity === "FAIL");
+    const stale = look.source?.hash ? look.source.hash !== now.hash : !(now.newest.mtime <= Date.parse(look.at));
+    if (stale) add(G, "FAIL", `The look is older than the source: ${now.newest.file ?? "a file under app/ or components/"} changed after it. Rebuild, restart the server and run look.mjs again.`);
+    else if (look.result !== "PASS" || fails.length) {
+      add(G, "FAIL", `look.mjs found ${fails.length} fail(s) on the rendered page. Open the screenshots it names, fix, rebuild and run it again.`, fails.map((f) => `${f.kind} ${f.viewport ?? ""}: ${f.text ? `"${f.text.slice(0, 50)}" ` : ""}${f.detail}${f.shot ? `  ${f.shot}` : ""}`));
+    } else {
+      const warns = (look.findings ?? []).length;
+      add(G, "PASS", `look.mjs passed on the current source${warns ? ` (${warns} warn in .struq/look.json: open their screenshots)` : ""}`);
+    }
+  }
+}
+
 /* --------------------------------------------------------------------- LOG */
 // Every site keeps STRUQ-LOG.md: an entry for each completed checklist step. Step 8 (this check) writes its own entry
 // when this run ends, so it is not required beforehand.
@@ -614,7 +643,7 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
 }
 
 /* ------------------------------------------------------------------ REPORT */
-const order = ["IMAGES", "TELLS", "MOTION", "HERO", "FILM", "TYPE", "PLAN", "LOG"];
+const order = ["IMAGES", "TELLS", "MOTION", "HERO", "FILM", "TYPE", "PLAN", "LOOK", "LOG"];
 console.log(`Struq check: ${root}\n`);
 for (const g of order) {
   const rows = results.filter((r) => r.group === g);
