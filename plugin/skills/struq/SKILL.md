@@ -146,8 +146,9 @@ energy in the catalogue is 2 or more, `(quiet)` at 1 or less, for a kit scene or
 
 Pick the language by the tempo the idea needs: slow and settled (weight), sharp and decisive (cut), or held and then
 revealed (curtain). The For column only gives examples; a trade that is not in it (a law firm, a plumber, a software
-product, a restaurant) takes whichever tempo its idea has, and any of the three can fit it. Write the reason on the
-`Language:` line. The idea may pick another motif of the six.
+product, a restaurant) takes whichever tempo its idea has, and any of the three can fit it. Weight is the easy
+reflex, because calm reads as tasteful: on the `Language:` line give the reason for your pick and why not each of the
+other two. The idea may pick another motif of the six.
 `preloader-gate` and `page-transition-gate` show a neutral hairline ring; the film leader (a dial counting 3, 2, 1)
 only for a film client, through `dial="leader"` and `marks`. The header is `header-bar:quiet` or `:settle`; sections
 say their ground with `data-bar-tone`. Each arc is loud only at the opening, the centerpiece and at most one gentle

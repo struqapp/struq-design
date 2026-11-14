@@ -89,7 +89,7 @@ an own scene is welcome wherever the idea needs a moment no block gives. A block
 Brief: <one line: what, for whom, where>
 Idea: <a point of view in one sentence, never a description of the client: what a visitor believes when they leave>
 Unlike: <the likeliest site for this brief, and Struq's own reflex, in one line> -> <what this one does instead>
-Language: <weight | cut | curtain> (<the client's sector, or the brief's own words for another feel>)
+Language: <weight | cut | curtain> (<the tempo the idea needs>; not <each of the other two>, because <why not>)
 Motif: <line | frame | aperture | cut | word | field>: <what it is in this client's world and how it changes down the page>
 Lexicon: <three to five working words of the client's trade (a material, a part, a tool, a unit), never the brief repeated; every label, counter and caption uses these, no film or studio jargon the client does not own>
 Palette: <id> (<mood>)
@@ -149,8 +149,9 @@ energy in the catalogue is 2 or more, `(quiet)` at 1 or less, for a kit scene or
 
 Pick the language by the tempo the idea needs: slow and settled (weight), sharp and decisive (cut), or held and then
 revealed (curtain). The For column only gives examples; a trade that is not in it (a law firm, a plumber, a software
-product, a restaurant) takes whichever tempo its idea has, and any of the three can fit it. Write the reason on the
-`Language:` line. The idea may pick another motif of the six.
+product, a restaurant) takes whichever tempo its idea has, and any of the three can fit it. Weight is the easy
+reflex, because calm reads as tasteful: on the `Language:` line give the reason for your pick and why not each of the
+other two. The idea may pick another motif of the six.
 `preloader-gate` and `page-transition-gate` show a neutral hairline ring; the film leader (a dial counting 3, 2, 1)
 only for a film client, through `dial="leader"` and `marks`. The header is `header-bar:quiet` or `:settle`; sections
 say their ground with `data-bar-tone`. Each arc is loud only at the opening, the centerpiece and at most one gentle

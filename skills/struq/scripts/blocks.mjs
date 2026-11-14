@@ -96,9 +96,19 @@ function report(step, what) {
   appendLog(root, step, [what, ...(notes.length ? [`Notes: ${notes.join(" ")}`] : [])]);
 }
 
+/** A copy of a list in random order: the printed options carry no ranking, so their order must not suggest one. */
+function shuffled(list) {
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 /** Every block of a role with each of its variants and that variant's energy, e.g. `hero-poster:window E3`. */
 function pool(role) {
-  return CATALOG.filter((b) => b.role === role && !b.home).flatMap((b) => {
+  return shuffled(CATALOG.filter((b) => b.role === role && !b.home)).flatMap((b) => {
     const variants = b.variants?.length ? b.variants.map((v) => v.id) : [null];
     return variants.map((v) => {
       const energy = (v && b.byVariant?.[v]?.energy) ?? b.energy ?? 0;
