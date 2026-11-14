@@ -83,13 +83,15 @@ export const fontHrefs: string[] = ${JSON.stringify(hrefs, null, 2)};
 
 const commands = {
   list() {
-    console.log(`PALETTES (${CANON.palettes.length}): id, mood, ground. "kept out" means kept for a brand that asks, never picked unasked.`);
-    for (const p of CANON.palettes) {
+    // Random order on every call: the first line is never a recommendation.
+    const shuffled = (list) => list.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(([, x]) => x);
+    console.log(`PALETTES (${CANON.palettes.length}), in random order: id, mood, ground. "kept out" means kept for a brand that asks, never picked unasked.`);
+    for (const p of shuffled(CANON.palettes)) {
       const ground = lightness(p.colors.background) < 0.5 ? "dark" : "light";
       console.log(`  ${p.id.padEnd(40)} ${(p.mood ?? "").padEnd(44)} ${ground}${p.autoPick === false ? "  kept out" : ""}`);
     }
-    console.log(`\nPAIRINGS (${CANON.pairings.length}): id, display + body (+ italic accent), display weight`);
-    for (const t of CANON.pairings) {
+    console.log(`\nPAIRINGS (${CANON.pairings.length}), in random order: id, display + body (+ italic accent), display weight`);
+    for (const t of shuffled(CANON.pairings)) {
       const [d, bo, ac] = [t.display, t.body, t.accentItalic].map((s) => (s ? headFamily(s) : null));
       console.log(`  ${t.id.padEnd(26)} ${d} + ${bo}${ac ? ` (+ ${ac} italic)` : ""}, ${t.displayScale?.weight ?? 300}${t.autoPick === false ? "  kept out" : ""}`);
     }

@@ -20,16 +20,23 @@ a worked treatment per language [references/film.md](references/film.md), the cr
 
 For a dashboard or product UI keep the tokens, faces and tells; drop the preloader, Lenis and the pinned pieces.
 
-## Three rules that never bend
+## Rules that never bend
 
 1. **Never an empty frame.** Every image slot holds a real photo: the client's, else the beeldbank pack (free, CC0,
-   no permission needed). A photo shows the world around the client, never their own room, team or product unless it
-   is theirs; captions are written from the alt.
-2. **Never invent facts.** No testimonials, logos, stats, awards, prices, addresses, hours, bios or quotes the brief
-   did not give. Leave them out and list them under Assumptions in STRUQ.md.
+   no permission needed). Pack photos are mood: the world around the client, never their own room, team, work or
+   product. So never set one under a first-person claim ("our oven", "every piece we make", "my plates"), and where
+   the work is the product (a portfolio, a shop, a collection) build the frame for their work and ask for it at the
+   stop. A caption is copy you write for this client, never the alt read back.
+2. **Never invent, never stand in.** No testimonials, logos, stats, awards, prices, addresses, hours, bios, quotes,
+   product features, programme, process, equipment (a wood oven) or name the brief did not give. A missing fact
+   leaves no trace: no "to follow", "to be announced", "Your Name", example.com, and no button for an action with no
+   real destination (shop, booking, contact, sign-up). Drop the line, the field or the button and list it under
+   Assumptions in STRUQ.md. `check.mjs` fails stand-ins and links to anchors that do not exist.
 3. **Never the tells** ([references/tells.md](references/tells.md)): no eyebrows, pills, gradients or gradient text,
    glow, mono on marketing, Inter or the other generator faces, default purple or blue, numbered steps, icon grids,
    stat banners, generic CTAs, em or en dashes.
+4. **Copy in the client's market language**, which may differ from the brief's (a plumber in Utrecht reads Dutch).
+   Say which on the Brief line and under Assumptions. Write it as a native copywriter would, never a translation.
 
 ## The MCP, or the skill's own copy
 
@@ -115,14 +122,18 @@ what the visitor sees; palette, type and pack on one line; then "Akkoord? Heb je
 stuur ze nu." (English: "Approve? If you have a logo, photos or real numbers, send them now."). The build request is
 not the approval. Log the reply word for word: `log.mjs "Step 2 Approval" "Asked: ..." "Reply: \"<their words>\""`.
 Any yes builds the treatment; what they send replaces the matching pick; a veto changes only what it names. Never
-ask twice. No pack shows the client's product? Add: "Ik heb geen foto's van je <product>: stuur ze, dan komen ze in de hero."
+ask twice. Ask in the same message for what only the client has and the page needs: their name when the brief gave
+none, how visitors reach them (address, phone or mail; the shop, booking or sign-up link), and their own photos when
+the work is the product ("Ik heb geen foto's van je <product>: stuur ze, dan komen ze in de hero."). Whatever stays
+unanswered is left out, never stood in for.
 
 **3 Canon.** `canon.mjs palette <id>` and `canon.mjs type <id>` rewrite the one STRUQ TOKENS block and `app/fonts.ts`.
 
 **4 Images.** `node <skill-dir>/scripts/images.mjs --brief "<the brief, in the user's words>"` keeps only the pack's
 photos whose alt fits the client, verifies them into `public/images/` and writes `lib/struq-images.ts` (`images.hero`,
-`.band`, `.card`, `.column`, `.detail`, `.backdrop`, `imageCredit`, `imageFit`). Read the alts before you place a
-photo; with `imageFit` "none" a background block carries the hero. Title and `lang` go in the layout.
+`.band`, `.card`, `.column`, `.detail`, `.backdrop`, `imageCredit`, `imageFit`). Never widen the brief to make a pack
+fit; read the alts and look at a photo before you place it, and leave out any that shows another place or trade (a
+farm for a city lot, a building site for a plumber). With `imageFit` "none" a background block carries the hero. Title and `lang` go in the layout.
 
 **5 Scenes.** Install the frames and the centerpiece first (`blocks.mjs add <slug>:<variant>` or `struq_blok`), then
 each scene as its storyboard line says, the quiet ones with the kit's four (The film, below). Read each file header
@@ -132,7 +143,10 @@ field scenes in `scene-inverse` or `scene-field` (a kit scene takes it as `class
 
 **6 to 8.** `npm run build` passes (fix your code; never delete a block for green). View `npx next start -p 4321` at
 390 and 1440, scroll once: the preloader lands on the hero, every frame fills, each pin engages and lets go without a
-jump, nothing overflows, scrolling back reverses. Never claim what you did not see. Then `check.mjs` to `RESULT: PASS`.
+jump, nothing overflows, scrolling back reverses. No browser to hand? `npx -y playwright install chromium`, then
+`npx -y playwright screenshot --viewport-size=390,844 --full-page http://localhost:4321 phone.png` (and 1440,900);
+read the images. "Not seen" only after that fails. Never claim what you did not see. Then `check.mjs` to
+`RESULT: PASS`; a FAIL you are sure is false goes in the final report with the reason, never worked around.
 
 ## The film
 
@@ -153,8 +167,9 @@ product, a restaurant) takes whichever tempo its idea has, and any of the three 
 reflex, because calm reads as tasteful: on the `Language:` line give the reason for your pick and why not each of the
 other two. The idea may pick another motif of the six.
 `preloader-gate` and `page-transition-gate` show a neutral hairline ring; the film leader (a dial counting 3, 2, 1)
-only for a film client, through `dial="leader"` and `marks`. The header is `header-bar:quiet` or `:settle`; sections
-say their ground with `data-bar-tone`. Each arc is loud only at the opening, the centerpiece and at most one gentle
+only for a film client, through `dial="leader"` and `marks`. The header is `header-bar:quiet` or `:settle`; every
+section says its ground with `data-bar-tone`, the hero too ("photo" only where the bar sits over the photo, "ground"
+over paper), and the bar never repeats a name the hero already sets at poster scale. Each arc is loud only at the opening, the centerpiece and at most one gentle
 scene with a quiet scene on each side. The arcs below show each language's shape and the picks that suit it; none is a
 default, and the Opening and the Centerpiece may come from anywhere in the catalogue.
 

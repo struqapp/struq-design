@@ -242,7 +242,7 @@ const plan = read("STRUQ.md");
   if (hotlinks.length) add(G, "FAIL", "Hotlinked Struq images: download them with images.mjs and use the local /images/ path.", hotlinks);
 
   const credit = uses(/imageCredit|struq\.app\/photos|struq\.nl\/beeldbank/);
-  if (libFile && !credit) add(G, "WARN", "No image credit. Put imageCredit (\"Beeld: Struq\") in the footer as one quiet text-small link.");
+  if (libFile && !credit) add(G, "WARN", "No image credit. Put imageCredit ('Photos: Struq', 'Beeld: Struq' on a Dutch site) in the footer as one quiet text-small link.");
 }
 
 /* ------------------------------------------------------------------- TELLS */
@@ -261,8 +261,21 @@ const plan = read("STRUQ.md");
 
   // Copy
   tell("Notes to the client on the page",
-    /volg(?:t|en) zodra|zodra (?:de studio|de klant|je|jullie|we)\b[^"'<>]{0,40}(?:aanlever|doorgeef|doorgeven|binnen)|nog aan te leveren|wordt nog aangevuld|lorem ipsum|\bcoming soon\b|to be confirmed|\bTBC\b|\[(?:naam|adres|telefoon|e-?mail|name|phone|address)\]/i,
-    "a line written to the client or the developer is not copy. Leave a missing fact out of the page and list it under Assumptions: in STRUQ.md.");
+    /volg(?:t|en) zodra|zodra (?:de studio|de klant|je|jullie|we)\b[^"'<>]{0,40}(?:aanlever|doorgeef|doorgeven|binnen)|nog aan te leveren|wordt nog aangevuld|(?:telefoon|e-?mail|adres|reserveren|gegevens|openingstijden|data|datum|prijzen)[^.<>"'{}]{0,30}\bvolg(?:t|en)\b|\bvolg(?:t|en) (?:nog|later|binnenkort)\b|lorem ipsum|\bcoming soon\b|to be (?:confirmed|announced)|will be announced|details to (?:follow|come)|\bto follow\)|\bTB[AC]\b|\byour (?:name|company|logo|photo|text) here\b|\bYour Name\b|\bexample\.(?:com|org|net)\b|\b(?:John|Jane) Doe\b|\[(?:naam|adres|telefoon|e-?mail|name|phone|address)\]/i,
+    "a line written to the client or the developer, or a stand-in (Your Name, example.com, to be announced), is not copy. A missing fact leaves no line on the page: drop the sentence, the field or the button, and list it under Assumptions: in STRUQ.md.");
+
+  // A link to an anchor nothing on the page carries: a button that goes nowhere.
+  {
+    const ids = new Set(files.flatMap((f) => [...f.text.matchAll(/\bid=\{?\s*["'`]([\w-]+)["'`]/g)].map((m) => m[1])));
+    const dead = [];
+    for (const f of own) {
+      for (const m of f.text.matchAll(/\b(?:href|menuHref)\s*[:=]\s*\{?\s*["'`]#([\w-]+)["'`]/g)) {
+        if (!ids.has(m[1])) dead.push(`${f.rel}  #${m[1]}`);
+      }
+    }
+    if (dead.length) add(G, "FAIL", "Links to an anchor nothing on the page carries: give the section that id, or drop the link.", [...new Set(dead)]);
+    else add(G, "PASS", "Every in-page link lands on an id");
+  }
 
   // Type and labels
   tell("Eyebrows and uppercase labels", /\buppercase\b|text-transform:\s*uppercase|\b(eyebrow|kicker|overline)\b/i,
@@ -517,7 +530,8 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   if (heroBlock) {
     add(G, "PASS", "A hero block opens the page");
     const heroUse = own.flatMap((f) => [...f.text.matchAll(/<(Hero[A-Z]\w*)\b[^>]*?\/?>/gs)].map((m) => ({ f, tag: m[0] })));
-    const bare = noFit ? [] : heroUse.filter(({ tag }) => /<Hero(Framed|Split|Index|Still|Poster)\b/.test(tag) && !/\bimages?=\{|\bimage=\{/.test(tag));
+    // Comments never count: a prop written inside /* */ is not a prop. HeroSplit takes its photos through items.
+    const bare = noFit ? [] : heroUse.filter(({ tag }) => { const t = tag.replace(/\/\*[\s\S]*?\*\//g, ""); return /<Hero(Framed|Split|Index|Still|Poster)\b/.test(t) && !/\b(?:images?|items)=\{/.test(t); });
     if (bare.length) add(G, "FAIL", "A photo hero without its photo: pass image={images.hero[0]} (or the client's photo).", bare.map(({ f }) => f.rel));
   } else {
     // A hand-built hero: a photo in it and a display line at poster size.

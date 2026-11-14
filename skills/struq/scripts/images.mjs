@@ -216,8 +216,8 @@ export const imagePack = ${JSON.stringify(packSlug)};
  */
 export const imageFit: "full" | "partial" | "none" = ${JSON.stringify(imageFit)};
 
-/** The credit line for the footer: one quiet text-small link, never a badge. */
-export const imageCredit = { label: "Beeld: Struq", href: "https://struq.app/photos" };
+/** The credit line for the footer: one quiet text-small link, never a badge. In the site's language ("Beeld: Struq" in Dutch). */
+export const imageCredit = { label: "Photos: Struq", href: "https://struq.app/photos" };
 
 export const images: Record<ImageSlot, StruqImage[]> = {
 ${body}
