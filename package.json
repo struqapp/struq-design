@@ -1,6 +1,6 @@
 {
   "name": "@struq/skill",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Install the free Struq skill into Claude Code, Cursor, Codex and other AI coding tools: websites at the level of a design studio, built by your own AI.",
   "license": "MIT",
   "author": "Struq (https://struq.app)",
