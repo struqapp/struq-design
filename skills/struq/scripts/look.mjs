@@ -35,7 +35,7 @@ const VIEWPORTS = [
   { name: "desktop", width: 1440, height: 900 },
 ];
 const MAX_STEPS = 60;
-const SEVERITY = { collision: "FAIL", clipped: "FAIL", overflow: "FAIL", contrast: "FAIL", error: "FAIL", empty: "WARN" };
+const SEVERITY = { collision: "FAIL", clipped: "FAIL", overflow: "FAIL", contrast: "FAIL", error: "FAIL", "self-link": "FAIL", empty: "WARN" };
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -620,6 +620,20 @@ async function lookAt(browser, vp, errors) {
   await page.mouse.move(vp.width / 2, vp.height / 2);
 
   const findings = [];
+  // A link that points at the section it sits in looks clickable and goes nowhere (proof run 2026-11-15: every row of
+  // a list linked to its own section). Only the rendered page knows where a link ends up, so it is measured here.
+  const selfLinks = await page.evaluate(() =>
+    [...document.querySelectorAll('a[href^="#"]')]
+      .filter((a) => {
+        const id = decodeURIComponent(a.getAttribute("href").slice(1));
+        const target = id && id !== "top" ? document.getElementById(id) : null;
+        return Boolean(target && target.contains(a));
+      })
+      .map((a) => ({ text: (a.textContent ?? "").trim().slice(0, 60), href: a.getAttribute("href") })),
+  );
+  for (const s of selfLinks) {
+    findings.push({ kind: "self-link", viewport: vp.name, step: 0, scrollY: 0, text: s.text, selector: `a[href="${s.href}"]`, detail: `links to ${s.href}, the section it sits in: point it somewhere real or make it plain text`, shot: null });
+  }
   const seen = new Set();
   const content = [];
   const steps = [];

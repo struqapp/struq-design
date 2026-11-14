@@ -49,6 +49,8 @@ const PAGES = {
   contrast: page(`${HEADER}<main>${HERO}<section style="background:#ffffff"><p style="color:#bdbdbd">Deze zin is bijna niet te lezen op het witte vlak.</p></section>${FILL}</main>${FOOTER}`),
   // Two and a half screens of nothing between two sections.
   empty: page(`${HEADER}<main>${HERO}<section><h2>Eerst dit.</h2></section><div style="height:2400px"></div><section><h2>Dan pas dit.</h2></section></main>${FOOTER}`),
+  // Rows that look like links and point at the section they sit in (proof run 2026-11-15).
+  selflink: page(`${HEADER}<main>${HERO}<section id="werk"><a href="#werk">Badkamers</a><p>Wat we doen.</p></section>${FILL}</main>${FOOTER}`),
 };
 
 let server;
@@ -172,6 +174,14 @@ test('look: a screen-high stretch of nothing warns as empty', async (t) => {
   assert.deepEqual([...new Set(kinds(r))], ['empty'], r.out);
   assert.ok(r.json.findings.every((f) => f.severity === 'WARN'));
   assert.match(r.out, /WARN empty/);
+});
+
+test('look: a link to the section it sits in fails as a self-link', async (t) => {
+  if (skip) return t.skip(skip);
+  const r = await result('selflink');
+  assert.equal(r.code, 1, r.out);
+  const f = r.json.findings.find((x) => x.kind === 'self-link');
+  assert.ok(f && f.text === 'Badkamers' && f.severity === 'FAIL', r.out);
 });
 
 test('look: nothing served means exit 2 and how to start it', () => {

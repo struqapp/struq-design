@@ -73,7 +73,10 @@ files, merge from `recipes/app/`).
 **2 Treatment, then stop once.** Think like a studio pitching this client. First run
 `node <skill-dir>/scripts/canon.mjs draw`: it deals this site a hand, two languages, three type pairings and four
 palettes, the way a creative director hands a team its constraints. Every site gets a different hand, so no two start
-from the same place; your craft is choosing well within it. Write the Idea (a point of view, not a description), then
+from the same place; your craft is choosing well within it. Write three ideas (each a point of view, not a
+description): the first that comes to mind is the one every agent writes, so take the one a rival studio would least
+expect that still fits this client, and note the other two as Passed over. Name the Subject: what the brief is about
+that a visitor must see (the app, the event, the garment, the cup, the bread); the site shows it (step 5). Then
 the Unlike line: the site any agent would build, and Struq's own reflexes, which you must also avoid (a framed photo
 with the name small beside it; one italic word in every headline; a middle of one-word rows, a sentence with a small
 photo and a photo beside text; an echo close over a full-width wordmark). Pick the language from the hand, run
@@ -88,6 +91,8 @@ idea wants a moment no block gives. Outside the hand only what the client gave: 
 Brief: <one line: what, for whom, where, in which language>
 Hand: <the id canon.mjs draw printed>
 Idea: <a point of view in one sentence: what a visitor believes when they leave>
+Passed over: <your two other ideas, one line>
+Subject: <what the visitor must see> -> <shown by: the client's photo, a pack photo that shows it, or drawn in code>
 Unlike: <the likeliest site, and Struq's reflexes> -> <what this one does instead>
 Language: <weight | cut | curtain> (<the tempo the idea needs>; not <each of the other two>, because <why not>)
 Motif: <line | frame | aperture | cut | word | field>: <what it is in this client's world and how it changes down the page>
@@ -115,8 +120,10 @@ Any yes builds it; what they send replaces the matching pick; whatever stays una
 **4 Images, done before you cast the Opening.** In step 2, before the storyboard, run
 `node <skill-dir>/scripts/images.mjs --brief "<the user's words>"` and open the hero photos it wrote
 (`public/images/hero-*.webp`) with your image reader. A photo opens the site only if it shows this client's own
-subject: a tap or a bathroom for a plumber, a mug for a mug shop, a city lot for a city garden. If none does, run it
-again with `--no-hero`, and the Opening is type-led or WebGL (the hand always holds one). Never widen the brief to
+subject: a tap or a bathroom for a plumber, a mug for a mug shop, a city lot for a city garden. A photo that only
+sets a mood (paper for a conference, cloth for a label, a room for a studio you have never seen) never opens a site.
+If none shows the subject, run it again with `--no-hero`, and the Opening is type-led or WebGL (the hand always holds
+one). Never widen the brief to
 make a pack fit; the other photos serve the middle only where they show this client's world, never under a
 first-person claim.
 
@@ -125,16 +132,27 @@ these are the signatures, hardened blocks. The middle is yours. Compose each mid
 primitives (`SplitHeadline` for fitted type, `Reveal`, `MediaFrame`, the grid and the tokens), from what only this
 trade has: a price board for a bakery, a tide table for a guesthouse, a joint drawn to scale for a plumber, a menu set
 like a chalkboard for a restaurant. No two middle scenes share a layout, and none is a one-word list, a big sentence
-with a small photo, or a photo beside text unless the idea truly asks for it. Each own scene enters once and sits
-still, its root marked `data-scene="<name>"`. The kit's `Statement`, `PhotoText`, `Rows` and `Close`
+with a small photo, or a photo beside text unless the idea truly asks for it.
+
+When no photo shows the Subject, design it in code as a scene of its own, often the centerpiece's neighbour: the
+app's real screen or document (the invoice of an invoicing app) built in HTML with the tokens, the event's identity (a
+poster system, a badge, a programme grid with only the slots the brief gives), the label's lookbook frame, a menu
+board. Sample content inside it reads as an example of the trade (an invoice for "Studio Noord, identity, round 2"),
+never as a fact about the client: no customer names, no figures they would quote, no feature the brief did not give.
+
+Own scenes may move. Give at least two of them a motion of their own, tied to the scroll and reversing (a line that
+draws as you read, a document that assembles, a grid that sorts itself), with `gsap` and `ScrollTrigger` from
+`@/components/struq/kit/gsap`, never a pin over one screen; mark the root `data-scene="<name>" data-energy="2"`, tag
+it (loud) in the storyboard, and keep the budgets. A still own scene is `data-scene="<name>"` alone. The kit's `Statement`, `PhotoText`, `Rows` and `Close`
 (`@/components/struq/kit/quiet`) remain for a plain moment, at most one per page. Read each file header for its
 props. Wrap ink or field scenes in
 `scene-inverse` or `scene-field`. Every section, the hero too, says its ground with `data-bar-tone` ("photo" only
 where the bar sits over the photo); the bar never repeats a name the hero sets at poster scale.
 
 **6 to 8.** `npm run build` passes (fix your code; never delete a block for green). Serve it with
-`npx next start -p 4321`, leave it running, and run `node <skill-dir>/scripts/look.mjs` (the first run installs
-Playwright into the project). It scrolls the page at 390 and 1440 with motion on, saves every step to
+`npx next start -p 4321` (or a free port when that one is taken, then `look.mjs --url http://localhost:<port>`),
+leave it running, and run `node <skill-dir>/scripts/look.mjs` (the first run installs Playwright into the project).
+Never stop a server you did not start. It scrolls the page at 390 and 1440 with motion on, saves every step to
 `.struq/look/`, and fails on text under the header, the site name twice on the first screen, letters cut by a mask
 or the screen edge, a page wider than the screen, low contrast on a solid ground, and console or image errors; it
 warns on text over a photo and on a screen-high empty stretch. Open the screenshots and crops it names and read
