@@ -153,9 +153,9 @@ energy in the catalogue is 2 or more, `(quiet)` at 1 or less, for a kit scene or
 
 Pick the language by the tempo the idea needs: slow and settled (weight), sharp and decisive (cut), or held and then
 revealed (curtain). The For column only gives examples; a trade that is not in it (a law firm, a plumber, a software
-product, a restaurant) takes whichever tempo its idea has, and any of the three can fit it. Weight is the easy
-reflex, because calm reads as tasteful: on the `Language:` line give the reason for your pick and why not each of the
-other two. The idea may pick another motif of the six.
+product, a restaurant) takes whichever tempo its idea has, and any of the three can fit it. None is the safe pick:
+calm reads tasteful and a held reveal reads dramatic, so both are reflexes. On the `Language:` line give the reason
+for your pick and why not each of the other two. The idea may pick another motif of the six.
 `preloader-gate` and `page-transition-gate` show a neutral hairline ring; the film leader (a dial counting 3, 2, 1)
 only for a film client, through `dial="leader"` and `marks`. The header is `header-bar:quiet` or `:settle`; every
 section says its ground with `data-bar-tone`, the hero too ("photo" only where the bar sits over the photo, "ground"
@@ -163,9 +163,13 @@ over paper), and the bar never repeats a name the hero already sets at poster sc
 scene with a quiet scene on each side. The arcs below show each language's shape and the picks that suit it; none is a
 default, and the Opening and the Centerpiece may come from anywhere in the catalogue.
 
-**Quiet scenes** are the kit's four, imported from `@/components/struq/kit/quiet` (props in each file's header):
-- `Statement`: the one sentence and the page's first type moment, with an `accent` word and a margin `label` or a
-  small `image`, so it is composed, never a lone line.
+**Quiet scenes.** The middle of the page is where Struq sites start to look alike: one-word rows, a big sentence
+with a small photo by its last word, a photo beside text, an echo close. So design the middle for this client: at
+least one quiet scene is an own scene drawn from their world (a price board for a bakery, a tide table for a
+guesthouse, a pipe run for a plumber, set in type and photos), and each kit scene appears at most once. The kit's
+four, from `@/components/struq/kit/quiet` (props in each file's header), are a floor, not a script:
+- `Statement`: one sentence at display size, composed with a margin `label` or a small `image` (or neither when the
+  type carries it), never a lone line.
 - `PhotoText`: a photo and a short text side by side on the grid.
 - `Rows`: three to six hairline rows, a term and one sentence each, never numbered.
 - `Close`: the closing line and its one link, echoing the opening; `frame` when the motif is the frame.
@@ -215,8 +219,9 @@ default, and the Opening and the Centerpiece may come from anywhere in the catal
 - One motif on the page. At most two full-bleed photo reveals, built the same way: `hero-framed:wand` and `:portret`,
   `hero-poster`, `hero-still:frame`, `image-to-fullbleed`, `zoom-through`, `grid-assembly`, `about-studio:plaat` and
   `cta-closing:photo` each count one.
-- At most one marquee (`cta-closing:marquee`, `velocity-type`) and one custom cursor. One accent word, set in the
-  accent face through the `accent` prop: in the opening's headline, in `Statement` and again in `Close`.
+- At most one marquee (`cta-closing:marquee`, `velocity-type`) and one custom cursor. At most one accent device on
+  the page, chosen for the idea: an italic word, a weight shift, the accent colour on one word, a jump in scale, or
+  none. An italic word in every headline is a tell; the `accent` prop is there when the idea wants it.
 - No clock unless the lexicon is about time; then one, turned on by its prop (`clock`, `timeZone` on `wordmark-finale`).
 - Two or three type moments at poster scale (12 to 20vw) on the page; everything else from the scale.
 - Labels: no eyebrows above headings, no mono, no uppercase labels, no numbered steps. A small sentence-case label in

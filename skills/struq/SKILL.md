@@ -78,12 +78,14 @@ font links, `data-blocks` on `<body>`, `SmoothScroll`), `globals.css` (kit impor
 
 **2 Treatment and the one stop.** Pick from the canon, never invent a palette or pairing while one fits: palette by
 mood, then sector; a "kept out" palette (blue, purple, teal) only for a brand of that colour, declared as `Cool hue:
-declared because <brand colour>`; the brand's own colours and faces beat the canon, in the same token names. Pairing
-by temperament: Fraunces (serif-editorial) warm and premium, Newsreader literate, Sora calm and architectural,
-Urbanist soft and current, Bodoni Moda for fashion, Big Shoulders (condensed-poster) for a campaign at poster scale,
-Unbounded for a wide agency voice. Write the Idea first, then the Unlike line: the site any agent would build for this
-brief, and Struq's own reflex too (a framed photo in the middle with the name small beside it, the photo growing to
-full screen), in one line, and what this site does instead. Pick the language (The film, below), then run
+declared because <brand colour>`; the brand's own colours and faces beat the canon, in the same token names.
+`canon.mjs list` prints both in random order; the first line is never a hint. Choose the pairing by the voice this
+idea speaks in (a grotesk can be warm, a condensed face can be quiet). The light serif with one italic word is
+Struq's type reflex, because anything warm or crafted seems to ask for it: on the Type line name the pairing you
+passed over and why. Write the Idea first, then the Unlike line: the site any agent would build for this brief, and
+Struq's own reflexes too (a framed photo in the middle with the name small beside it; a light serif headline with one
+italic word; a middle of one-word rows, a sentence with a small photo and a photo beside text), in one line, and what
+this site does instead. Pick the language (The film, below), then run
 `node <skill-dir>/scripts/blocks.mjs arc <language>` and paste the Tone arc and Storyboard it prints into the
 treatment at the top of STRUQ.md. Nothing in it is picked for you: cast every scene from the idea and the motif, one
 pick per line with its reason after "because", and delete the options. The Opening and the Centerpiece choose from the
@@ -100,7 +102,7 @@ Language: <weight | cut | curtain> (<the tempo the idea needs>; not <each of the
 Motif: <line | frame | aperture | cut | word | field>: <what it is in this client's world and how it changes down the page>
 Lexicon: <three to five working words of the client's trade (a material, a part, a tool, a unit), never the brief repeated; every label, counter and caption uses these, no film or studio jargon the client does not own>
 Palette: <id> (<mood>)
-Type: <pairing id>: <display> + <body>
+Type: <pairing id>: <display> + <body> (not <the pairing you passed over>, because <why>)
 Images: pack <slug> (or the client's photos, then pack <slug>)
 Centerpiece: <block>: <why this is this site's one moment>
 Tone arc: <as blocks.mjs arc printed it>
@@ -163,9 +165,9 @@ energy in the catalogue is 2 or more, `(quiet)` at 1 or less, for a kit scene or
 
 Pick the language by the tempo the idea needs: slow and settled (weight), sharp and decisive (cut), or held and then
 revealed (curtain). The For column only gives examples; a trade that is not in it (a law firm, a plumber, a software
-product, a restaurant) takes whichever tempo its idea has, and any of the three can fit it. Weight is the easy
-reflex, because calm reads as tasteful: on the `Language:` line give the reason for your pick and why not each of the
-other two. The idea may pick another motif of the six.
+product, a restaurant) takes whichever tempo its idea has, and any of the three can fit it. None is the safe pick:
+calm reads tasteful and a held reveal reads dramatic, so both are reflexes. On the `Language:` line give the reason
+for your pick and why not each of the other two. The idea may pick another motif of the six.
 `preloader-gate` and `page-transition-gate` show a neutral hairline ring; the film leader (a dial counting 3, 2, 1)
 only for a film client, through `dial="leader"` and `marks`. The header is `header-bar:quiet` or `:settle`; every
 section says its ground with `data-bar-tone`, the hero too ("photo" only where the bar sits over the photo, "ground"
@@ -173,9 +175,13 @@ over paper), and the bar never repeats a name the hero already sets at poster sc
 scene with a quiet scene on each side. The arcs below show each language's shape and the picks that suit it; none is a
 default, and the Opening and the Centerpiece may come from anywhere in the catalogue.
 
-**Quiet scenes** are the kit's four, imported from `@/components/struq/kit/quiet` (props in each file's header):
-- `Statement`: the one sentence and the page's first type moment, with an `accent` word and a margin `label` or a
-  small `image`, so it is composed, never a lone line.
+**Quiet scenes.** The middle of the page is where Struq sites start to look alike: one-word rows, a big sentence
+with a small photo by its last word, a photo beside text, an echo close. So design the middle for this client: at
+least one quiet scene is an own scene drawn from their world (a price board for a bakery, a tide table for a
+guesthouse, a pipe run for a plumber, set in type and photos), and each kit scene appears at most once. The kit's
+four, from `@/components/struq/kit/quiet` (props in each file's header), are a floor, not a script:
+- `Statement`: one sentence at display size, composed with a margin `label` or a small `image` (or neither when the
+  type carries it), never a lone line.
 - `PhotoText`: a photo and a short text side by side on the grid.
 - `Rows`: three to six hairline rows, a term and one sentence each, never numbered.
 - `Close`: the closing line and its one link, echoing the opening; `frame` when the motif is the frame.
@@ -225,8 +231,9 @@ default, and the Opening and the Centerpiece may come from anywhere in the catal
 - One motif on the page. At most two full-bleed photo reveals, built the same way: `hero-framed:wand` and `:portret`,
   `hero-poster`, `hero-still:frame`, `image-to-fullbleed`, `zoom-through`, `grid-assembly`, `about-studio:plaat` and
   `cta-closing:photo` each count one.
-- At most one marquee (`cta-closing:marquee`, `velocity-type`) and one custom cursor. One accent word, set in the
-  accent face through the `accent` prop: in the opening's headline, in `Statement` and again in `Close`.
+- At most one marquee (`cta-closing:marquee`, `velocity-type`) and one custom cursor. At most one accent device on
+  the page, chosen for the idea: an italic word, a weight shift, the accent colour on one word, a jump in scale, or
+  none. An italic word in every headline is a tell; the `accent` prop is there when the idea wants it.
 - No clock unless the lexicon is about time; then one, turned on by its prop (`clock`, `timeZone` on `wordmark-finale`).
 - Two or three type moments at poster scale (12 to 20vw) on the page; everything else from the scale.
 - Labels: no eyebrows above headings, no mono, no uppercase labels, no numbered steps. A small sentence-case label in
