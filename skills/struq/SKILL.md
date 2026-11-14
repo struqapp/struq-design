@@ -74,15 +74,21 @@ mood, then sector; a "kept out" palette (blue, purple, teal) only for a brand of
 declared because <brand colour>`; the brand's own colours and faces beat the canon, in the same token names. Pairing
 by temperament: Fraunces (serif-editorial) warm and premium, Newsreader literate, Sora calm and architectural,
 Urbanist soft and current, Bodoni Moda for fashion, Big Shoulders (condensed-poster) for a campaign at poster scale,
-Unbounded for a wide agency voice. Pick the language (The film, below), then run
+Unbounded for a wide agency voice. Write the Idea first, then the Unlike line: the site any agent would build for this
+brief, and Struq's own reflex too (a framed photo in the middle with the name small beside it, the photo growing to
+full screen), in one line, and what this site does instead. Pick the language (The film, below), then run
 `node <skill-dir>/scripts/blocks.mjs arc <language>` and paste the Tone arc and Storyboard it prints into the
-treatment at the top of STRUQ.md. Fill every `<...>`, one pick per line (`or:` lists what else fits; swap at most one
-scene; a block the user names goes in first):
+treatment at the top of STRUQ.md. Nothing in it is picked for you: cast every scene from the idea and the motif, one
+pick per line with its reason after "because", and delete the options. The Opening and the Centerpiece choose from the
+whole catalogue, since none of them belongs to one language; they are this site's two signatures, so choose the pair
+that could only be this client's. The middle scenes are yours to rename, reorder, add or drop within the budgets, and
+an own scene is welcome wherever the idea needs a moment no block gives. A block the user names goes in first.
 
 ```
 # STRUQ.md: <name>
 Brief: <one line: what, for whom, where>
 Idea: <a point of view in one sentence, never a description of the client: what a visitor believes when they leave>
+Unlike: <the likeliest site for this brief, and Struq's own reflex, in one line> -> <what this one does instead>
 Language: <weight | cut | curtain> (<the client's sector, or the brief's own words for another feel>)
 Motif: <line | frame | aperture | cut | word | field>: <what it is in this client's world and how it changes down the page>
 Lexicon: <three to five working words of the client's trade (a material, a part, a tool, a unit), never the brief repeated; every label, counter and caption uses these, no film or studio jargon the client does not own>
@@ -141,12 +147,15 @@ energy in the catalogue is 2 or more, `(quiet)` at 1 or less, for a kit scene or
 | cut | fashion, agencies, portfolios, music | hard cuts, short masks, no fades, short holds | `preloader-slices`, `page-transition-slices`, `menu-curtain:slices` | cut or word |
 | curtain | campaigns, launches, events, culture | a light line, panels part, a long hold before the reveal | `preloader-gate` or `preloader-wordmark:split`, `page-transition-gate`, `menu-curtain:gate` | line or aperture |
 
-Pick the language by the client's sector in the For column. Another language only when the brief asks for that feel
-in its own words; then quote those words on the `Language:` line. The idea may pick another motif of the six.
+Pick the language by the tempo the idea needs: slow and settled (weight), sharp and decisive (cut), or held and then
+revealed (curtain). The For column only gives examples; a trade that is not in it (a law firm, a plumber, a software
+product, a restaurant) takes whichever tempo its idea has, and any of the three can fit it. Write the reason on the
+`Language:` line. The idea may pick another motif of the six.
 `preloader-gate` and `page-transition-gate` show a neutral hairline ring; the film leader (a dial counting 3, 2, 1)
 only for a film client, through `dial="leader"` and `marks`. The header is `header-bar:quiet` or `:settle`; sections
 say their ground with `data-bar-tone`. Each arc is loud only at the opening, the centerpiece and at most one gentle
-scene with a quiet scene on each side. The arcs below are the printed arcs in short; the first pick is the default.
+scene with a quiet scene on each side. The arcs below show each language's shape and the picks that suit it; none is a
+default, and the Opening and the Centerpiece may come from anywhere in the catalogue.
 
 **Quiet scenes** are the kit's four, imported from `@/components/struq/kit/quiet` (props in each file's header):
 - `Statement`: the one sentence and the page's first type moment, with an `accent` word and a margin `label` or a
@@ -154,8 +163,9 @@ scene with a quiet scene on each side. The arcs below are the printed arcs in sh
 - `PhotoText`: a photo and a short text side by side on the grid.
 - `Rows`: three to six hairline rows, a term and one sentence each, never numbered.
 - `Close`: the closing line and its one link, echoing the opening; `frame` when the motif is the frame.
-- An own scene only when none of the four fits: your type beside a photo with `SplitHeadline`, `MediaFrame` and
-  `Reveal`, entering once, its root marked `data-scene="<name>"` (the check warns `own-scene-unmarked` without it).
+- An own scene whenever the idea asks for something the four do not give: your type and photos composed for this
+  client with `SplitHeadline`, `MediaFrame` and `Reveal`, entering once, its root marked `data-scene="<name>"` (the
+  check warns `own-scene-unmarked` without it). The craft rules below hold for it as for any block.
 
 **weight.** Paper throughout, ink at the centerpiece.
 1. Arrival (frame): `preloader-stack`; the print lands on the hero photo.

@@ -96,31 +96,43 @@ function report(step, what) {
   appendLog(root, step, [what, ...(notes.length ? [`Notes: ${notes.join(" ")}`] : [])]);
 }
 
+/** Every block of a role with each of its variants and that variant's energy, e.g. `hero-poster:window E3`. */
+function pool(role) {
+  return CATALOG.filter((b) => b.role === role && !b.home).flatMap((b) => {
+    const variants = b.variants?.length ? b.variants.map((v) => v.id) : [null];
+    return variants.map((v) => {
+      const energy = (v && b.byVariant?.[v]?.energy) ?? b.energy ?? 0;
+      return `${b.slug}${v ? `:${v}` : ""} E${energy}`;
+    });
+  });
+}
+
 /**
- * A language's arc as STRUQ.md lines: the Tone arc, then one numbered Storyboard line per scene in the treatment's
- * format, the default pick filled in (the own scene first where the arc prefers it, as its kit quiet scene when it has
- * one, else the first block) and what else fits after `or:`. The defaults pass check.mjs --plan as they stand.
+ * A language's arc as STRUQ.md lines: the Tone arc, then one numbered Storyboard line per scene with no pick filled in.
+ * There is no default on purpose (proof runs of 2026-11-14: with the first option pre-filled, 11 of 12 sites on two
+ * unrelated briefs opened with the same hero and all 12 had the same centerpiece). Every slot says `<cast: ...>`, which
+ * the plan check refuses until it is replaced. The Opening and the Centerpiece list the whole catalogue of their role,
+ * since no opening or centerpiece belongs to one language; the middle scenes list what suits the language, plus an own
+ * scene. The arc's own suggestions are not ranked above the rest.
  */
 function arcLines(arc) {
-  const pick = (scene) => {
-    const own = scene.kit ?? "own scene";
-    const ownFirst = scene.own && (scene.ownFirst || !scene.blocks.length);
-    const options = ownFirst ? [own, ...scene.blocks] : [...scene.blocks, ...(scene.own ? [own] : [])];
-    if (scene.kit && scene.own && !options.includes("own scene")) options.push("own scene");
-    return options;
-  };
   const width = Math.max(...arc.scenes.map((s) => s.name.length));
   const last = arc.scenes.length - 1;
   const lines = [`Tone arc: ${arc.scenes.map((s) => s.tone[0]).join(", ")}`, "Storyboard:"];
   arc.scenes.forEach((scene, at) => {
-    const [first, ...others] = pick(scene);
-    const head = `${`${at + 1}.`.padEnd(at + 1 >= 10 ? 4 : 3)}${scene.name.padEnd(width)} ${`(${scene.tag})`.padEnd(8)} ${first}`;
+    const role = scene.name === "Opening" ? "opening" : scene.name === "Centerpiece" ? "centerpiece" : null;
+    const options = role
+      ? pool(role)
+      : [...scene.blocks, ...(scene.kit ? [scene.kit] : []), ...(scene.own || !scene.blocks.length ? ["own scene"] : [])];
+    const tag = scene.tag === "frame" ? "frame" : "<loud|quiet>";
+    const cast = scene.tag === "frame" ? options[0] : "<cast: what this idea needs here, and why>";
+    const head = `${`${at + 1}.`.padEnd(at + 1 >= 10 ? 4 : 3)}${scene.name.padEnd(width)} (${tag}) ${cast}`;
     const parts = [head];
     if (scene.tag === "frame") parts.push("lands on: <what>");
     else if (at === last) parts.push("echoes the opening: <how>");
     else parts.push("on screen: <...>", "enters: <...>", "hands over: <...>");
-    if (others.length) parts.push(`or: ${others.join(", ")}`);
-    if (scene.footer?.length) parts.push(`footer: ${scene.footer[0]}`);
+    if (scene.tag !== "frame" && options.length) parts.push(`options: ${options.join(", ")}`);
+    if (scene.footer?.length) parts.push(`footer: <${scene.footer.join(" | ")}>`);
     lines.push(parts.join(" | "));
   });
   return lines;
@@ -181,7 +193,7 @@ const commands = {
     for (const line of arcLines(arc)) console.log(line);
     const f = language.frames;
     console.log(`\nFrames of ${id}: preloader ${f.preloader}, page transition ${f.pageTransition} (only with a second route), menu ${f.menu}. Header: ${film.FILM_HEADER.join(" or ")}.`);
-    console.log(`Use: paste the Tone arc and the Storyboard into STRUQ.md under your treatment head, fill every <...>, keep one pick per line (or: lists what else fits), then run check.mjs --plan.`);
+    console.log(`Use: paste the Tone arc and the Storyboard into STRUQ.md under your treatment head. Cast every <cast: ...> from the Idea, the Motif and the Unlike line, not from the order of the options: each option is a different first screen or moment (blocks/CATALOG.md says what each does). Write one pick per line with its reason after "because", delete the options list, set (loud) for E2 or more and (quiet) for E1 or less, and change, add or drop middle scenes as the idea needs (7 to 9 scenes, the budgets in SKILL.md hold). Then run check.mjs --plan.`);
   },
 
   add() {
