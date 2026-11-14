@@ -68,11 +68,22 @@ if (args.includes("--plan")) {
   const drawFile = join(root, ".struq", "draw.json");
   if (existsSync(drawFile)) {
     const hand = JSON.parse(readFileSync(drawFile, "utf8"));
-    for (const [field, ids] of [["Palette", hand.palettes], ["Type", hand.pairings]]) {
+    const off = (field, id, ids, fix) => findings.push({ severity: "fail", id: "off-draw", detail: `${field} ${id} is not in this site's hand (${ids.join(", ")})`, fix });
+    for (const [field, ids] of [["Palette", hand.palettes], ["Type", hand.pairings], ["Language", hand.languages]]) {
+      if (!ids) continue;
       const line = planText.match(new RegExp(`^${field}:\\s*(.*)$`, "m"))?.[1] ?? "";
       const id = line.match(/^[\w-]+/)?.[0];
-      if (id && !ids.includes(id) && !/\(brand\b|\bbrand\)/i.test(line)) {
-        findings.push({ severity: "fail", id: "off-draw", detail: `${field} ${id} is not in this site's hand (${ids.join(", ")})`, fix: `choose the ${field} from the hand canon.mjs draw dealt, or mark the client's own brand ${field === "Type" ? "faces" : "colours"} with (brand)` });
+      if (id && !ids.includes(id) && !(field !== "Language" && /\(brand\b|\bbrand\)/i.test(line))) {
+        off(field, id, ids, field === "Language" ? "pick the language from the two canon.mjs draw dealt" : `choose the ${field} from the hand canon.mjs draw dealt, or mark the client's own brand ${field === "Type" ? "faces" : "colours"} with (brand)`);
+      }
+    }
+    // The Opening and the Centerpiece come from the hands blocks.mjs arc dealt, unless the client named the block.
+    for (const [scene, ids] of [["Opening", hand.openings], ["Centerpiece", hand.centerpieces]]) {
+      if (!ids) continue;
+      const line = planText.match(new RegExp(`^\\s*\\d+\\.\\s*${scene}\\b[^\\n]*$`, "m"))?.[0] ?? "";
+      const slug = line.match(/\)\s*([a-z][\w-]*)/)?.[1];
+      if (slug && slug !== "own" && !ids.includes(slug) && !/\(named\b|\bnamed\)/i.test(line)) {
+        off(scene, slug, ids, `cast the ${scene} from the hand blocks.mjs arc dealt, or mark a block the client named with (named)`);
       }
     }
   } else {
@@ -177,9 +188,11 @@ const plan = read("STRUQ.md");
     else if (plates.length) add(G, "WARN", `${plates.length} fallback plate(s) among the pack images. Run images.mjs ${pack} again when online.`, plates);
     else add(G, "PASS", `${srcs.length} beeldbank images from pack "${pack}", each a verified image file`);
     // An off-topic photo is worse than no photo: a pack the brief does not point at must show
-    // something the brief is about in at least one alt.
+    // something the brief is about in at least one alt. A module images.mjs --brief already fitted is trusted: its
+    // Dutch alts never match an English brief word for word, which made this a false fail (proof run 2026-11-14).
     const brief = plan.match(/^Brief:\s*(.+)$/m)?.[1];
-    if (brief && srcs.length && packSignalForBrief(brief) !== pack) {
+    const fitted = /Fitted to the brief/.test(mod);
+    if (brief && srcs.length && !fitted && packSignalForBrief(brief) !== pack) {
       const alts = [...mod.matchAll(/alt: "([^"]*)"/g)].map((m) => m[1]);
       if (!alts.some((alt) => altFitsBrief(alt, brief))) {
         add(G, "FAIL", `Off-topic photos: none of the "${pack}" photos shows anything the brief is about. Run images.mjs --brief "<the brief>" (it leaves them out) and let the opener carry the first screen.`, alts.slice(0, 4));
@@ -539,7 +552,8 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
 /* -------------------------------------------------------------------- HERO */
 {
   const G = "HERO";
-  const heroBlock = usesKind("heroes") || usedBlocks.has("showpieces/hero-opener");
+  // A WebGL background opener (background-silk, -aurora, -facets) is a hero too: the catalogue casts it as an opening.
+  const heroBlock = usesKind("heroes") || usesKind("backgrounds") || usedBlocks.has("showpieces/hero-opener");
   const noFit = /imageFit[^=]*=\s*"none"/.test(read("lib/struq-images.ts") + read("src/lib/struq-images.ts"));
   if (heroBlock) {
     add(G, "PASS", "A hero block opens the page");

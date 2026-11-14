@@ -16,7 +16,7 @@
 // Everything lands under components/struq/ in the layout of Struq's blocks/ (kit/, heroes/, sections/ ...), so the
 // relative imports between them hold. A layout or stylesheet you wrote yourself is never overwritten.
 import { spawnSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { addRefusal, refuse } from "./gate.mjs";
@@ -106,9 +106,29 @@ function shuffled(list) {
   return out;
 }
 
-/** Every block of a role with each of its variants and that variant's energy, e.g. `hero-poster:window E3`. */
+/**
+ * This site's hand of blocks for a role: five of the role's blocks at random, dealt once and kept in .struq/draw.json
+ * (beside the palettes and pairings canon.mjs draw deals), so printing the arc again shows the same hand. Proof runs
+ * of 2026-11-14 showed why: listing every opening, even shuffled, still drew most sites to the same two or three.
+ */
+const HAND = 5;
+function hand(role) {
+  const file = join(root, ".struq", "draw.json");
+  const draw = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : {};
+  const key = role === "opening" ? "openings" : "centerpieces";
+  if (!draw[key]) {
+    draw[key] = shuffled(CATALOG.filter((b) => b.role === role && !b.home)).slice(0, HAND).map((b) => b.slug);
+    mkdirSync(join(root, ".struq"), { recursive: true });
+    writeFileSync(file, JSON.stringify(draw, null, 2) + "\n");
+    appendLog(root, `Step 2 Draw ${key}`, [`blocks.mjs arc dealt the ${role} hand: ${draw[key].join(", ")}.`]);
+  }
+  return new Set(draw[key]);
+}
+
+/** The blocks of a role in this site's hand, each with its variants and that variant's energy, e.g. `hero-poster:window E3`. */
 function pool(role) {
-  return shuffled(CATALOG.filter((b) => b.role === role && !b.home)).flatMap((b) => {
+  const dealt = hand(role);
+  return shuffled(CATALOG.filter((b) => b.role === role && !b.home && dealt.has(b.slug))).flatMap((b) => {
     const variants = b.variants?.length ? b.variants.map((v) => v.id) : [null];
     return variants.map((v) => {
       const energy = (v && b.byVariant?.[v]?.energy) ?? b.energy ?? 0;
@@ -203,6 +223,7 @@ const commands = {
     for (const line of arcLines(arc)) console.log(line);
     const f = language.frames;
     console.log(`\nFrames of ${id}: preloader ${f.preloader}, page transition ${f.pageTransition} (only with a second route), menu ${f.menu}. Header: ${film.FILM_HEADER.join(" or ")}.`);
+    console.log(`The Opening and the Centerpiece options are this site's hand, dealt once (.struq/draw.json): cast from it; a block the client named goes outside it, marked (named) on its line.`);
     console.log(`Use: paste the Tone arc and the Storyboard into STRUQ.md under your treatment head. Cast every <cast: ...> from the Idea, the Motif and the Unlike line, not from the order of the options: each option is a different first screen or moment (blocks/CATALOG.md says what each does). Write one pick per line with its reason after "because", delete the options list, set (loud) for E2 or more and (quiet) for E1 or less, and change, add or drop middle scenes as the idea needs (7 to 9 scenes, the budgets in SKILL.md hold). Then run check.mjs --plan.`);
   },
 

@@ -29,7 +29,8 @@ function nextProject() {
 
 /** The printed Tone arc and numbered Storyboard lines, as they would be pasted into STRUQ.md. */
 function printedBoard(language) {
-  const r = blocks('arc', language);
+  // A fresh project each time: arc deals the opening and centerpiece hands into <project>/.struq/draw.json.
+  const r = blocks('arc', language, '--dir', tmp('board'));
   assert.equal(r.status, 0, r.stderr);
   const lines = r.stdout.split('\n');
   const tone = lines.find((l) => l.startsWith('Tone arc: '));
@@ -185,12 +186,19 @@ test('arc prints one storyboard line per scene, the frames and how to use it', (
     assert.ok(out.includes(`preloader ${frames.preloader}`) && out.includes(frames.pageTransition) && out.includes(frames.menu), out);
     assert.match(out, /^Use: .*check\.mjs --plan\.$/m);
   }
-  // The Opening and the Centerpiece offer the whole catalogue of their role in every language, not the arc's three.
+  // why: listing the whole catalogue, even shuffled, still drew most sites to two or three openings (2026-11-14). The
+  // Opening and the Centerpiece offer a hand of five blocks of their role, from any language, dealt per project.
+  const catalog = JSON.parse(readFileSync(join(BLOCKS_DIR, 'catalog.json'), 'utf8'));
+  const list = Array.isArray(catalog) ? catalog : catalog.blocks;
   for (const language of LANGUAGES) {
     const { board } = printedBoard(language);
     const at = (name) => board.find((l) => new RegExp(`^\\d+\\.\\s+${name}\\s`).test(l));
-    for (const slug of ['hero-framed:wand', 'hero-poster:window', 'hero-index:lijst', 'background-silk:fold', 'hero-opener']) assert.ok(at('Opening').includes(slug), `${language} opening lacks ${slug}`);
-    for (const slug of ['image-to-fullbleed', 'split-pair', 'manifesto-scrub', 'film-strip']) assert.ok(at('Centerpiece').includes(slug), `${language} centerpiece lacks ${slug}`);
+    for (const [name, role] of [['Opening', 'opening'], ['Centerpiece', 'centerpiece']]) {
+      const options = at(name).match(/options: ([^|]*)/)[1].split(', ').map((o) => o.split(/[: ]/)[0]);
+      const slugs = new Set(options);
+      assert.equal(slugs.size, 5, `${language} ${name}: ${[...slugs].join(', ')}`);
+      for (const slug of slugs) assert.equal(list.find((b) => b.slug === slug)?.role, role, `${slug} is not an ${role}`);
+    }
   }
 });
 
