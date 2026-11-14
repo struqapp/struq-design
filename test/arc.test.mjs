@@ -141,7 +141,8 @@ function arcProblems(language, lines) {
   return problems;
 }
 
-test('every block and kit scene a SKILL.md arc names is in that language\'s arc in film.json, in its order', () => {
+// exp/b-compact: the compact SKILL.md drops the hand-written arcs on purpose; blocks.mjs arc prints them.
+test.skip('every block and kit scene a SKILL.md arc names is in that language\'s arc in film.json, in its order', () => {
   for (const language of LANGUAGES) {
     const lines = skillArc(language);
     assert.ok(lines.length, `SKILL.md has no **${language}.** arc`);
@@ -149,7 +150,7 @@ test('every block and kit scene a SKILL.md arc names is in that language\'s arc 
   }
 });
 
-test('the arc comparison fails a block the language\'s arc does not hold, a swapped default and a dropped scene', () => {
+test.skip('the arc comparison fails a block the language\'s arc does not hold, a swapped default and a dropped scene', () => {
   const weight = skillArc('weight');
   const foreign = weight.map((l, i) => (i === 0 ? l.replace('`preloader-stack`', '`preloader-gate`') : l));
   assert.match(arcProblems('weight', foreign).join('\n'), /preloader-gate is not in film\.json's weight arc/);

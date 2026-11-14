@@ -140,106 +140,41 @@ run `struq_controle`'s detectors on your files until nothing fails.
 
 ## The film
 
-One film, not a showreel: every frame from one language, one arc, one centerpiece, one motif seen at the arrival,
-the opening, the centerpiece and the close. A loud scene moves with the scroll (a pin, a scrub, a reveal to full
-bleed); a quiet scene is type and a photo that enter once and sit still. Two tags only: `(loud)` when the block's
-energy in the catalogue is 2 or more, `(quiet)` at 1 or less, for a kit scene or for an own scene.
+One film, not a showreel: one language, one motif (seen at the arrival, the opening, the centerpiece and the close),
+one centerpiece. A loud scene moves with the scroll; a quiet scene enters once and sits still.
 
-| Language | For | Feel | Frames: preloader, page transition, menu | Motif |
-|---|---|---|---|---|
-| weight | architecture, hotels, craft, interiors | photographic and slow; a print grows into place; long holds | `preloader-stack`, `page-transition-stack`, `menu-curtain:stack` | frame |
-| cut | fashion, agencies, portfolios, music | hard cuts, short masks, no fades, short holds | `preloader-slices`, `page-transition-slices`, `menu-curtain:slices` | cut or word |
-| curtain | campaigns, launches, events, culture | a light line, panels part, a long hold before the reveal | `preloader-gate` or `preloader-wordmark:split`, `page-transition-gate`, `menu-curtain:gate` | line or aperture |
+| Language | Feel | Frames: preloader, page transition, menu |
+|---|---|---|
+| weight | slow and settled; a print grows into place; long holds | `preloader-stack`, `page-transition-stack`, `menu-curtain:stack` |
+| cut | sharp and decisive; hard cuts, short masks, no fades | `preloader-slices`, `page-transition-slices`, `menu-curtain:slices` |
+| curtain | held, then revealed; panels part after a long hold | `preloader-gate` or `preloader-wordmark:split`, `page-transition-gate`, `menu-curtain:gate` |
 
-Pick the language by the tempo the idea needs: slow and settled (weight), sharp and decisive (cut), or held and then
-revealed (curtain). The For column only gives examples; a trade that is not in it (a law firm, a plumber, a software
-product, a restaurant) takes whichever tempo its idea has, and any of the three can fit it. Weight is the easy
-reflex, because calm reads as tasteful: on the `Language:` line give the reason for your pick and why not each of the
-other two. The idea may pick another motif of the six.
-`preloader-gate` and `page-transition-gate` show a neutral hairline ring; the film leader (a dial counting 3, 2, 1)
-only for a film client, through `dial="leader"` and `marks`. The header is `header-bar:quiet` or `:settle`; every
-section says its ground with `data-bar-tone`, the hero too ("photo" only where the bar sits over the photo, "ground"
-over paper), and the bar never repeats a name the hero already sets at poster scale. Each arc is loud only at the opening, the centerpiece and at most one gentle
-scene with a quiet scene on each side. The arcs below show each language's shape and the picks that suit it; none is a
-default, and the Opening and the Centerpiece may come from anywhere in the catalogue.
+Pick by the tempo the idea needs, never by trade; calm and the held reveal are both reflexes. The Opening and the
+Centerpiece may come from anywhere in the catalogue: choose the pair that could only be this client's.
 
-**Quiet scenes** are the kit's four, imported from `@/components/struq/kit/quiet` (props in each file's header):
-- `Statement`: the one sentence and the page's first type moment, with an `accent` word and a margin `label` or a
-  small `image`, so it is composed, never a lone line.
-- `PhotoText`: a photo and a short text side by side on the grid.
-- `Rows`: three to six hairline rows, a term and one sentence each, never numbered.
-- `Close`: the closing line and its one link, echoing the opening; `frame` when the motif is the frame.
-- An own scene whenever the idea asks for something the four do not give: your type and photos composed for this
-  client with `SplitHeadline`, `MediaFrame` and `Reveal`, entering once, its root marked `data-scene="<name>"` (the
-  check warns `own-scene-unmarked` without it). The craft rules below hold for it as for any block.
-
-**weight.** Paper throughout, ink at the centerpiece.
-1. Arrival (frame): `preloader-stack`; the print lands on the hero photo.
-2. Opening (loud, short hold): `hero-framed:wand`, `hero-framed:portret` or `hero-still:frame`; calmer, `hero-still:still` (quiet).
-3. Statement (quiet): `Statement`.
-4. About (loud, the gentle one): `about-studio:wandeling` or `about-studio:plaat` (a full-bleed reveal); quiet, `PhotoText`.
-5. Approach (quiet): `approach:schuif` or `Rows`.
-6. Centerpiece (loud, ink): `image-to-fullbleed`, `grid-assembly`, `zoom-through` or `project-stack` (real projects).
-7. Release (quiet): `PhotoText`.
-8. Close (quiet): `Close`, type only after a full-bleed centerpiece. Footer: `wordmark-finale`.
-
-**cut.** Paper and ink in hard alternation, never a fade.
-1. Arrival (frame): `preloader-slices`, its caption from the lexicon.
-2. Opening (loud): `hero-poster`; quiet, `hero-index:lijst`, `hero-index:venster`, `hero-split:naad` or `hero-split:liggend`.
-3. Work (quiet): `hover-list` or `image-trail`; after `hero-index`, already a list, `reveals:clip`.
-4. Statement (quiet): `Statement`.
-5. Centerpiece (loud, ink): `split-pair`, `panel-wipe`, `project-stack`, `fanned-cards` or `film-strip` (film clients).
-6. Release (quiet): `fill-rows` or `Rows`.
-7. Close (quiet): `Close`, type only, or `cta-closing:pointer`. Footer: `footer-contact`.
-
-**curtain.** Field or ink at the opening, paper between, ink at the centerpiece.
-1. Arrival (frame): `preloader-gate`, the ring fills and the gate parts; or `preloader-wordmark:split`.
-2. Opening (loud): `hero-opener`, `background-aurora`, `background-silk` or `background-facets`, the line at poster scale; calmer, `hero-still:horizon` (quiet).
-3. Statement (quiet): `Statement`.
-4. Details (loud, the gentle one): `sticky-chapters`, or quiet `panel-accordion`: the programme, places and dates given.
-5. Build (quiet): `PhotoText`, who makes it.
-6. Centerpiece (loud, ink): `scrub-connector`, `zoom-through`, `manifesto-scrub` or `panel-wipe`.
-7. Release (quiet): `PhotoText`.
-8. Close (quiet): `cta-closing:pointer`, the line returning. Footer: `footer-reveal`, the curtain closing.
-
-**Budgets.** Hard rules: a storyboard that breaks one is rewritten before the stop.
-- Exactly one centerpiece; nothing pins after it. The opening holds at most 1.5 screens, all pins together about 4.5.
-  Screens pinned: `hero-opener` 1, `hero-framed` and `hero-poster` 1.5, `manifesto-scrub` 2, `image-to-fullbleed`
-  2.2, `grid-assembly` 2.5, `panel-wipe` 1.7 (2.6 when it closes), `film-strip` up to 3, `fanned-cards`, `split-pair`,
-  `zoom-through` and `scrub-connector` 3, `project-stack` 1.1 per project after the first. Pinned in one variant, so
-  never quiet: `hero-still:frame`, `hero-split:opening`, `hero-index:doorlopen`, `about-studio:doorkijk`,
-  `approach:zin`, `manifesto:writes` and `:split`.
-- Never two loud scenes side by side. At least four in ten scenes are quiet.
-- Every frame from the site's language. A page transition only when the site has more than one route.
-- Install only what the storyboard names, plus the header and the language's menu.
-- One motif on the page. At most two full-bleed photo reveals, built the same way: `hero-framed:wand` and `:portret`,
-  `hero-poster`, `hero-still:frame`, `image-to-fullbleed`, `zoom-through`, `grid-assembly`, `about-studio:plaat` and
-  `cta-closing:photo` each count one.
-- At most one marquee (`cta-closing:marquee`, `velocity-type`) and one custom cursor. One accent word, set in the
-  accent face through the `accent` prop: in the opening's headline, in `Statement` and again in `Close`.
-- No clock unless the lexicon is about time; then one, turned on by its prop (`clock`, `timeZone` on `wordmark-finale`).
-- Two or three type moments at poster scale (12 to 20vw) on the page; everything else from the scale.
-- Labels: no eyebrows above headings, no mono, no uppercase labels, no numbered steps. A small sentence-case label in
-  the body face may sit beside a headline in the margin column or under a photo, in words from the lexicon.
+Budgets the plan check enforces: exactly one centerpiece and nothing pinned after it; never two loud scenes side by
+side; at least four in ten scenes quiet; pins together about 4.5 screens; every frame from the language; at most two
+full-bleed photo reveals, one marquee, one custom cursor, one accent device (an italic word, a weight shift, a
+coloured word, a jump in scale, or none); two or three type moments at poster scale; no eyebrows, mono, uppercase
+labels or numbered steps.
 
 ## What makes it feel high end
 
 The blocks hold this already; your glue must too. Detail in [references/craft.md](references/craft.md).
 
-- Reveals clip from numbers, never scale a box; whole pixels; photos decoded before they show, cut or swap.
-- Scroll effects are scroll-tied and reverse when the visitor scrolls back; key frames hold.
-- The gate: `sq-js` on `<html>` before paint hides only what will animate, and shows it anyway after 3 s.
-- Type on a photo sits on the measured calm side over the lightest flat veil that reaches 3:1.
-- Display runs light (300, or the poster pairing's weight); fitted lines measured after `document.fonts.ready`.
-- Never clip a descender: the kit's masks already keep them; never `overflow-hidden` on a heading of your own, and
-  look at a line with a g and a j before calling type done.
-- Tokens only, mixes in oklab, a surface step and a hairline instead of a shadow, one accent.
-- Icons: Struq Icons (`@struq/icons`), functional only ([references/iconography.md](references/iconography.md)).
+- Reveals clip from numbers, never scale a box; whole pixels; photos decoded before they show.
+- Scroll effects are scroll-tied and reverse; key frames hold.
+- `sq-js` on `<html>` before paint hides only what will animate, and shows it anyway after 3 s.
+- Type on a photo sits on its calm side over the lightest veil that reaches 3:1.
+- Display runs light unless the pairing says otherwise; fitted lines measured after `document.fonts.ready`.
+- Never clip a descender; never `overflow-hidden` on a heading of your own.
+- Tokens only, a surface step and a hairline instead of a shadow, one accent colour.
+- Icons: `@struq/icons`, functional only ([references/iconography.md](references/iconography.md)).
 
 ## When something goes wrong
 
 - **Nothing scrolls:** an overlay called `getLenis()?.stop()` without `start()`, or `SmoothScroll` is not mounted.
 - **Content stays invisible for 3 s:** the block never set `data-ready`; usually it threw. Read the console.
 - **Wrong colours or faces:** `data-blocks` is missing on `<body>`, or STRUQ TOKENS sits before the kit import.
-- **A fitted line overflows or jumps:** the face did not load (check `app/fonts.ts` and the links in the layout).
+- **A fitted line overflows or jumps:** the face did not load (check `app/fonts.ts` and the layout links).
 - **Vite:** [references/stack-targets.md](references/stack-targets.md).
