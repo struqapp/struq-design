@@ -24,16 +24,23 @@ blocks feel high end is [references/craft.md](references/craft.md); the tell lis
 
 For a dashboard or product UI keep the tokens, faces and tells; drop the preloader, Lenis and the pinned pieces.
 
-## Three rules that never bend
+## Rules that never bend
 
 1. **Never an empty frame.** Every image slot holds a real photo: the client's, else the beeldbank pack (free, CC0,
-   no permission needed). A photo shows the world around the client, never their own room, team or product unless it
-   is theirs; captions are written from the alt.
-2. **Never invent facts.** No testimonials, logos, stats, awards, prices, addresses, hours, bios or quotes the brief
-   did not give. Leave them out and list them under Assumptions in STRUQ.md.
+   no permission needed). Pack photos are mood: the world around the client, never their own room, team, work or
+   product. So never set one under a first-person claim ("our oven", "every piece we make", "my plates"), and where
+   the work is the product (a portfolio, a shop, a collection) build the frame for their work and ask for it at the
+   stop. A caption is copy you write for this client, never the alt read back.
+2. **Never invent, never stand in.** No testimonials, logos, stats, awards, prices, addresses, hours, bios, quotes,
+   product features, programme, process, equipment (a wood oven) or name the brief did not give. A missing fact
+   leaves no trace: no "to follow", "to be announced", "Your Name", example.com, and no button for an action with no
+   real destination (shop, booking, contact, sign-up). Drop the line, the field or the button and list it under
+   Assumptions in STRUQ.md. The self-check fails stand-ins and links to anchors that do not exist.
 3. **Never the tells** ([references/tells.md](references/tells.md)): no eyebrows, pills, gradients or gradient text,
    glow, mono on marketing, Inter or the other generator faces, default purple or blue, numbered steps, icon grids,
    stat banners, generic CTAs, em or en dashes.
+4. **Copy in the client's market language**, which may differ from the brief's (a plumber in Utrecht reads Dutch).
+   Say which on the Brief line and under Assumptions. Write it as a native copywriter would, never a translation.
 
 ## The four tools
 
@@ -150,8 +157,9 @@ product, a restaurant) takes whichever tempo its idea has, and any of the three 
 reflex, because calm reads as tasteful: on the `Language:` line give the reason for your pick and why not each of the
 other two. The idea may pick another motif of the six.
 `preloader-gate` and `page-transition-gate` show a neutral hairline ring; the film leader (a dial counting 3, 2, 1)
-only for a film client, through `dial="leader"` and `marks`. The header is `header-bar:quiet` or `:settle`; sections
-say their ground with `data-bar-tone`. Each arc is loud only at the opening, the centerpiece and at most one gentle
+only for a film client, through `dial="leader"` and `marks`. The header is `header-bar:quiet` or `:settle`; every
+section says its ground with `data-bar-tone`, the hero too ("photo" only where the bar sits over the photo, "ground"
+over paper), and the bar never repeats a name the hero already sets at poster scale. Each arc is loud only at the opening, the centerpiece and at most one gentle
 scene with a quiet scene on each side. The arcs below show each language's shape and the picks that suit it; none is a
 default, and the Opening and the Centerpiece may come from anywhere in the catalogue.
 
