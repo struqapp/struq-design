@@ -405,6 +405,18 @@
 }
 
 /* --- hero-poster --- */
+/* The poster's top line keeps clear of the site's bar on every width: the sheet's top room is the bar's height (the
+   header bar's --hb-top or the menu curtain's --menu-bar-h, shared on the nearest [data-blocks]) plus a breath, and
+   never less than the poster's own margin when there is no bar. The fit reads the room as laid out. */
+[data-blocks] [data-hero-poster] {
+  --hp-bar: var(--hb-top, var(--menu-bar-h, 0px));
+  --hp-pt: max(2rem, calc(var(--hp-bar) + 1.5rem));
+}
+@media (min-width: 768px) {
+  [data-blocks] [data-hero-poster] {
+    --hp-pt: max(4svh, calc(var(--hp-bar) + 3svh));
+  }
+}
 /* With scripts and motion the poster's first paint is the moment before its entrance: the lines wait below their
    masks and the window is a hairline. The block's script takes over (data-live) and plays the entrance; if it never
    arrives everything opens after 3s. Without scripts or under reduced motion the composed poster shows at once. */
@@ -938,17 +950,52 @@
 /* --- menu-curtain --- */
 /* The menu's ground is the gate's deep one (a step darker than the page in every palette, so the menu reads as the
    room the page is shown in); the slices take their own, as in page-transition-slices. Browsers without relative
-   colour take the inverse. The bar's height is shared with the page, which keeps its hero type below it. */
+   colour take the inverse. The bar's height is shared with the page through the nearest [data-blocks], which keeps its
+   hero type below it (hero-poster reads it). */
+[data-blocks]:has([data-menu-curtain]),
 [data-blocks] [data-menu-curtain] {
   --menu-bar-h: 4rem;
+}
+[data-blocks] [data-menu-curtain] {
   --menu: var(--inverse);
   --on-menu: var(--on-inverse);
   --on-menu-muted: color-mix(in oklch, var(--on-menu) 70%, var(--menu));
 }
 @media (min-width: 768px) {
+  [data-blocks]:has([data-menu-curtain]),
   [data-blocks] [data-menu-curtain] {
     --menu-bar-h: 4.5rem;
   }
+}
+/* The bar's ink before the script cuts it, and without scripts: the first section's data-bar-tone (the element right
+   after the curtain, or that element's first child) picks the copy that shows; the script then cuts every copy to the
+   sections under it. */
+[data-blocks] [data-menu-curtain]:not([data-ready]) [data-tone-face]:not([data-tone-face="ground"]),
+[data-blocks]
+  [data-menu-curtain]:not([data-ready]):has(
+    + [data-bar-tone="photo"],
+    + [data-bar-tone="inverse"],
+    + :not([data-bar-tone]) > [data-bar-tone="photo"]:first-child,
+    + :not([data-bar-tone]) > [data-bar-tone="inverse"]:first-child
+  )
+  [data-tone-face="ground"] {
+  clip-path: inset(0 0 100% 0);
+}
+[data-blocks]
+  [data-menu-curtain]:not([data-ready]):has(+ [data-bar-tone="photo"], + :not([data-bar-tone]) > [data-bar-tone="photo"]:first-child)
+  [data-tone-face="photo"],
+[data-blocks]
+  [data-menu-curtain]:not([data-ready]):has(+ [data-bar-tone="inverse"], + :not([data-bar-tone]) > [data-bar-tone="inverse"]:first-child)
+  [data-tone-face="inverse"] {
+  clip-path: none;
+}
+/* Once the page scrolls each copy stands on its solid ground, with a faint hairline, scrubbed by --mc-k over the bar's
+   own height of scroll. */
+[data-blocks] [data-menu-curtain] [data-mc-ground] {
+  opacity: var(--mc-k, 0);
+}
+[data-blocks] [data-menu-curtain] [data-mc-line] {
+  opacity: calc(var(--mc-k, 0) * 0.16);
 }
 @supports (color: oklch(from red l c h)) {
   [data-blocks] [data-menu-curtain] {
@@ -1440,6 +1487,23 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
 [data-blocks] [data-header-bar]:not([data-ready]) [data-hb-copy] {
   visibility: hidden;
 }
+/* The plain bar's ink before the copies show, and without scripts: the start tone, read from the page. The script
+   writes it (data-start, the section under the bar); before it runs, the first section's data-bar-tone decides: the
+   element right after the bar, or that element's first child (a <main> around the sections). */
+[data-blocks] [data-header-bar]:not([data-ready]):is(
+    [data-start="photo"],
+    :not([data-start]):has(+ [data-bar-tone="photo"], + :not([data-bar-tone]) > [data-bar-tone="photo"]:first-child)
+  )
+  [data-hb-real] {
+  color: var(--on-photo);
+}
+[data-blocks] [data-header-bar]:not([data-ready]):is(
+    [data-start="inverse"],
+    :not([data-start]):has(+ [data-bar-tone="inverse"], + :not([data-bar-tone]) > [data-bar-tone="inverse"]:first-child)
+  )
+  [data-hb-real] {
+  color: var(--on-inverse);
+}
 [data-blocks] [data-header-bar][data-ready] [data-hb-real] {
   color: transparent;
 }
@@ -1490,9 +1554,9 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
   outline-offset: 6px;
   border-radius: 1px;
 }
-/* Once the page has scrolled the bar takes the ground under it (over a photo the palette's dark over a blur) and quiet
-   its hairline, all scrubbed by --hb-k over the bar's own height of scroll. */
-[data-blocks] [data-header-bar] :is([data-hb-ground], [data-hb-blur]) {
+/* Once the page has scrolled the bar takes the solid ground under it (over a photo the palette's dark) and quiet its
+   hairline, all scrubbed by --hb-k over the bar's own height of scroll. */
+[data-blocks] [data-header-bar] [data-hb-ground] {
   opacity: var(--hb-k, 0);
 }
 [data-blocks] [data-header-bar] [data-hb-line] {
@@ -1613,7 +1677,7 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-time] {
     text-decoration-thickness: 1px;
     text-underline-offset: 0.2em;
   }
-  [data-blocks] [data-header-bar] :is([data-hb-ground], [data-hb-blur], [data-hb-line]) {
+  [data-blocks] [data-header-bar] :is([data-hb-ground], [data-hb-line]) {
     transition: opacity 0.2s linear;
   }
 }

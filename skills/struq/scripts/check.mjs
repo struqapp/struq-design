@@ -14,7 +14,9 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import { appendLog } from "./log.mjs";
 import { altFitsBrief, packSignalForBrief } from "./packs.mjs";
+import { savedHand } from "./draw.mjs";
 import { filmCheck, planCheck } from "./film-check.mjs";
+import { checkHand } from "./hand.mjs";
 import { hasApproval } from "./gate.mjs";
 
 const CANON = JSON.parse(readFileSync(new URL("../canon/canon.json", import.meta.url), "utf8"));
@@ -64,29 +66,10 @@ if (args.includes("--plan")) {
   const appDir = ["app", "src/app"].map((d) => join(root, d)).find((d) => existsSync(d));
   const routes = Math.max(1, appDir ? walk(appDir).filter((p) => /(^|[\\/])page\.(tsx|jsx|js)$/.test(p)).length : 0);
   const { findings } = planCheck({ plan: planText, catalog: CATALOG, routes });
-  // The hand canon.mjs draw dealt: Palette and Type come from it, unless the line says the client's own (brand).
-  const drawFile = join(root, ".struq", "draw.json");
-  if (existsSync(drawFile)) {
-    const hand = JSON.parse(readFileSync(drawFile, "utf8"));
-    const off = (field, id, ids, fix) => findings.push({ severity: "fail", id: "off-draw", detail: `${field} ${id} is not in this site's hand (${ids.join(", ")})`, fix });
-    for (const [field, ids] of [["Palette", hand.palettes], ["Type", hand.pairings], ["Language", hand.languages]]) {
-      if (!ids) continue;
-      const line = planText.match(new RegExp(`^${field}:\\s*(.*)$`, "m"))?.[1] ?? "";
-      const id = line.match(/^[\w-]+/)?.[0];
-      if (id && !ids.includes(id) && !(field !== "Language" && /\(brand\b|\bbrand\)/i.test(line))) {
-        off(field, id, ids, field === "Language" ? "pick the language from the two canon.mjs draw dealt" : `choose the ${field} from the hand canon.mjs draw dealt, or mark the client's own brand ${field === "Type" ? "faces" : "colours"} with (brand)`);
-      }
-    }
-    // The Opening and the Centerpiece come from the hands blocks.mjs arc dealt, unless the client named the block.
-    for (const [scene, ids] of [["Opening", hand.openings], ["Centerpiece", hand.centerpieces]]) {
-      if (!ids) continue;
-      const line = planText.match(new RegExp(`^\\s*\\d+\\.\\s*${scene}\\b[^\\n]*$`, "m"))?.[0] ?? "";
-      const slug = line.match(/\)\s*([a-z][\w-]*)/)?.[1];
-      if (slug && slug !== "own" && !ids.includes(slug) && !/\(named\b|\bnamed\)/i.test(line)) {
-        off(scene, slug, ids, `cast the ${scene} from the hand blocks.mjs arc dealt, or mark a block the client named with (named)`);
-      }
-    }
-  } else {
+  // The plan holds to the site's hand (canon.mjs draw), checked by Struq's hand.mjs, the same rule the MCP runs.
+  const hand = savedHand(root);
+  if (hand) findings.push(...checkHand(planText, hand));
+  else {
     findings.push({ severity: "warn", id: "no-draw", detail: "No hand dealt for this site", fix: "run canon.mjs draw and choose the Palette and Type from it" });
   }
   for (const f of findings) console.log(`${f.severity === "fail" ? "FAIL" : "WARN"} ${f.id}: ${f.detail.replace(/\.$/, "")}. Fix: ${f.fix}`);

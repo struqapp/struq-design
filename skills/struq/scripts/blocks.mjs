@@ -19,6 +19,7 @@ import { spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { projectHand } from "./draw.mjs";
 import { addRefusal, refuse } from "./gate.mjs";
 import { appendLog } from "./log.mjs";
 
@@ -107,27 +108,12 @@ function shuffled(list) {
 }
 
 /**
- * This site's hand of blocks for a role: five of the role's blocks at random, dealt once and kept in .struq/draw.json
- * (beside the palettes and pairings canon.mjs draw deals), so printing the arc again shows the same hand. Proof runs
- * of 2026-11-14 showed why: listing every opening, even shuffled, still drew most sites to the same two or three.
+ * This site's five openings or centerpieces, from the project's hand (draw.mjs: dealt once by Struq's hand.mjs and kept
+ * in .struq/draw.json), so printing the arc again shows the same hand. Every opening hand holds one that needs no photo.
  */
-const HAND = 5;
 function hand(role) {
-  const file = join(root, ".struq", "draw.json");
-  const draw = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : {};
-  const key = role === "opening" ? "openings" : "centerpieces";
-  if (!draw[key]) {
-    const all = shuffled(CATALOG.filter((b) => b.role === role && !b.home));
-    // Every opening hand holds at least one opener that needs no photo (a WebGL background or hero-opener), so a
-    // site whose pack shows nothing of the client can still open well (Roy, 2026-11-15: type-led when no photo fits).
-    const photoless = (b) => b.kind === "backgrounds" || b.slug === "hero-opener";
-    const first = role === "opening" ? all.find(photoless) : null;
-    draw[key] = [...(first ? [first] : []), ...all.filter((b) => b !== first)].slice(0, HAND).map((b) => b.slug);
-    mkdirSync(join(root, ".struq"), { recursive: true });
-    writeFileSync(file, JSON.stringify(draw, null, 2) + "\n");
-    appendLog(root, `Step 2 Draw ${key}`, [`blocks.mjs arc dealt the ${role} hand: ${draw[key].join(", ")}.`]);
-  }
-  return new Set(draw[key]);
+  const { hand: dealt } = projectHand(root);
+  return new Set(role === "opening" ? dealt.openings : dealt.centerpieces);
 }
 
 /** The blocks of a role in this site's hand, each with its variants and that variant's energy, e.g. `hero-poster:window E3`. */

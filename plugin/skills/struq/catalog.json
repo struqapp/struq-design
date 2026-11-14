@@ -1,8 +1,8 @@
 {
   "source": {
     "repo": "Struq blocks/",
-    "ref": "origin/main",
-    "commit": "a538491"
+    "ref": "staging",
+    "commit": "2696ba38"
   },
   "tool": "struq_blok(slug, variant)",
   "blocks": [

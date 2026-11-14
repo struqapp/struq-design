@@ -22,7 +22,7 @@ export const FILM_RULES = [
     id: 'uncast-slot',
     severity: 'fail',
     title: 'Every scene is cast',
-    fix: 'Replace every <cast: ...> and <loud|quiet> that blocks.mjs arc printed with one pick and its reason after "because", chosen from the Idea and the Motif, and delete the options list.',
+    fix: 'Replace every <cast: ...> and <loud|quiet> the arc printed (blocks.mjs arc, or the treatment struq_richting returns) with one pick and its reason after "because", chosen from the Idea and the Motif, and delete the options list.',
   },
   {
     id: 'no-unlike',
@@ -915,17 +915,17 @@ export function planCheck({ plan, catalog, routes = 1 } = {}) {
   }
   const planned = treatment.hasLanguage;
   if (!planned) add('no-treatment', 1, missingTreatment(treatment));
+  // The arc is printed with no picks on purpose (2026-11-14); a slot left as printed was never cast.
+  const uncast = treatment.storyboard
+    .map((text, at) => (/<cast\b|<loud\|quiet>/i.test(text) ? at + 1 : 0))
+    .filter(Boolean);
+  if (uncast.length) add('uncast-slot', uncast.length, `Scene ${uncast.join(', ')} still ${uncast.length === 1 ? 'reads' : 'read'} as the arc printed ${uncast.length === 1 ? 'it' : 'them'}.`);
+  if (!/^Unlike:\s*\S/m.test(String(plan ?? ''))) add('no-unlike', 1, 'The plan has no Unlike: line.');
 
   const count = treatment.storyboard.length;
   if (count < SCENE_MIN || count > SCENE_MAX) {
     add('scene-count', 1, `The storyboard has ${plural(count, 'scene')}; it needs ${SCENE_MIN} to ${SCENE_MAX}.`);
   }
-  // blocks.mjs arc prints no picks on purpose (2026-11-14); a slot left as printed was never cast.
-  const uncast = treatment.storyboard
-    .map((text, at) => (/<cast\b|<loud\|quiet>/i.test(text) ? at + 1 : 0))
-    .filter(Boolean);
-  if (uncast.length) add('uncast-slot', uncast.length, `Scene ${uncast.join(', ')} still ${uncast.length === 1 ? 'reads' : 'read'} as blocks.mjs arc printed ${uncast.length === 1 ? 'it' : 'them'}.`);
-  if (!/^Unlike:\s*\S/m.test(String(plan ?? ''))) add('no-unlike', 1, 'The plan has no Unlike: line.');
 
   const used = [];
   const unknown = [];

@@ -86,6 +86,7 @@ idea wants a moment no block gives. Outside the hand only what the client gave: 
 ```
 # STRUQ.md: <name>
 Brief: <one line: what, for whom, where, in which language>
+Hand: <the id canon.mjs draw printed>
 Idea: <a point of view in one sentence: what a visitor believes when they leave>
 Unlike: <the likeliest site, and Struq's reflexes> -> <what this one does instead>
 Language: <weight | cut | curtain> (<the tempo the idea needs>; not <each of the other two>, because <why not>)

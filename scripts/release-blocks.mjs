@@ -13,6 +13,7 @@
 //   skills/struq/blocks/catalog.json and CATALOG.md   the generated catalogue the skill reads, film fields included
 //   skills/struq/blocks/film.json   blocks/film/arcs.ts: the three languages and their arcs, every export by name
 //   skills/struq/scripts/film-check.mjs   Struq's blocks/film/film-check.mjs verbatim, for check.mjs
+//   skills/struq/scripts/hand.mjs         Struq's blocks/film/hand.mjs verbatim: dealing the hand and the off-draw check
 //   skills/struq/canon/canon.json   palettes, pairings, font weights and providers, for canon.mjs offline
 //   plugin/                         the lean Claude plugin, through scripts/build-plugin.mjs
 //
@@ -35,6 +36,7 @@ const ref = opt("--ref", "staging");
 const OUT = join(repo, "skills", "struq", "blocks");
 const CANON_OUT = join(repo, "skills", "struq", "canon");
 const FILM_OUT = join(repo, "skills", "struq", "scripts", "film-check.mjs");
+const HAND_OUT = join(repo, "skills", "struq", "scripts", "hand.mjs");
 
 const git = (...a) => execFileSync("git", ["-C", struq, ...a], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
 const show = (path) => git("show", `${ref}:${path}`);
@@ -188,6 +190,8 @@ writeFileSync(join(OUT, "catalog.json"), `${JSON.stringify({ source, blocks: ent
 
 // The film check, verbatim: check.mjs runs it on the plan and on the built page. It has no imports, so it runs as is.
 writeFileSync(FILM_OUT, show(FILM_CHECK));
+// The hand (Roy, 2026-11-15: one source for direction): dealt and checked by the same code in the skill and the MCP.
+writeFileSync(HAND_OUT, show("blocks/film/hand.mjs"));
 
 // The languages and arcs, verbatim from blocks/film/arcs.ts, each export under its own name.
 writeFileSync(join(OUT, "film.json"), `${JSON.stringify({ source: { repo: "Struq blocks/film/arcs.ts", ref, commit }, ...arcs }, null, 2)}\n`);
