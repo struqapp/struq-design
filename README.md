@@ -14,13 +14,23 @@
 <p align="center">
   <a href="https://struq.app/skill">Website</a>
   &nbsp;&middot;&nbsp;
-  <a href="https://www.npmjs.com/package/@struq/skill">npm</a>
+  <a href="https://struq.app/docs">Docs</a>
   &nbsp;&middot;&nbsp;
   <a href="skills/struq/blocks/CATALOG.md">The blocks</a>
   &nbsp;&middot;&nbsp;
+  <a href="#the-struq-mcp">Struq MCP</a>
+  &nbsp;&middot;&nbsp;
   <a href="https://struq.app/icons">Struq Icons</a>
   &nbsp;&middot;&nbsp;
+  <a href="https://github.com/struqapp/struq-design/discussions">Discussions</a>
+  &nbsp;&middot;&nbsp;
   <a href="CHANGELOG.md">Changelog</a>
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@struq/skill"><img alt="npm version of @struq/skill" src="https://img.shields.io/npm/v/@struq/skill?style=flat-square&label=%40struq%2Fskill&labelColor=12100e&color=e5532d"></a>
+  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-e5532d?style=flat-square&labelColor=12100e"></a>
+  <a href="https://struq.app/docs/install"><img alt="Works with Claude Code, Cursor, Codex, OpenCode and more" src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Cursor%20%C2%B7%20Codex%20%C2%B7%20OpenCode-e5532d?style=flat-square&labelColor=12100e"></a>
 </p>
 
 <br>
@@ -204,6 +214,59 @@ The screenshot step uses whatever browser tool your agent has (Playwright or sim
 
 <br>
 
+## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/integration-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/integration-light.svg" width="26" height="26" alt=""></picture> The Struq MCP
+
+The skill works on its own, from the copy of the catalogue it ships with. Connect the Struq MCP and your agent reads the live catalogue instead: the newest blocks, palettes and photo packs the moment they are admitted, plus the whole Struq library. It is free; it asks for a free account because your AI tool connects as you.
+
+```bash
+claude mcp add --transport http --scope user struq https://struq.app/api/mcp
+```
+
+<details>
+<summary><b>Codex, Cursor, VS Code, Windsurf and the Claude app</b></summary>
+<br>
+
+Codex, in `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.struq]
+url = "https://struq.app/api/mcp"
+```
+
+Cursor, in `~/.cursor/mcp.json` (then approve Struq under Settings, MCP):
+
+```json
+{
+  "mcpServers": {
+    "struq": { "url": "https://struq.app/api/mcp" }
+  }
+}
+```
+
+VS Code, Windsurf, Antigravity and the Claude app each want a slightly different shape. [The connect guide](https://struq.app/docs/connect) has every one, checked against each tool's own docs.
+
+</details>
+
+<details>
+<summary><b>The tools</b></summary>
+<br>
+
+| Tool | What it does |
+|---|---|
+| `struq_richting` | The direction: one palette, one type pairing and one photo pack, as the token block the blocks read |
+| `struq_blokken` | Lists the blocks, by kind or by words |
+| `struq_blok` | One block as real files, with its packages, props and a usage example |
+| `struq_controle` | The check your agent runs against its own files before it calls the work done |
+| `struq_list_assets` | Pages through the library: palettes, typography, design systems, sections and imagery |
+| `struq_search_assets` | Searches the library by mood, sector or name |
+| `struq_get_asset` | One asset with its prompt and its exact colours and fonts |
+
+All of them read; none of them changes anything in your account or your project. [More on the MCP](https://struq.app/mcp).
+
+</details>
+
+<br>
+
 ## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/palette-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/palette-light.svg" width="26" height="26" alt=""></picture> The icons it reaches for
 
 Struq builds use [Struq Icons](https://struq.app/icons) by default: 182 icons in two tones, and each of the 118 full icons makes one small move under the cursor that says what it does. Every icon on this page is one of them.
@@ -230,6 +293,15 @@ The Struq skill is instructions, the block files and five small Node scripts (`b
 - **Photos**, for every slot your own photos do not fill: `images.mjs` reads the public pack list at `https://struq.app/api/media/packs` and downloads the chosen images from `https://struq.app/media/packs/`, or from the same paths on the old domain when struq.app does not answer. Offline it writes plates graded to your palette instead.
 - **The MCP** (`https://struq.app/api/mcp`), if you connect it: your agent calls Struq's tools with your brief. Nothing else leaves your machine.
 - **The installer** downloads the package from npm, looks for your AI tools' folders in your home folder and copies the skill into them. It sends nothing.
+
+<br>
+
+## <picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/chat-dark.svg"><img src="https://cdn.jsdelivr.net/gh/struqapp/struq-design@main/assets/readme/h/chat-light.svg" width="26" height="26" alt=""></picture> Help and feedback
+
+- **Something went wrong?** [Open an issue](https://github.com/struqapp/struq-design/issues/new/choose) and paste your `STRUQ-LOG.md`: it shows where the build went off.
+- **A question, or a site you built?** [Discussions](https://github.com/struqapp/struq-design/discussions). Before and after screenshots are the most useful thing you can share.
+- **Want to change the skill?** [CONTRIBUTING.md](CONTRIBUTING.md) maps the repository and the house rules.
+- **Docs:** [install](https://struq.app/docs/install), [commands](https://struq.app/docs/commands), [connecting the MCP](https://struq.app/docs/connect), [troubleshooting](https://struq.app/docs/troubleshooting).
 
 <br>
 
