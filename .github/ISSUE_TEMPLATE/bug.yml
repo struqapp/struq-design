@@ -1,0 +1,73 @@
+name: Something went wrong
+description: The installer failed, the plan or build went off the rails, or a block broke.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. The fastest fix comes from the build log: every run writes `STRUQ-LOG.md` in your project, and pasting it below usually tells us exactly where it went wrong.
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Where did it go wrong?
+      options:
+        - Installing or updating the skill
+        - The plan (direction, treatment, the one stop)
+        - Building (blocks, tokens, fonts, photos)
+        - The check (check.mjs or the screenshot pass)
+        - The Struq MCP
+        - Somewhere else
+    validations:
+      required: true
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Which AI tool?
+      options:
+        - Claude Code
+        - Claude Code, as a plugin
+        - Codex
+        - Cursor
+        - OpenCode
+        - Gemini CLI
+        - GitHub Copilot
+        - Windsurf
+        - Another tool
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      placeholder: e.g. Claude Opus, GPT-5 Codex
+  - type: input
+    id: version
+    attributes:
+      label: Skill version
+      description: The first line the installer prints, or the output of `npx @struq/skill@latest --version`.
+      placeholder: e.g. 0.5.1
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+      description: The brief you gave helps too, if you can share it.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: STRUQ-LOG.md
+      description: Paste the build log, or the installer output for an install problem. It is plain text and holds no secrets, but read it first.
+      render: markdown
+  - type: textarea
+    id: shots
+    attributes:
+      label: Screenshots
+      description: For a visual problem, a phone and a desktop screenshot of the page.
+  - type: input
+    id: os
+    attributes:
+      label: OS and Node version
+      placeholder: e.g. macOS 15, Node 22

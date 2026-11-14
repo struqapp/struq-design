@@ -8,3 +8,4 @@ site/next-env.d.ts
 site/*.tsbuildinfo
 site/.env*
 site/shots/
+.README.repo.md
