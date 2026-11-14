@@ -71,6 +71,9 @@ Your agent settles the idea, the motion language, the motif and a storyboard of 
 <p align="center">
   <a href="https://struq.app/showcase/forge"><img alt="Ostrava Steel, a knife forge site." src="assets/readme/showcase/forge.webp" width="49%"></a>
   <a href="https://struq.app/showcase/brume"><img alt="Brume, a lighthouse hotel site." src="assets/readme/showcase/brume.webp" width="49%"></a>
+</p>
+
+<p align="center">
   <a href="https://struq.app/showcase/lowlight"><img alt="Lowlight, a film studio site." src="assets/readme/showcase/lowlight.webp" width="49%"></a>
   <a href="https://struq.app/showcase/halide"><img alt="Halide, a site directed in ink." src="assets/readme/showcase/halide.webp" width="49%"></a>
 </p>
