@@ -80,6 +80,26 @@ Your agent settles the idea, the motion language, the motif and a storyboard of 
 
 <p align="center"><sub><b>Ostrava Steel</b>, <b>Brume</b>, <b>Lowlight</b> and <b>Halide</b> were directed the Struq way and written by Claude Opus as one file, before the skill carried the method. Much of what the skill knows about craft came from them. All five run live on <a href="https://struq.app/showcase">struq.app/showcase</a>.</sub></p>
 
+**The same brief, with and without the skill.** Each pair is one line typed into Claude Haiku, the smallest model, built once with the Struq skill (left) and once without it (right). Both got the same answer at the one stop: yes, and a phone number or an email. We ran eight briefs this way; every site built with the skill came out clearly ahead, and every site built without it made up facts about the business.
+
+<p align="center">
+  <img alt="Bakkerij Zoet, a neighbourhood bakery in Haarlem. Left, with the skill: the wood oven at night and the line you smell the bread before you see it, then the dough by hand. Right, without: a cream template with emoji cards, a claim it has baked since 2009 and a price list nobody gave it." src="assets/readme/proof/bakery.webp" width="100%">
+</p>
+
+<p align="center"><sub><b>"Maak een website voor Bakkerij Zoet, een buurtbakkerij in Haarlem."</b> Without the skill the page invents a founding year, eight products and their prices.</sub></p>
+
+<p align="center">
+  <img alt="Noir Atelier, a fashion label's first collection. Left, with the skill: the name cut by a strip of a hanging coat, then a close crop of denim twill. Right, without: a dark template announcing a collection called Nocturne with eleven pieces and prices." src="assets/readme/proof/fashion.webp" width="100%">
+</p>
+
+<p align="center"><sub><b>"A site for Noir Atelier, an independent fashion label launching its first collection."</b> Without the skill it names the collection, counts the pieces and prices the coat at €890.</sub></p>
+
+<p align="center">
+  <img alt="Kiln and Co, a ceramics studio that sells online. Left, with the skill: Made to be kept, then stacked vessels and a jar in soft light. Right, without: a shop template with drawn mugs and bowls, invented names and prices, and Add to cart buttons." src="assets/readme/proof/ceramics.webp" width="100%">
+</p>
+
+<p align="center"><sub><b>"A website for Kiln and Co, a ceramics studio that sells mugs and bowls online."</b> Without the skill it builds a cart for eight products it made up.</sub></p>
+
 Where the skill still loses: craft under pressure. An ambitious page with pinned scenes has more that can break than a plain one, and a reveal can still come out empty on a first build. The check catches most of it, and each release works on the rest.
 
 <br>
