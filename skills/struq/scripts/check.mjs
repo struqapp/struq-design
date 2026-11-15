@@ -7,8 +7,9 @@
 //
 // It needs no browser and no dependencies. It reads the source and the public folder and prints
 // PASS, WARN or FAIL per check, in groups: images, AI tells, the motion floor, the hero, the film
-// (film-check.mjs, the budgets Struq's MCP holds too), typography, plus the plan in STRUQ.md, and the
-// look look.mjs took of the rendered page (.struq/look.json, which must pass and be newer than the source). Every
+// (film-check.mjs, the budgets Struq's MCP holds too), typography, plus the plan in STRUQ.md, the
+// look look.mjs took of the rendered page (.struq/look.json, which must pass and be newer than the source), and the
+// art director's asks (.struq/art-direction.md: each answered Built: or Refused:, never on the storyboard). Every
 // FAIL names the file and line and the fix. Exit code 1 while any FAIL remains. Fix, run again, and
 // only report done on "RESULT: PASS".
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -302,8 +303,45 @@ const plan = read("STRUQ.md");
   if (soon.length) add(G, "FAIL", "Coming-soon copy: a line that promises what is not there yet (coming soon, launching, on its way, binnenkort, volgt snel, nog niet beschikbaar, in de maak) is not copy. The site shows what exists today: drop the line, and list what is missing under Assumptions: in STRUQ.md.", soon);
   else add(G, "PASS", "No coming-soon copy");
 
-  // An invitation to come by or call needs a door: an address, a phone number or an email somewhere on the page.
-  const invites = copyHits(/\btonight\b|\bsee you\b|\bcome by\b|\bdrop in\b|\bcall us\b|\bvanavond\b|\btot straks\b|\bkom langs\b|\bloop (?:even )?binnen\b|\bbel ons\b|\bwaarvoor u ons belt\b/i);
+  // An invitation needs a door: an address, a phone number, an email, a mailto or tel link, or an external booking or
+  // shop link somewhere on the page. Two kinds are held to it: the "come by" wording (tonight, see you, kom langs), and
+  // the imperative call in the trade's own words (Schuif aan, Pick up a mug, Book a class, Reserveer, Shop the collection)
+  // in a heading, a button, a link or a closing line. A statement that merely mentions the trade is no call: the verb
+  // opens a short line, and the line is the call.
+  const COME_BY = /\btonight\b|\bsee you\b|\bcome by\b|\bdrop in\b|\bcall us\b|\bvanavond\b|\btot straks\b|\bkom langs\b|\bloop (?:even )?binnen\b|\bbel ons\b|\bwaarvoor u ons belt\b/i;
+  const END = "(?:\\s|[.!,]|$)";
+  const CALL = new RegExp(
+    `^[\\s"'(\\[\\u2018\\u201C]*(?:${[
+      // English
+      `visit${END}`, "come\\s+(?:and|in|eat|taste|try|see|join|sit|visit|hungry|by|over|along)\\b", "(?:eat|dine|taste)\\s+(?:with|at|here|in|the|our|your|something|a|some)\\b",
+      "book\\s+(?:a|an|your|the|now|online|tickets?|ahead|with|today)\\b", `buy${END}`, "order\\s+(?:a|an|your|the|now|online|ahead|here|today|one|it)\\b",
+      "shop\\s+(?:the|our|all|now|online|this|new|with)\\b", `join${END}`, "try\\s+(?:a|an|one|it|the|our|us|this|some|your)\\b", "sit\\s+(?:down|with|at|in)\\b",
+      "pick\\s+up\\b", "roll\\s+out\\b", "grab\\s+(?:a|an|your|the|some|one)\\b", "reserve\\s+(?:a|an|your|the|now|online|seats?|tickets?|today)\\b",
+      "save\\s+(?:the\\s+date|your\\s+(?:seat|spot|place))\\b", "take\\s+a\\s+(?:seat|class|lesson)\\b", "pull\\s+up\\s+a\\s+chair\\b", "step\\s+(?:in|inside|up)\\b",
+      "stop\\s+by\\b", "walk\\s+in\\b", "get\\s+(?:your\\s+|a\\s+|an\\s+)?(?:tickets?|quote|table|seat|spot)\\b", "enrol{1,2}\\s+(?:now|today|in|for)\\b", "find\\s+us\\b",
+      // Dutch
+      "kom\\s+(?:proeven|eten|binnen|langs|kijken|naar|bij|eens|gerust|erbij|meedoen|kennismaken|mee|zitten)\\b", "schuif\\s+(?:even\\s+|gerust\\s+|gezellig\\s+)?aan\\b",
+      `bestel${END}`, `reserveer${END}`, "boek\\s+(?:een|je|jouw|uw|nu|online|tickets?|alvast|plek|plaats)\\b", `koop${END}`,
+      "neem\\s+(?:een\\s+)?(?:plaats|zitplaats|stoel)\\b", "ga\\s+zitten\\b", "proef\\s+(?:het|de|een|ons|onze|wat|zelf|mee)\\b", "probeer\\s+(?:een|het|de|ons|onze|eens|zelf|wat)\\b",
+      "doe\\s+mee\\b", "sluit\\s+(?:je|u)\\s+aan\\b", "meld\\s+(?:je|u)\\s+aan\\b", "schrijf\\s+(?:je|u)\\s+in\\b", "stap\\s+(?:gerust\\s+)?binnen\\b",
+      "loop\\s+(?:gerust\\s+|even\\s+)?(?:naar\\s+)?binnen\\b", "pak\\s+(?:een|je|uw)\\b", "bezoek\\s+(?:ons|onze|de)\\b", "vind\\s+ons\\b", "eet\\s+(?:mee|met|bij)\\b",
+    ].join("|")})`,
+    "i",
+  );
+  const isCall = (s) => {
+    const words = s.trim().split(/\s+/);
+    if (words.length > 8 || s.length > 80 || !CALL.test(s)) return false;
+    // A lone lowercase word is a class name or an identifier, not a button.
+    return words.length > 1 || /^[^\p{L}]*\p{Lu}/u.test(s);
+  };
+  const calls = copy.filter((c) => {
+    // A class list is no copy: the strings of className and class attributes are left out.
+    const classes = new Set([...c.line.matchAll(/\b(?:className|class)\s*=\s*\{?\s*(["'`])((?:\\.|(?!\1)[^\\])*)\1/g)].map((m) => m[2].trim()));
+    const segs = c.segs.filter((s) => !classes.has(s));
+    const wholeLine = segs.length > 1 && segs.length <= 4 && segs.every((s) => s.split(/\s+/).length <= 5) ? [segs.join(" ")] : [];
+    return [...segs, ...wholeLine].some(isCall);
+  }).map((c) => `${c.where}  ${c.line.slice(0, 120)}`);
+  const invites = [...new Set([...copyHits(COME_BY), ...calls])];
   if (invites.length) {
     const DOORS = [
       /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/,
@@ -313,10 +351,51 @@ const plan = read("STRUQ.md");
       /\b\d{1,5}\s+(?:\p{Lu}[\p{L}'-]+\s+){1,3}(?:Street|St|Road|Rd|Avenue|Ave|Lane|Way|Square|Place|Boulevard|Drive|Court|Row|Terrace)\b/u,
       /\b[A-Z]{1,2}\d[A-Z\d]?\s\d[A-Z]{2}\b/,
     ];
-    const door = copy.some((c) => c.segs.some((s) => DOORS.some((re) => re.test(s)))) || own.some((f) => /\b(?:tel|mailto):[^"'`\s{}]{4,}/.test(f.text));
-    if (door) add(G, "PASS", "The invitations on the page have a door: an address, a phone number or an email is on it");
-    else add(G, "FAIL", "Invitation without a door: the copy asks the reader to come by or call (tonight, see you, vanavond, kom langs, bel ons), but the page shows no address, phone number or email. Put the real one on the page, or drop the invitation and list the missing fact under Assumptions: in STRUQ.md.", invites);
+    // An external link is a door only to a booking or shop: not Struq's own credit, a font host, or a social profile.
+    const EXTERNAL = /\b(?:href|action)\s*[:=]\s*\{?\s*["'`]https?:\/\/(?!(?:www\.)?(?:struq\.(?:app|nl)|localhost|schema\.org|w3\.org|fonts\.(?:googleapis|gstatic)\.com|api\.fontshare\.com|(?:instagram|facebook|twitter|x|linkedin|tiktok|youtube|pinterest|github|behance|dribbble)\.com)\b)[^"'`\s]+/i;
+    const door = copy.some((c) => c.segs.some((s) => DOORS.some((re) => re.test(s)))) || own.some((f) => /\b(?:tel|mailto):[^"'`\s{}]{4,}/.test(f.text) || EXTERNAL.test(f.text));
+    if (door) add(G, "PASS", "The invitations on the page have a door: an address, a phone number, an email or a booking or shop link is on it");
+    else add(G, "FAIL", "Invitation without a door: the copy asks the reader to act (come by, call, eat, book, buy, order, join, sit down, pick up: tonight, kom langs, Schuif aan, Pick up a mug, Reserveer, Shop the collection), but the page shows no address, phone number, mailto or tel link, or external booking or shop link. With no door the site ends on the idea, never on an invitation: drop the line, the button or the link, and list the door the client must add under Assumptions: in STRUQ.md.", invites);
   } else add(G, "PASS", "No invitation without a door");
+
+  // A stand-in name: the trade word shown as the business's name (a yoga studio called "Yoga"). The names a site shows are
+  // the wordmark props of its header, preloader, hero and footer blocks, a data-wordmark element, the name and title in
+  // lib/site.ts or a file like it, and the page title. A name that is only the trade or a generic word for the business
+  // is a stand-in, unless the Brief line itself gives that name (capitalised, and not as the first word of the line).
+  {
+    const GENERIC = new Set(
+      "yoga pilates bakery bakkerij bakker studio restaurant resto cafe café koffiebar bar pub brasserie plumbing plumber loodgieter loodgieters loodgietersbedrijf ceramics ceramic pottery keramiek aardewerk conference conferentie congres fashion label atelier salon kapper barbershop gym fitness dentist tandarts clinic praktijk shop store winkel webshop boutique gallery galerie agency bureau consultancy workshop hotel hostel guesthouse garden tuin hovenier cleaning schoonmaak electrician elektricien painter schilder builder aannemer lawyer advocaat accountant photography fotografie photographer fotograaf design ontwerp school academy academie club app software invoicing florist bloemist butcher slager".split(" "),
+    );
+    const STOP = new Set("the a an de het een my mijn our onze your jouw and en of van voor for by in at".split(" "));
+    const tokens = (name) => name.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    const isStandIn = (name) => {
+      const t = tokens(name);
+      return t.length > 0 && t.every((w) => GENERIC.has(w) || STOP.has(w)) && t.some((w) => GENERIC.has(w));
+    };
+    const shown = [];
+    const seen = (name, where) => name.trim() && shown.push({ name: name.trim(), where });
+    const lineOf = (f, index) => `${f.rel}:${f.text.slice(0, index).split("\n").length}`;
+    for (const f of own.filter((x) => !x.rel.endsWith(".css"))) {
+      for (const m of f.text.matchAll(/<(?:Header|MenuCurtain|Preloader|Footer|Wordmark|Hero|PageTransition|SiteHeader)\w*\b[^>]*?\bname=\{?\s*["'`]([^"'`]+)["'`]/g)) seen(m[1], lineOf(f, m.index));
+      for (const m of f.text.matchAll(/<\w+\b[^>]*\bdata-wordmark\b[^>]*>([^<{]+)</g)) seen(m[1], lineOf(f, m.index));
+      if (/(?:^|\/)(?:lib|src\/lib|config|src\/config|data|app)\/(?:site|brand|identity|config|constants|metadata)\.(?:ts|tsx|js|mjs)$/.test(f.rel)) {
+        for (const m of f.text.matchAll(/\b(?:name|siteName|brandName|title)\s*:\s*["'`]([^"'`]+)["'`]/g)) seen(m[1], lineOf(f, m.index));
+      }
+      if (/(?:^|\/)app\/layout\.(?:tsx|jsx|ts|js)$/.test(f.rel)) {
+        for (const m of f.text.matchAll(/\b(?:title|default)\s*:\s*["'`]([^"'`]+)["'`]/g)) seen(m[1], lineOf(f, m.index));
+      }
+    }
+    const brief = plan.match(/^Brief:\s*(.+)$/m)?.[1] ?? "";
+    const named = (name) => {
+      const re = new RegExp(`(?<![\\p{L}\\p{N}])${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`, "gu");
+      return [...brief.matchAll(re)].some((m) => m.index > 0);
+    };
+    const standIns = shown.filter((s) => isStandIn(s.name) && !named(s.name));
+    if (standIns.length) {
+      const names = [...new Set(standIns.map((s) => `"${s.name}"`))].join(", ");
+      add(G, "FAIL", `Stand-in name: the site is called ${names}, which is the trade or a generic word, not the client's name, and the Brief line does not give it. With no name in the brief the header shows no wordmark and the opener and the close carry no name; ask for the name at the one stop, and list it under Assumptions: in STRUQ.md.`, standIns.map((s) => `${s.where}  "${s.name}"`));
+    } else add(G, "PASS", "No stand-in name: the name the site shows is not a bare trade word");
+  }
 
   // A link to an anchor nothing on the page carries: a button that goes nowhere.
   {
@@ -664,6 +743,61 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   }
 }
 
+/* --------------------------------------------------------------------- ART */
+// The art director's asks are binding. .struq/art-direction.md lists each ask as a numbered item, and the builder writes
+// an answer line under it: "Built: <what changed>" or "Refused: <reason>". An ask with no answer fails. A refusal whose
+// reason only cites the storyboard, the plan, a budget or a block fails too: the storyboard is rewritten for a good ask,
+// a budget is kept by dropping something else, a block is swapped or restyled. A refusal stands on a rule that never
+// bends (SKILL.md, Rules that never bend) or on a fact the brief did not give, and says which.
+{
+  const G = "ART";
+  const file = join(root, ".struq", "art-direction.md");
+  const text = existsSync(file) ? readFileSync(file, "utf8") : "";
+  if (!text) add(G, "FAIL", "No .struq/art-direction.md: hand the stills to a fresh subagent (SKILL.md, Art direction), save its asks there as numbered items, and answer each with Built: or Refused:.");
+  else {
+    const asks = [];
+    let cur = null;
+    for (const line of text.split(/\r?\n/)) {
+      if (/^\s*#/.test(line)) {
+        cur = null;
+        continue;
+      }
+      const ask = line.match(/^\s{0,3}\d+[.)]\s+(\S.*)$/);
+      if (ask) {
+        cur = { ask: ask[1], answer: null, reason: "" };
+        asks.push(cur);
+        continue;
+      }
+      if (!cur) continue;
+      const ans = line.match(/^\s*(?:[-*]\s+)?\*{0,2}(Built|Refused)\*{0,2}:\*{0,2}\s*(.*)$/i);
+      if (ans) {
+        cur.answer = ans[1].toLowerCase();
+        cur.reason = ans[2];
+      } else if (cur.answer === "refused" && line.trim()) cur.reason += ` ${line.trim()}`;
+    }
+    const shortAsk = (a) => `${a.ask.slice(0, 90)}${a.ask.length > 90 ? "..." : ""}`;
+    const unanswered = asks.filter((a) => !a.answer);
+    const EMPTY = /^[\s.:;,…-]*$/;
+    // What a refusal may stand on: a rule that never bends, or a fact the brief did not give.
+    const GROUND = /\b(?:invent\w*|made[- ]up|fabricat\w*|never bends|rule\s*[1-4]|honesty|stand-in|empty frame|eyebrow\w*|tells?|dash(?:es)?|the brief\s+(?:gave|gives|did not|does not|never|has no|names no|says nothing)|brief gave|not (?:given|in the brief)|no (?:photo|pack photo|address|phone|number|name|programme|program|dates?|price|prices|shop|booking|testimonial|product)\b|reduced.motion|copyright|licen[cs]e)/i;
+    // What is not a ground: the plan, the storyboard, a budget, or a block.
+    const NOT_GROUND = /\b(?:story-?board|(?:the |our |approved |agreed )?plan\b|budgets?|quiet share|pin(?:s| budget)?\b|one centerpiece|centerpiece|blocks?\b|block-owned|owns? (?:its|the)|fixed (?:layout|crop|composition)|the film|loud scene)/i;
+    const weak = asks.filter((a) => a.answer === "refused" && (EMPTY.test(a.reason) || (NOT_GROUND.test(a.reason) && !GROUND.test(a.reason))));
+    const bare = asks.filter((a) => a.answer === "built" && EMPTY.test(a.reason));
+    if (!asks.length && /ship it/i.test(text)) add(G, "PASS", "The art director said ship it: no asks to answer");
+    else if (!asks.length) add(G, "FAIL", ".struq/art-direction.md holds no numbered asks. Write each ask as a numbered item (1. 2. 3.) with the still it names, and answer each with Built: or Refused:.");
+    else {
+      if (unanswered.length) add(G, "FAIL", `${unanswered.length} art-direction ask(s) with no answer. Under each ask write "Built: <what changed>" or "Refused: <reason>"; every ask is built unless it breaks a rule that never bends or a fact of the brief.`, unanswered.map(shortAsk));
+      if (weak.length) add(G, "FAIL", `${weak.length} art-direction ask(s) refused with no ground. The storyboard, the plan, a budget or a block is never a reason: rewrite the storyboard for a good ask, keep a budget by dropping something else, swap or restyle the block. Refuse only an ask that breaks a rule that never bends (SKILL.md) or a fact the brief did not give, and say which.`, weak.map((a) => `${shortAsk(a)}  Refused: ${a.reason.slice(0, 100)}`));
+      if (bare.length) add(G, "FAIL", `${bare.length} art-direction ask(s) marked Built with nothing said. Write what changed.`, bare.map(shortAsk));
+      if (!unanswered.length && !weak.length && !bare.length) {
+        const built = asks.filter((a) => a.answer === "built").length;
+        add(G, "PASS", `Every art-direction ask is answered: ${built} built, ${asks.length - built} refused on a rule or a fact of the brief`);
+      }
+    }
+  }
+}
+
 /* --------------------------------------------------------------------- LOG */
 // Every site keeps STRUQ-LOG.md: an entry for each completed checklist step. Step 8 (this check) writes its own entry
 // when this run ends, so it is not required beforehand.
@@ -685,7 +819,7 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
 }
 
 /* ------------------------------------------------------------------ REPORT */
-const order = ["IMAGES", "TELLS", "MOTION", "HERO", "FILM", "TYPE", "PLAN", "LOOK", "LOG"];
+const order = ["IMAGES", "TELLS", "MOTION", "HERO", "FILM", "TYPE", "PLAN", "LOOK", "ART", "LOG"];
 console.log(`Struq check: ${root}\n`);
 for (const g of order) {
   const rows = results.filter((r) => r.group === g);

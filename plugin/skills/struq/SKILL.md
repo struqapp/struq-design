@@ -36,7 +36,12 @@ For a dashboard or product UI keep the tokens, faces and tells; drop the preload
    leaves no trace: no "to follow", "to be announced", "Your Name", example.com, and no button for an action with no
    real destination (shop, booking, contact, sign-up), no "come by" without the address. Drop the line, the field or
    the button and list it under
-   Assumptions in STRUQ.md. The self-check fails stand-ins and links to anchors that do not exist.
+   Assumptions in STRUQ.md. With no door (no address, phone, mail, booking or shop link from the brief or the stop) the
+   site ends on the idea, never on an invitation: no "Schuif aan", "Pick up a mug", "Book a class" or "Shop the
+   collection", and Assumptions names the door the client must add. With no name in the brief the header shows no
+   wordmark and the opener and the close carry none (or ask for the name at the one stop); the trade word ("Yoga",
+   "Bakery") is never a name. The self-check fails stand-ins, links to anchors that do not exist, calls with no door
+   and a trade word as the name.
 3. **Never the tells** ([references/tells.md](references/tells.md)): no eyebrows, pills, gradients or gradient text,
    glow, mono on marketing, Inter or the other generator faces, default purple or blue, numbered steps, icon grids,
    stat banners, generic CTAs, em or en dashes.

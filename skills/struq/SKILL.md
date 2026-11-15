@@ -30,7 +30,12 @@ folder. Worked treatments: [references/film.md](references/film.md); craft: [ref
    leaves no trace: no "to follow", "to be announced", "Your Name", example.com, and no button for an action with no
    real destination (shop, booking, contact, sign-up), no "come by" without the address. Drop the line, the field or
    the button and list it under
-   Assumptions in STRUQ.md. The self-check fails stand-ins and links to anchors that do not exist.
+   Assumptions in STRUQ.md. With no door (no address, phone, mail, booking or shop link from the brief or the stop) the
+   site ends on the idea, never on an invitation: no "Schuif aan", "Pick up a mug", "Book a class" or "Shop the
+   collection", and Assumptions names the door the client must add. With no name in the brief the header shows no
+   wordmark and the opener and the close carry none (or ask for the name at the one stop); the trade word ("Yoga",
+   "Bakery") is never a name. The self-check fails stand-ins, links to anchors that do not exist, calls with no door
+   and a trade word as the name.
 3. **Never the tells** ([references/tells.md](references/tells.md)): no eyebrows, pills, gradients or gradient text,
    glow, mono on marketing, Inter or the other generator faces, default purple or blue, numbered steps, icon grids,
    stat banners, generic CTAs, em or en dashes.
@@ -62,7 +67,7 @@ step has no entry.
 - [ ] 4 Images: images.mjs --brief printed OK; only photos whose alt fits the client
 - [ ] 5 Scenes: frames and the centerpiece installed, every other scene built as the storyboard says, composed in app/page.tsx with real copy
 - [ ] 6 Build: npm run build passes
-- [ ] 7 Look: LOOK: PASS on the served build, its screenshots read; a fresh subagent's art direction in .struq/art-direction.md built, then LOOK: PASS again
+- [ ] 7 Look: LOOK: PASS on the served build, its screenshots read; a fresh subagent's asks in .struq/art-direction.md each answered Built: or Refused:, then LOOK: PASS again
 - [ ] 8 Check: check.mjs prints RESULT: PASS
 ```
 
@@ -167,8 +172,13 @@ enough to stop a visitor. Fix, rebuild, restart the server and run it again unti
 **Art direction.** Then hand the site to a fresh pair of eyes: start a subagent (the Agent tool in Claude Code, or your
 host's equivalent) and give it only the brief, the Idea line, the paths of the stills in `.struq/look/` and
 [references/art-direction.md](references/art-direction.md), never your plan or your reasoning. Save its answer to
-`.struq/art-direction.md`. Build every change it names that keeps the rules, rebuild, run `look.mjs` again, and ask a
-new subagent once more; two rounds at most, each logged with `log.mjs`. A host without subagents: reread only the
+`.struq/art-direction.md` as numbered asks, and write an answer line under each: `Built: <what changed>` or
+`Refused: <reason>`. The asks are binding. Build every one. When an ask needs another order, opening or centerpiece,
+rewrite the storyboard in STRUQ.md and swap the blocks (the storyboard serves the site); when it breaks a budget, keep
+the budget by dropping something else. Refuse only an ask that breaks a rule that never bends or a fact of the brief
+(a price, an address, a programme nobody gave), and say which. A refusal that cites the storyboard, the plan, a budget
+or a block is no refusal: `check.mjs` fails it, and fails an ask with no answer. Rebuild, run `look.mjs` again, and ask
+a new subagent once more; two rounds at most, each logged with `log.mjs`. A host without subagents: reread only the
 brief, then read the stills against that file yourself. Then `check.mjs` to
 `RESULT: PASS`; it fails while `.struq/look.json` is missing, failing or older than app/ and components/. A FAIL you
 are sure is false goes in the final report with the reason, never worked around. Stop the server when done.
