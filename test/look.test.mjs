@@ -1,13 +1,15 @@
 // why: look.mjs is the gate that opens the page a model built. The source check never saw a header printing over
 // text, a descender cut by a line mask, a word running off inside an overflow-hidden section, pale text or a
-// screen of nothing; these static pages pin each one, and a clean page that must pass.
+// screen of nothing; these static pages pin each one, and a clean page that must pass. The proof round of 2026-11-15
+// added four more: a blank screen after a panel wipe, white text unreadable on a pale photo, a total broken over two
+// lines and a face that never loaded, each with a page where it must not fire.
 //
 // It needs Playwright and a cached Chromium. It installs playwright once into a shared folder in the temp dir (or
 // uses STRUQ_PLAYWRIGHT), and never downloads a browser: without one the suite is skipped with the reason.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
@@ -36,6 +38,11 @@ const FILL = ['Een huis aan het water.', 'Wij bouwen wat blijft.', 'Hout, steen 
   .join('');
 const FOOTER = '<footer><p>Noord, Utrecht</p></footer>';
 const HERO = '<section style="padding-top:140px"><h1>Huizen die blijven</h1><p>Een architect in Utrecht.</p></section>';
+// A photo as an SVG data image (an <img>, so look treats it as a photo), and a heading set over it in white.
+const svg = (ground, spot) => `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23${ground}'/%3E%3Ccircle cx='120' cy='90' r='70' fill='%23${spot}'/%3E%3Ccircle cx='300' cy='210' r='90' fill='%23${spot}'/%3E%3C/svg%3E`;
+const PALE = svg('efe8da', 'e2d6c0');
+const DARK = svg('1f1a15', '2e261e');
+const photo = (src, line) => `<section style="position:relative;padding:0;min-height:70vh"><img src="${src}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><h2 style="position:relative;color:#ffffff;margin:0;padding:160px 24px">${line}</h2></section>`;
 
 const PAGES = {
   clean: page(`${HEADER}<main>${HERO}${FILL}</main>${FOOTER}`),
@@ -51,6 +58,24 @@ const PAGES = {
   empty: page(`${HEADER}<main>${HERO}<section><h2>Eerst dit.</h2></section><div style="height:2400px"></div><section><h2>Dan pas dit.</h2></section></main>${FOOTER}`),
   // Rows that look like links and point at the section they sit in (proof run 2026-11-15).
   selflink: page(`${HEADER}<main>${HERO}<section id="werk"><a href="#werk">Badkamers</a><p>Wat we doen.</p></section>${FILL}</main>${FOOTER}`),
+  // A panel wipe that leaves two screens of flat beige and nothing on them (proof run 2026-11-15: a closed curtain).
+  blank: page(`${HEADER}<main>${HERO}<section><h2>Eerst dit.</h2></section><section style="height:220vh;padding:0;background:#d9cbb3"></section>${FILL}</main>${FOOTER}`),
+  // White display text over a pale photo: no scrim, and the pixels behind it are nearly as light as the letters.
+  unreadable: page(`${HEADER}<main>${HERO}${photo(PALE, 'Een avond aan tafel')}${FILL}</main>${FOOTER}`),
+  // A total set at display size in a narrow column: it wraps at its group space, "3" on one line and "900.00" on the next.
+  number: page(`${HEADER}<main>${HERO}<section><p style="font-size:56px;max-width:4ch;line-height:1.2">Totaal 3 900.00</p></section>${FILL}</main>${FOOTER}`),
+  // A face asked for first that the page never loads: the heading reads in Georgia.
+  font: page(`${HEADER}<main>${HERO}<section><h2 style='font-family:"Struq Absent Face", Georgia, serif'>Een letter die niet laadt</h2></section>${FILL}</main>${FOOTER}`),
+  // None of the four may fire here: a quiet pinned scene with one sentence on its flat ground, white text over a dark
+  // photo, a total kept whole by a no-break space beside running text with numbers that wrap between them, and a face
+  // that loads.
+  kept: page(
+    `${HEADER}<main>${HERO}<section style="height:250vh;padding:0;background:#d9cbb3"><p style="position:sticky;top:45vh;margin:0 auto;text-align:center">Hier is het stil.</p></section>`
+      + `${photo(DARK, 'Een avond aan tafel')}`
+      + '<section><p style="font-size:56px;max-width:9ch;line-height:1.2">Totaal 3&nbsp;900.00</p><p>Sinds 1998 bouwen wij huizen aan het water, 120 in totaal, voor 12% minder dan een nieuw huis kost.</p></section>'
+      + `<section><h2 style='font-family:"Struq Local Face", serif'>Een letter die wel laadt</h2></section>${FILL}</main>${FOOTER}`,
+    '@font-face { font-family: "Struq Local Face"; src: local("Arial"), local("Liberation Sans"), local("Helvetica"), local("DejaVu Sans"); }',
+  ),
 };
 
 let server;
@@ -99,6 +124,7 @@ after(() => server?.close());
 /** Run look.mjs on one fixture page, in its own project folder; resolves with the exit code and look.json. */
 function look(name) {
   const dir = join(SHARED, 'cases', name);
+  rmSync(join(dir, '.struq'), { recursive: true, force: true });
   mkdirSync(join(dir, 'app'), { recursive: true });
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name, private: true }));
   writeFileSync(join(dir, 'app', 'page.tsx'), `// ${name}\n`);
@@ -114,8 +140,13 @@ function look(name) {
   });
 }
 
+// Four pages at a time: each run is its own Chromium, and a dozen at once makes captures fail on a busy machine.
 const runs = {};
-const result = (name) => (runs[name] ??= look(name));
+let running = 0;
+const queue = [];
+const slot = () => (running < 4 ? (running++, Promise.resolve()) : new Promise((r) => queue.push(r)));
+const free = () => (queue.length ? queue.shift()() : running--);
+const result = (name) => (runs[name] ??= slot().then(() => look(name)).finally(free));
 const kinds = (r, severity) => r.json.findings.filter((f) => !severity || f.severity === severity).map((f) => f.kind);
 
 test('look: a clean page passes, with screenshots and a source stamp', async (t) => {
@@ -171,9 +202,53 @@ test('look: pale text on a solid ground fails as contrast', async (t) => {
 test('look: a screen-high stretch of nothing warns as empty', async (t) => {
   if (skip) return t.skip(skip);
   const r = await result('empty');
-  assert.deepEqual([...new Set(kinds(r))], ['empty'], r.out);
-  assert.ok(r.json.findings.every((f) => f.severity === 'WARN'));
+  // Two and a half screens of nothing also hold a scroll stop that is one flat colour: that stop fails as blank.
+  assert.deepEqual([...new Set(kinds(r))].sort(), ['blank', 'empty'], r.out);
+  assert.ok(r.json.findings.filter((f) => f.kind === 'empty').every((f) => f.severity === 'WARN'));
   assert.match(r.out, /WARN empty/);
+});
+
+test('look: a scroll stop of one flat colour fails as blank; a quiet scene with a sentence does not', async (t) => {
+  if (skip) return t.skip(skip);
+  const r = await result('blank');
+  assert.equal(r.code, 1, r.out);
+  const f = r.json.findings.filter((x) => x.kind === 'blank');
+  assert.ok(f.length && f.every((x) => x.severity === 'FAIL' && /one flat colour \(#d9cbb3\)/.test(x.detail)), r.out);
+  // A run of blank stops is one finding per size.
+  assert.ok(f.length <= 2, r.out);
+  assert.ok(!kinds(await result('kept')).includes('blank'), (await result('kept')).out);
+});
+
+test('look: text over a photo is measured: unreadable fails, readable passes without a warning', async (t) => {
+  if (skip) return t.skip(skip);
+  const r = await result('unreadable');
+  assert.equal(r.code, 1, r.out);
+  const f = r.json.findings.find((x) => x.kind === 'unreadable');
+  assert.ok(f && f.severity === 'FAIL' && f.text === 'Een avond aan tafel' && /needs 3/.test(f.detail), r.out);
+  assert.ok(Number(f.detail.match(/^([\d.]+)/)[1]) < 1.5, f.detail);
+  assert.ok(!kinds(r).includes('contrast'), r.out);
+  const kept = await result('kept');
+  assert.ok(!kinds(kept).includes('unreadable') && !kinds(kept).includes('contrast'), kept.out);
+});
+
+test('look: a number broken over two lines fails; a number kept whole does not', async (t) => {
+  if (skip) return t.skip(skip);
+  const r = await result('number');
+  assert.equal(r.code, 1, r.out);
+  const f = r.json.findings.find((x) => x.kind === 'broken-number');
+  assert.ok(f && f.severity === 'FAIL' && f.text === '3 900.00' && /2 lines/.test(f.detail), r.out);
+  assert.ok(!kinds(await result('kept')).includes('broken-number'), (await result('kept')).out);
+});
+
+test('look: a face asked for first that never loads fails once; a loaded face does not', async (t) => {
+  if (skip) return t.skip(skip);
+  const r = await result('font');
+  assert.equal(r.code, 1, r.out);
+  const f = r.json.findings.filter((x) => x.kind === 'font-missing');
+  assert.equal(f.length, 1, r.out);
+  assert.ok(f[0].severity === 'FAIL' && /"Struq Absent Face"/.test(f[0].detail) && f[0].text === 'Een letter die niet laadt', r.out);
+  const kept = await result('kept');
+  assert.ok(!kinds(kept).includes('font-missing'), kept.out);
 });
 
 test('look: a link to the section it sits in fails as a self-link', async (t) => {

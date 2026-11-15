@@ -276,6 +276,48 @@ const plan = read("STRUQ.md");
     /volg(?:t|en) zodra|zodra (?:de studio|de klant|je|jullie|we)\b[^"'<>]{0,40}(?:aanlever|doorgeef|doorgeven|binnen)|nog aan te leveren|wordt nog aangevuld|(?:telefoon|e-?mail|adres|reserveren|gegevens|openingstijden|data|datum|prijzen)[^.<>"'{}]{0,30}\bvolg(?:t|en)\b|\bvolg(?:t|en) (?:nog|later|binnenkort)\b|lorem ipsum|\bcoming soon\b|to be (?:confirmed|announced)|will be announced|details to (?:follow|come)|\bto follow\)|\bTB[AC]\b|\byour (?:name|company|logo|photo|text) here\b|\bYour Name\b|\bexample\.(?:com|org|net)\b|\b(?:John|Jane) Doe\b|\[(?:naam|adres|telefoon|e-?mail|name|phone|address)\]/i,
     "a line written to the client or the developer, or a stand-in (Your Name, example.com, to be announced), is not copy. A missing fact leaves no line on the page: drop the sentence, the field or the button, and list it under Assumptions: in STRUQ.md.");
 
+  // The visible copy of your own files: string literals and JSX text, line by line, comments left out. Class lists,
+  // paths and identifiers hold no sentences, so the honesty phrases below match the words a reader sees.
+  const copy = [];
+  for (const f of own.filter((x) => !x.rel.endsWith(".css"))) {
+    f.text.split(/\r?\n/).forEach((line, i) => {
+      const t = line.trim();
+      if (!t || t.startsWith("//") || t.startsWith("/*") || t.startsWith("*") || t.startsWith("{/*")) return;
+      const segs = [];
+      for (const m of line.matchAll(/(["'`])((?:\\.|(?!\1)[^\\])*)\1/g)) segs.push(m[2]);
+      for (const m of line.matchAll(/>([^<>{}]+)(?=<|$)/g)) segs.push(m[1]);
+      // A line of JSX text between an opening and a closing tag on lines of their own.
+      if (/^[^<>{}=;()[\]]+$/.test(t)) segs.push(t);
+      const words = segs.map((s) => s.trim()).filter((s) => /[\p{L}\p{N}]/u.test(s));
+      if (words.length) copy.push({ where: `${f.rel}:${i + 1}`, line: t, segs: words });
+    });
+  }
+  const copyHits = (re) => copy.filter((c) => c.segs.some((s) => re.test(s))).map((c) => `${c.where}  ${c.line.slice(0, 120)}`);
+
+  // Copy that promises what is not there yet. Bare "not yet" and "nog niet" are common in a factual sentence, so they
+  // count only with an availability word after them, or closing the line.
+  const soon = copyHits(
+    /\bcoming soon\b|\b(?:is|are|we're|we are|now|soon) launching\b|\blaunching (?:soon|in|on|this|next|later|early|late|spring|summer|autumn|fall|winter|\d)|\blaunching[.!]?$|\bon (?:its|their) way\b|\bsoon available\b|\bavailable soon\b|\bnot yet (?:available|live|open|ready|online|launched|released|public|bookable|for sale|on sale|in stock)\b|\bnot yet[.!]?$|\bbinnenkort\b|\bvolg(?:t|en) snel\b|\bnog niet (?:beschikbaar|live|open|online|klaar|te koop|verkrijgbaar|bekend|te boeken|te reserveren|gepubliceerd|af)\b|\bnog niet[.!]?$|\bin de maak\b/i,
+  );
+  if (soon.length) add(G, "FAIL", "Coming-soon copy: a line that promises what is not there yet (coming soon, launching, on its way, binnenkort, volgt snel, nog niet beschikbaar, in de maak) is not copy. The site shows what exists today: drop the line, and list what is missing under Assumptions: in STRUQ.md.", soon);
+  else add(G, "PASS", "No coming-soon copy");
+
+  // An invitation to come by or call needs a door: an address, a phone number or an email somewhere on the page.
+  const invites = copyHits(/\btonight\b|\bsee you\b|\bcome by\b|\bdrop in\b|\bcall us\b|\bvanavond\b|\btot straks\b|\bkom langs\b|\bloop (?:even )?binnen\b|\bbel ons\b|\bwaarvoor u ons belt\b/i);
+  if (invites.length) {
+    const DOORS = [
+      /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/,
+      /(?:\+|\b00)\d{1,3}[\s.-]?\(?\d[\d\s.()-]{6,}\d|\b0\d{1,3}[\s.-]?\d{3}[\s.-]?\d{2,4}(?:[\s.-]?\d{2,4})?\b/,
+      /\b\p{Lu}[\p{L}'-]*(?:straat|weg|laan|plein|gracht|kade|dijk|singel|markt|steeg|dreef|hof|pad|haven|wal|baan|burgwal|straße|strasse|gasse|platz)\s+\d+[a-z]?\b/u,
+      /\b[1-9]\d{3}\s?[A-Z]{2}\b/,
+      /\b\d{1,5}\s+(?:\p{Lu}[\p{L}'-]+\s+){1,3}(?:Street|St|Road|Rd|Avenue|Ave|Lane|Way|Square|Place|Boulevard|Drive|Court|Row|Terrace)\b/u,
+      /\b[A-Z]{1,2}\d[A-Z\d]?\s\d[A-Z]{2}\b/,
+    ];
+    const door = copy.some((c) => c.segs.some((s) => DOORS.some((re) => re.test(s)))) || own.some((f) => /\b(?:tel|mailto):[^"'`\s{}]{4,}/.test(f.text));
+    if (door) add(G, "PASS", "The invitations on the page have a door: an address, a phone number or an email is on it");
+    else add(G, "FAIL", "Invitation without a door: the copy asks the reader to come by or call (tonight, see you, vanavond, kom langs, bel ons), but the page shows no address, phone number or email. Put the real one on the page, or drop the invitation and list the missing fact under Assumptions: in STRUQ.md.", invites);
+  } else add(G, "PASS", "No invitation without a door");
+
   // A link to an anchor nothing on the page carries: a button that goes nowhere.
   {
     const ids = new Set(files.flatMap((f) => [...f.text.matchAll(/\bid=\{?\s*["'`]([\w-]+)["'`]/g)].map((m) => m[1])));

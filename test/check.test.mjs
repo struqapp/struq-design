@@ -289,6 +289,38 @@ test('a note to the client never reaches the page', () => {
   assert.ok(!fails(run(fixture()), 'Notes to the client'));
 });
 
+// why: the proof round of 2026-11-15 shipped "Binnenkort" and "launching in spring" lines, and a restaurant that said
+// "Tot vanavond." with no address or number anywhere: copy that promises or invites what the page cannot deliver.
+test('coming-soon copy fails, in English and in Dutch; a factual "not yet" or "nog niet" does not', () => {
+  const soon = (copy) => fails(run(fixture({ extra: { 'components/S.tsx': `export const S = () => <section><p>${copy}</p></section>;\n` } })), 'Coming-soon copy');
+  for (const copy of ['The app is launching in spring.', 'Online booking is on its way.', 'Gift cards: not yet available.', 'Binnenkort meer.', 'De wijnkaart volgt snel.', 'Reserveren kan nog niet.', 'De nieuwe kaart is in de maak.', 'Coming soon']) {
+    assert.ok(soon(copy), copy);
+  }
+  // A JSX text line on its own and a string prop count as copy too.
+  assert.ok(fails(run(fixture({ extra: { 'components/S.tsx': 'export const S = () => (\n  <p>\n    Verschijnt binnenkort in de winkel.\n  </p>\n);\n' } })), 'Coming-soon copy'));
+  assert.ok(fails(run(fixture({ extra: { 'components/S.tsx': 'export const S = () => <Statement line="Our shop is launching soon." />;\n' } })), 'Coming-soon copy'));
+  // A factual sentence, a code name and a comment are not a promise.
+  assert.ok(!soon('We do not yet know a better oven than this one, so we kept it.'));
+  assert.ok(!soon('Wie nog niet weet wat hij wil eten, vraagt het de kok.'));
+  const code = 'const notYetLoaded = true;\n// the shop is coming soon, says the client\nexport const S = () => <p className="soon">Een zaal aan het water.</p>;\n';
+  assert.ok(!fails(run(fixture({ extra: { 'components/S.tsx': code } })), 'Coming-soon copy'));
+  assert.ok(!fails(run(fixture()), 'Coming-soon copy'));
+});
+
+test('an invitation to come by or call fails without an address, phone number or email on the page', () => {
+  const invite = (copy, more = '') => run(fixture({ extra: { 'components/C.tsx': `export const C = () => <section><h2>${copy}</h2>${more}</section>;\n` } }));
+  for (const copy of ['Tot vanavond.', 'Kom langs op de kade.', 'Bel ons voor een tafel.', 'See you tonight.', 'Drop in after work.', 'Call us for a table.']) {
+    assert.ok(fails(invite(copy), 'Invitation without a door'), copy);
+  }
+  // A door anywhere on the page settles it: a street and number, a postcode, a phone number, an email or a tel: link.
+  for (const door of ['<p>Nieuwe Binnenweg 74, Rotterdam</p>', '<p>3015 BB Rotterdam</p>', '<p>010 412 34 56</p>', '<p>tafel@osteriavera.nl</p>', '<a href="tel:+31104123456">Reserveer</a>', '<p>12 Market Street, Leeds</p>']) {
+    const out = invite('Tot vanavond.', door);
+    assert.ok(!fails(out, 'Invitation without a door'), door);
+    assert.ok(out.includes('have a door'), door);
+  }
+  assert.ok(!fails(run(fixture()), 'Invitation without a door'));
+});
+
 test('manifesto chips show a subject, never a texture', () => {
   const texture = 'export const M = () => <ManifestoScrub text="a {0} b" images={[images.detail[0], images.card[1]]} />;\n';
   assert.ok(fails(run(fixture({ extra: { 'components/M.tsx': texture } })), 'Inline manifesto photo'));

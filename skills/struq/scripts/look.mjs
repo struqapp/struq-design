@@ -12,7 +12,13 @@
 //   collision  the fixed header's text over other text; the site name twice on the first screen       FAIL
 //   clipped    glyphs cut by an overflow mask (descenders under a line mask, a word past the edge)     FAIL
 //   overflow   the document wider than the screen                                                        FAIL
-//   contrast   text against its solid ground under 4.5 (3 from 24px); text over a photo or canvas      FAIL, WARN
+//   contrast   text against its solid ground under 4.5 (3 from 24px)                                    FAIL
+//   unreadable text over a photo, video or canvas: the glyphs hidden, the worse quartile of the pixels  FAIL
+//              behind them under 3 (24px, 18.66px bold, a wordmark in the header or nav) or 4.5; WARN as
+//              contrast where the pixels cannot be read
+//   blank      a scroll stop with no text seen and the screen one flat colour (header and cursor aside) FAIL
+//   broken-number  a number ("3 900.00", "EUR 1.250,00", "12%") whose glyphs sit on two lines           FAIL
+//   font-missing   a face the visible text asks for first that never loaded (a fallback shows)          FAIL
 //   empty      a screen-high stretch without text or image between the hero and the footer            WARN
 //   error      console errors, page errors and images that did not load                                 FAIL
 //
@@ -26,6 +32,7 @@ import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } f
 import { createRequire } from "node:module";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
+import { inflateSync } from "node:zlib";
 import { appendLog } from "./log.mjs";
 import { sourceStamp } from "./stamp.mjs";
 
@@ -35,7 +42,7 @@ const VIEWPORTS = [
   { name: "desktop", width: 1440, height: 900 },
 ];
 const MAX_STEPS = 60;
-const SEVERITY = { collision: "FAIL", clipped: "FAIL", overflow: "FAIL", contrast: "FAIL", error: "FAIL", "self-link": "FAIL", empty: "WARN" };
+const SEVERITY = { collision: "FAIL", clipped: "FAIL", overflow: "FAIL", contrast: "FAIL", unreadable: "FAIL", blank: "FAIL", "broken-number": "FAIL", "font-missing": "FAIL", error: "FAIL", "self-link": "FAIL", empty: "WARN" };
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -235,7 +242,7 @@ function measurePage(opts) {
         const base = r.top + asc * k;
         return { l: r.left, r: r.right, t: base - m.actualBoundingBoxAscent * k, b: base + Math.max(m.actualBoundingBoxDescent, 0) * k };
       });
-      texts.push({ node, el, lines, ink, color, o, fontSize, font: ctx.font, transform: s.textTransform, asc, desc, text: node.data.replace(/\s+/g, " ").trim() });
+      texts.push({ node, el, lines, ink, color, o, fontSize, weight: parseFloat(s.fontWeight) || 400, family: s.fontFamily, font: ctx.font, transform: s.textTransform, asc, desc, text: node.data.replace(/\s+/g, " ").trim() });
     }
     /** The ink of each glyph of a text that falls inside a box: a line box is mostly air, its letters are not. */
     const glyphsIn = (t, box) => {
@@ -435,9 +442,11 @@ function measurePage(opts) {
     }
 
     /* --- 1b. the site name twice on the first screen */
+    const MARK = "[data-wordmark],[data-hb-word]";
+    const pick = (sel) => [...bars].map((b) => b.querySelector(sel)).find((e) => e && opacity(e) > 0.05 && /\S/.test(e.textContent ?? ""));
+    const homeMark = header ? (pick(MARK) ?? pick('a[href="/"]') ?? headerTexts[0]?.el ?? null) : null;
     if (opts.first && header) {
-      const pick = (sel) => [...bars].map((b) => b.querySelector(sel)).find((e) => e && opacity(e) > 0.05 && /\S/.test(e.textContent ?? ""));
-      const mark = pick("[data-wordmark]") ?? pick('a[href="/"]') ?? headerTexts[0]?.el;
+      const mark = homeMark;
       const name = mark && opacity(mark) > 0.05 ? norm(mark.innerText || mark.textContent || "") : "";
       if (name.length >= 2) {
         const seen = new Set();
@@ -459,6 +468,7 @@ function measurePage(opts) {
 
     /* --- 4. contrast against the ground under the text */
     const done = new Set();
+    const photo = [];
     for (const t of shown) {
       if (done.has(t.el)) continue;
       done.add(t.el);
@@ -503,13 +513,48 @@ function measurePage(opts) {
         return g;
       };
       if (image) {
-        // Over a photo the pixels decide; a scrim that holds against both black and white settles it here.
+        // Over a photo the pixels decide; a scrim that holds against both black and white settles it here. Large text
+        // (24px, or 18.66px bold) and the wordmark in the header or nav need 3, smaller text 4.5.
+        const large = t.fontSize >= 24 || (t.fontSize >= 18.66 && t.weight >= 700);
+        const mark = Boolean(t.el.closest(MARK) || (homeMark && homeMark.contains(t.el)) || ((inHeader(t) || t.el.closest("nav")) && t.el.closest('a[href="/"]')));
+        const needOnPhoto = large || mark ? 3 : 4.5;
         const worst = Math.min(...[[0, 0, 0, 1], [255, 255, 255, 1]].map((p) => {
           const g = flatten(p);
           return ratio(over(ink, g), g);
         }));
-        if (worst < need) {
-          add({ kind: "contrast", image: true, text: t.text, selector: path(t.el), detail: "text over a photo or canvas: look at the crop", key: `contrast|${path(t.el)}|${t.text.slice(0, 40)}`, rect: { x: lr.left, y: lr.top, w: lr.width, h: lr.height } });
+        if (worst < needOnPhoto) {
+          // The run hides the text, screenshots the ground and reads these boxes (the ink of each line on screen).
+          const g = t.el.closest(`a,button,h1,h2,h3,h4,h5,h6,p,li,label,figcaption,blockquote,${MARK}`) ?? t.el;
+          // Points across the ink of each line on screen, kept only where nothing opaque lies over the text (a panel
+          // sliding over a hero title covers part of it; those pixels are not its ground).
+          const boxes = t.ink
+            .map((k, j) => (t.shown[j] ? { l: Math.max(k.l, t.clip.l, 0), r: Math.min(k.r, t.clip.r, vw), t: Math.max(k.t, t.clip.t, 0), b: Math.min(k.b, t.clip.b, vh) } : null))
+            .filter((b) => b && b.r - b.l >= 1 && b.b - b.t >= 1);
+          const area = boxes.reduce((n, b) => n + (b.r - b.l) * (b.b - b.t), 0);
+          const gap = Math.max(3, Math.sqrt(area / 80));
+          const points = [];
+          for (const b of boxes) {
+            for (let y = b.t + gap / 2; y < b.b; y += gap) {
+              for (let x = b.l + gap / 2; x < b.r; x += gap) {
+                const stack = document.elementsFromPoint(Math.min(x, vw - 1), Math.min(y, vh - 1));
+                const at = stack.findIndex((e) => e === t.el || t.el.contains(e));
+                if (at >= 0 && !coveredBetween(stack, -1, at)) points.push([Math.round(x), Math.round(y)]);
+              }
+            }
+          }
+          photo.push({
+            group: path(g),
+            // A word set twice for a hover roll reads once.
+            text: (g.innerText || t.text).replace(/\s+/g, " ").trim().replace(/^(.+?)(?: \1)+$/, "$1").slice(0, 120),
+            selector: path(t.el),
+            own: t.text,
+            ink,
+            points,
+            need: needOnPhoto,
+            mark,
+            size: Math.round(t.fontSize),
+            rect: { x: lr.left, y: lr.top, w: lr.width, h: lr.height },
+          });
         }
         continue;
       }
@@ -518,6 +563,60 @@ function measurePage(opts) {
       if (r < need) {
         add({ kind: "contrast", text: t.text, selector: path(t.el), detail: `${r.toFixed(2)} against its ground, needs ${need} at ${Math.round(t.fontSize)}px`, key: `contrast|${path(t.el)}|${t.text.slice(0, 40)}` });
       }
+    }
+
+    /* --- 4b. a number broken over two lines: "3 900.00" wrapping at its group space reads as two numbers. Every token
+       (an optional currency, digits with thousands groups, decimals, a percent or a unit) gets its own Range, and the
+       centres of its client rects say how many line boxes its glyphs sit on. */
+    const NUMBER = /(?<![\p{L}\p{N}])(?:(?:[€$£¥]|EUR|USD|GBP|CHF)[   ]?)?[+-]?(?:\d{1,3}(?:[   .,'’]\d{3})+|\d+)(?:[.,]\d+)?(?:,-)?(?:[   ]?(?:%|‰|€|EUR|USD|km|kg|m²|m2|m³|cm|mm|ml|uur|min|mln|mld))?(?![\p{L}\p{N}])/gu;
+    for (const t of shown) {
+      if (!/\d/.test(t.node.data)) continue;
+      for (const m of t.node.data.matchAll(NUMBER)) {
+        if (m[0].length < 2) continue;
+        range.setStart(t.node, m.index);
+        range.setEnd(t.node, m.index + m[0].length);
+        const rs = [...range.getClientRects()].filter((r) => r.width > 0.5 && r.height > 0.5);
+        if (rs.length < 2) continue;
+        const h = Math.min(...rs.map((r) => r.height));
+        const mids = rs.map((r) => r.top + r.height / 2).sort((a, b) => a - b);
+        let boxes = 1;
+        for (let i = 1; i < mids.length; i++) if (mids[i] - mids[i - 1] > h / 2) boxes++;
+        if (boxes < 2) continue;
+        const top = rs.reduce((a, b) => (b.top < a.top ? b : a));
+        if (top.bottom <= 0 || top.top >= vh) continue;
+        add({ kind: "broken-number", text: m[0], selector: path(t.el), detail: `the number breaks over ${boxes} lines: keep it whole (a no-break space between its groups, or white-space: nowrap on it)`, key: `number|${path(t.el)}|${m[0]}` });
+      }
+    }
+
+    /* --- 4c. for the blank-screen test: is any text on this screen actually seen (not under a curtain or a panel)?
+       The header is on every screen and does not count; its bars, small fixed or sticky chrome and the cursor are left
+       out of the pixels. */
+    const seenText = shown.some((t) => !inHeader(t) && t.lines.some((r, i) => {
+      if (!t.shown[i]) return false;
+      const stack = document.elementsFromPoint(Math.min(Math.max((r.left + r.right) / 2, 0), vw - 1), Math.min(Math.max((r.top + r.bottom) / 2, 0), vh - 1));
+      const at = stack.findIndex((e) => e === t.el || t.el.contains(e));
+      return at >= 0 && !coveredBetween(stack, -1, at);
+    }));
+    const mask = [];
+    if (!seenText) {
+      const box = (e) => {
+        const r = e.getBoundingClientRect();
+        return { l: r.left, t: r.top, r: r.right, b: r.bottom };
+      };
+      for (const b of bars) mask.push(box(b));
+      for (const e of document.querySelectorAll("body *")) {
+        const p = cs(e).position;
+        if (p !== "fixed" && p !== "sticky") continue;
+        const r = e.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0 && r.height < 0.35 * vh && r.bottom > 0 && r.top < vh) mask.push(box(e));
+      }
+    }
+
+    /* --- 4d. the faces the visible text asks for first; the run asks document.fonts about them at the end */
+    const families = {};
+    for (const t of shown) {
+      const first = (t.family.match(/^\s*("[^"]*"|'[^']*'|[^,]+)/)?.[1] ?? "").trim().replace(/^["']|["']$/g, "");
+      if (first && !(first in families)) families[first] = t.text.slice(0, 60);
     }
 
     /* --- 5. what holds content on this screen, in document coordinates. Chrome that rides along with the scroll
@@ -559,14 +658,208 @@ function measurePage(opts) {
       footerTop: footer ? footer.getBoundingClientRect().top + sy : null,
       broken,
       next,
+      photo,
+      quiet: !seenText,
+      mask,
+      families,
     };
   } finally {
     force.remove();
   }
 }
 
+/* ------------------------------------------------------------- PIXELS */
+// Playwright's screenshots are 8-bit, non-interlaced PNGs; this reads one into raw pixels without a dependency.
+function decodePng(buf) {
+  let pos = 8;
+  let w = 0;
+  let h = 0;
+  let depth = 0;
+  let type = -1;
+  let interlace = 0;
+  const idat = [];
+  while (pos + 8 <= buf.length) {
+    const len = buf.readUInt32BE(pos);
+    const name = buf.toString("latin1", pos + 4, pos + 8);
+    const data = buf.subarray(pos + 8, pos + 8 + len);
+    if (name === "IHDR") [w, h, depth, type, interlace] = [data.readUInt32BE(0), data.readUInt32BE(4), data[8], data[9], data[12]];
+    else if (name === "IDAT") idat.push(data);
+    else if (name === "IEND") break;
+    pos += 12 + len;
+  }
+  const ch = { 0: 1, 2: 3, 4: 2, 6: 4 }[type];
+  if (depth !== 8 || interlace || !ch || !w || !h) return null;
+  const raw = inflateSync(Buffer.concat(idat));
+  const stride = w * ch;
+  const out = Buffer.alloc(stride * h);
+  for (let y = 0; y < h; y++) {
+    const f = raw[y * (stride + 1)];
+    const src = y * (stride + 1) + 1;
+    const cur = y * stride;
+    const prev = cur - stride;
+    for (let x = 0; x < stride; x++) {
+      const a = x >= ch ? out[cur + x - ch] : 0;
+      const b = y ? out[prev + x] : 0;
+      const c = x >= ch && y ? out[prev + x - ch] : 0;
+      let v = raw[src + x];
+      if (f === 1) v += a;
+      else if (f === 2) v += b;
+      else if (f === 3) v += (a + b) >> 1;
+      else if (f === 4) {
+        const p = a + b - c;
+        const pa = Math.abs(p - a);
+        const pb = Math.abs(p - b);
+        const pc = Math.abs(p - c);
+        v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+      }
+      out[cur + x] = v & 255;
+    }
+  }
+  const gray = ch < 3;
+  return { width: w, height: h, at: (x, y) => { const i = (y * w + x) * ch; return gray ? [out[i], out[i], out[i]] : [out[i], out[i + 1], out[i + 2]]; } };
+}
+
+const LINEAR = Array.from({ length: 256 }, (_, v) => (v / 255 <= 0.04045 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4));
+const lumOf = (c) => 0.2126 * LINEAR[Math.round(c[0])] + 0.7152 * LINEAR[Math.round(c[1])] + 0.0722 * LINEAR[Math.round(c[2])];
+const hex = (c) => `#${c.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")}`;
+
+/** Blank: 8px blocks over the screen (chrome left out); one flat colour when no block strays from the median, or only
+ *  thin runs of them do (a seam, a hairline, the slit of a curtain opening) and at most a few loose ones. */
+function flatScreen(img, mask) {
+  const B = 8;
+  const cols = Math.floor(img.width / B);
+  const rows = Math.floor(img.height / B);
+  const means = new Array(cols * rows).fill(null);
+  let kept = 0;
+  for (let by = 0; by < rows; by++) {
+    for (let bx = 0; bx < cols; bx++) {
+      const [l, t] = [bx * B, by * B];
+      if (mask.some((m) => l < m.r && l + B > m.l && t < m.b && t + B > m.t)) continue;
+      const s = [0, 0, 0];
+      for (let y = t; y < t + B; y++) {
+        for (let x = l; x < l + B; x++) {
+          const p = img.at(x, y);
+          s[0] += p[0];
+          s[1] += p[1];
+          s[2] += p[2];
+        }
+      }
+      means[by * cols + bx] = s.map((v) => v / (B * B));
+      kept++;
+    }
+  }
+  if (!kept || kept < 0.4 * cols * rows) return { blank: false };
+  const blocks = means.filter(Boolean);
+  const med = [0, 1, 2].map((k) => blocks.map((v) => v[k]).sort((a, b) => a - b)[blocks.length >> 1]);
+  const off = means.map((v) => Boolean(v) && Math.max(...v.map((c, k) => Math.abs(c - med[k]))) > 14);
+  // Strays that touch form shapes; a shape three blocks (24px) thin or less across is a line, not content.
+  let solid = 0;
+  const seen = new Uint8Array(off.length);
+  for (let i = 0; i < off.length; i++) {
+    if (!off[i] || seen[i]) continue;
+    const queue = [i];
+    seen[i] = 1;
+    let [x0, x1, y0, y1, n] = [cols, -1, rows, -1, 0];
+    while (queue.length) {
+      const j = queue.pop();
+      const [x, y] = [j % cols, Math.floor(j / cols)];
+      [x0, x1, y0, y1, n] = [Math.min(x0, x), Math.max(x1, x), Math.min(y0, y), Math.max(y1, y), n + 1];
+      for (const k of [x > 0 ? j - 1 : -1, x < cols - 1 ? j + 1 : -1, j - cols, j + cols]) {
+        if (k >= 0 && k < off.length && off[k] && !seen[k]) {
+          seen[k] = 1;
+          queue.push(k);
+        }
+      }
+    }
+    if (Math.min(x1 - x0 + 1, y1 - y0 + 1) > 3) solid += n;
+  }
+  const strays = off.filter(Boolean).length;
+  return { blank: solid <= 16 && strays <= 0.08 * kept, color: hex(med) };
+}
+
+/** The worse quartile of the contrast between a text's colour and the pixels behind its ink (3x3 around each uncovered
+ *  point), per group. */
+function groundRatios(img, groups) {
+  const out = new Map();
+  for (const g of groups) {
+    const ratios = [];
+    for (const item of g.items) {
+      const [ir, ig, ib, ia] = item.ink;
+      for (const [px, py] of item.points) {
+        for (let y = Math.max(0, py - 1); y <= Math.min(img.height - 1, py + 1); y++) {
+          for (let x = Math.max(0, px - 1); x <= Math.min(img.width - 1, px + 1); x++) {
+            const p = img.at(x, y);
+            const text = [ir * ia + p[0] * (1 - ia), ig * ia + p[1] * (1 - ia), ib * ia + p[2] * (1 - ia)];
+            const [hi, lo] = [lumOf(text), lumOf(p)].sort((a, b) => b - a);
+            ratios.push((hi + 0.05) / (lo + 0.05));
+          }
+        }
+      }
+    }
+    ratios.sort((a, b) => a - b);
+    out.set(g.key, { n: ratios.length, ratio: ratios.length ? ratios[Math.floor(0.25 * (ratios.length - 1))] : null });
+  }
+  return out;
+}
+
+const MIN_PIXELS = 27;
+
+/** Group the texts over a photo by the link, heading or paragraph they belong to (a word split into letters is one). */
+function photoGroups(photo, seen) {
+  const groups = new Map();
+  for (const c of photo) {
+    const key = `unreadable|${c.group}|${c.text.slice(0, 40)}`;
+    if (seen.has(key)) continue;
+    let g = groups.get(key);
+    if (!g) groups.set(key, (g = { key, group: c.group, text: c.text, need: c.need, mark: c.mark, size: c.size, rect: c.rect, warn: c, items: [] }));
+    g.items.push({ ink: c.ink, points: c.points });
+    g.need = Math.min(g.need, c.need);
+    g.mark ||= c.mark;
+    g.size = Math.max(g.size, c.size);
+  }
+  return [...groups.values()];
+}
+
+/** Hide every glyph (color transparent, no transition), screenshot the ground, show them again, and measure. */
+async function behind(page, groups) {
+  if (!groups.length) return new Map();
+  let png = null;
+  try {
+    await page.evaluate(() => {
+      const s = document.createElement("style");
+      s.id = "struq-look-hide";
+      s.textContent = "*,*::before,*::after{color:transparent!important;-webkit-text-fill-color:transparent!important;text-decoration-color:transparent!important;caret-color:transparent!important;transition:none!important}";
+      document.head.appendChild(s);
+      return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    });
+    png = await capture(page);
+  } catch {
+    png = null;
+  } finally {
+    await page.evaluate(() => document.getElementById("struq-look-hide")?.remove()).catch(() => {});
+  }
+  const img = png ? decodePng(png) : null;
+  return img ? groundRatios(img, groups) : new Map();
+}
+
+const GENERIC_FACES = new Set(["serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui", "ui-serif", "ui-sans-serif", "ui-monospace", "ui-rounded", "emoji", "math", "fangsong", "inherit", "initial", "unset", "-apple-system", "blinkmacsystemfont"]);
+const SYSTEM_FACES = /^(arial|helvetica|helvetica neue|segoe ui|times|times new roman|georgia|verdana|tahoma|trebuchet ms|courier|courier new|menlo|monaco|consolas|lucida grande|lucida console|lucida sans unicode|calibri|cambria|impact|comic sans ms|palatino|palatino linotype|book antiqua|ubuntu|cantarell|oxygen|sf pro.*|sf mono|new york|apple color emoji|segoe ui (emoji|symbol)|noto color emoji|liberation .*|dejavu .*)$/i;
+const prettyFace = (f) => f.replace(/^__(.+?)_[0-9a-f]{5,}$/i, "$1").replace(/_/g, " ");
+
 /* -------------------------------------------------------------- THE RUN */
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** A screenshot, tried again twice: a busy machine sometimes refuses one capture ("Unable to capture screenshot"). */
+async function capture(page, opts = {}) {
+  for (let i = 0; ; i++) {
+    try {
+      return await page.screenshot(opts);
+    } catch (err) {
+      if (i >= 2 || !/capture|screenshot/i.test(String(err?.message))) throw err;
+      await wait(400);
+    }
+  }
+}
 
 async function settle(page) {
   // Lenis eases toward its target: wait until the scroll position holds still, then give the reveals time to land.
@@ -641,6 +934,9 @@ async function lookAt(browser, vp, errors) {
   let footerTop = null;
   let docHeight = 0;
   let crops = 0;
+  let blankRun = null;
+  const faces = new Map();
+  const measured = new Set();
   const stepPx = Math.round(vp.height * 0.6);
   let extra = 0;
   for (let step = 0; step < MAX_STEPS; step++) {
@@ -655,33 +951,83 @@ async function lookAt(browser, vp, errors) {
       m = again;
     }
     const shot = join(outDir, `${vp.name}-${String(step).padStart(2, "0")}.png`);
-    await page.screenshot({ path: shot });
+    let png = await capture(page, { path: shot });
     steps.push({ step, scrollY: m.scrollY, shot });
     content.push(...m.content);
+    for (const [face, text] of Object.entries(m.families)) if (!faces.has(face)) faces.set(face, { text, step, scrollY: m.scrollY, shot });
     docHeight = Math.max(docHeight, m.docHeight);
     if (m.footerTop !== null) footerTop = m.footerTop;
     if (!overflow && m.docWidth > m.viewport.width + 1) {
       overflow = { kind: "overflow", viewport: vp.name, step, scrollY: m.scrollY, text: "", selector: "html", detail: `the page is ${m.docWidth}px wide on a ${m.viewport.width}px screen`, shot };
     }
+    const crop = async (rect, tag) => {
+      if (!rect || crops >= 12) return undefined;
+      const pad = 16;
+      const x = Math.max(0, rect.x - pad);
+      const y = Math.max(0, rect.y - pad);
+      const clip = { x, y, width: Math.min(vp.width - x, rect.w + 2 * pad), height: Math.min(vp.height - y, rect.h + 2 * pad) };
+      if (clip.width <= 4 || clip.height <= 4) return undefined;
+      const file = join(outDir, `${vp.name}-${String(step).padStart(2, "0")}-${tag}-${++crops}.png`);
+      await capture(page, { path: file, clip });
+      return file;
+    };
     for (const f of m.findings) {
       if (seen.has(f.key)) continue;
       seen.add(f.key);
-      const out = { kind: f.kind, viewport: vp.name, step, scrollY: Math.round(f.scrollY), text: f.text.slice(0, 120), selector: f.selector, detail: f.detail, shot };
-      if (f.image) {
-        out.severity = "WARN";
-        if (f.rect && crops < 12) {
-          const pad = 16;
-          const x = Math.max(0, f.rect.x - pad);
-          const y = Math.max(0, f.rect.y - pad);
-          const clip = { x, y, width: Math.min(vp.width - x, f.rect.w + 2 * pad), height: Math.min(vp.height - y, f.rect.h + 2 * pad) };
-          if (clip.width > 4 && clip.height > 4) {
-            const crop = join(outDir, `${vp.name}-${String(step).padStart(2, "0")}-contrast-${++crops}.png`);
-            await page.screenshot({ path: crop, clip });
-            out.crop = crop;
-          }
-        }
+      findings.push({ kind: f.kind, viewport: vp.name, step, scrollY: Math.round(f.scrollY), text: f.text.slice(0, 120), selector: f.selector, detail: f.detail, shot });
+    }
+
+    // Blank: no text seen on this screen and the pixels one flat colour. Held for a moment longer, so a panel passing
+    // through is not one; a run of blank stops is one finding.
+    if (m.quiet) {
+      const cx = vp.width / 2;
+      const cy = vp.height / 2;
+      const cursor = { l: cx - 60, r: cx + 60, t: cy - 60, b: cy + 60 };
+      let flat = flatScreen(decodePng(png) ?? { width: 0, height: 0 }, [...m.mask, cursor]);
+      if (flat.blank) {
+        await wait(1200);
+        const again = await page.evaluate(measurePage, { first, last: false, stepPx, known: [...seen] });
+        png = await capture(page, { path: shot });
+        flat = again.quiet ? flatScreen(decodePng(png) ?? { width: 0, height: 0 }, [...again.mask, cursor]) : { blank: false };
       }
-      findings.push(out);
+      if (flat.blank && blankRun && blankRun.step === step - 1) {
+        blankRun.step = step;
+        blankRun.more++;
+        blankRun.finding.detail = `the whole screen is one flat colour (${flat.color}), with nothing to read or see, for ${blankRun.more + 1} scroll stops in a row`;
+      } else if (flat.blank) {
+        const finding = { kind: "blank", viewport: vp.name, step, scrollY: Math.round(m.scrollY), text: "", selector: "", detail: `the whole screen is one flat colour (${flat.color}), with nothing to read or see`, shot };
+        findings.push(finding);
+        blankRun = { step, more: 0, finding };
+      }
+    }
+
+    // Text over a photo, a video or a canvas: hide the glyphs, read the pixels behind each line and hold the worse
+    // quartile to the text colour. A fail is read once more after a pause; what cannot be read keeps the old warning.
+    const groups = photoGroups(m.photo, seen);
+    if (groups.length) {
+      const read = await behind(page, groups);
+      let failing = groups.filter((g) => read.get(g.key)?.n >= MIN_PIXELS && read.get(g.key).ratio < g.need);
+      const unmeasured = groups.filter((g) => !(read.get(g.key)?.n >= MIN_PIXELS));
+      if (failing.length) {
+        await wait(1200);
+        const again = await page.evaluate(measurePage, { first: false, last: false, stepPx, known: [...seen] });
+        const regroup = photoGroups(again.photo, seen).filter((g) => failing.some((f) => f.key === g.key));
+        const second = await behind(page, regroup);
+        failing = regroup.filter((g) => second.get(g.key)?.n >= MIN_PIXELS && second.get(g.key).ratio < g.need).map((g) => ({ ...g, ratio: second.get(g.key).ratio }));
+      }
+      for (const g of failing) {
+        seen.add(g.key);
+        const who = g.mark ? "the wordmark" : `${g.size}px text`;
+        findings.push({ kind: "unreadable", viewport: vp.name, step, scrollY: Math.round(m.scrollY), text: g.text, selector: g.group, detail: `${g.ratio.toFixed(2)} against the photo behind it (its worse quarter), ${who} needs ${g.need}: a scrim, a calmer crop or another place for the text`, shot, crop: await crop(g.rect, "unreadable") });
+      }
+      for (const g of groups) if (read.get(g.key)?.n >= MIN_PIXELS) measured.add(g.key);
+      for (const g of unmeasured) {
+        // Read at an earlier stop already (a line leaving the screen is mostly gone): nothing to warn about.
+        const key = `contrast|${g.warn.selector}|${g.warn.own.slice(0, 40)}`;
+        if (seen.has(key) || measured.has(g.key)) continue;
+        seen.add(key);
+        findings.push({ kind: "contrast", severity: "WARN", viewport: vp.name, step, scrollY: Math.round(m.scrollY), text: g.warn.own, selector: g.warn.selector, detail: "text over a photo or canvas that could not be measured: look at the crop", shot, crop: await crop(g.rect, "contrast") });
+      }
     }
 
     const before = m.scrollY;
@@ -703,6 +1049,32 @@ async function lookAt(browser, vp, errors) {
   const last = await page.evaluate(measurePage, { first: false, last: true, stepPx });
   for (const b of last.broken) errors.add(`image did not load: ${b.src} (${b.selector})`);
   if (overflow) findings.push(overflow);
+
+  // A face the visible text asks for first that never loaded: the page reads in a fallback. A loaded face of that
+  // family settles it; otherwise the face is missing when text set in it measures exactly as the fallback alone.
+  const asked = [...faces.keys()].filter((f) => !GENERIC_FACES.has(f.toLowerCase()) && !SYSTEM_FACES.test(f));
+  const missing = asked.length
+    ? await page.evaluate(async (list) => {
+        await document.fonts?.ready;
+        const strip = (s) => s.trim().replace(/^["']|["']$/g, "");
+        const ctx = document.createElement("canvas").getContext("2d");
+        const probe = "mmmmmmmmmmlli0O@#WwQqgjy";
+        return list.filter((face) => {
+          if ([...document.fonts].some((f) => strip(f.family) === face && f.status === "loaded")) return false;
+          const quoted = `"${face.replace(/["\\]/g, "")}"`;
+          return ["monospace", "serif", "sans-serif"].every((base) => {
+            ctx.font = `72px ${base}`;
+            const alone = ctx.measureText(probe).width;
+            ctx.font = `72px ${quoted}, ${base}`;
+            return Math.abs(ctx.measureText(probe).width - alone) < 0.5;
+          });
+        });
+      }, asked).catch(() => [])
+    : [];
+  for (const face of missing) {
+    const at = faces.get(face);
+    findings.push({ kind: "font-missing", viewport: vp.name, step: at.step, scrollY: Math.round(at.scrollY), text: at.text, selector: "", detail: `the face "${prettyFace(face)}" is asked for first but never loaded, so this text shows a fallback: load it (next/font, or an @font-face that answers) or name a face that does`, shot: at.shot });
+  }
 
   // 5. Empty stretches: a screen-high window without content, below the first screen and above the footer.
   const start = vp.height;
@@ -765,11 +1137,11 @@ async function main() {
   }
 
   for (const f of findings) f.severity ??= SEVERITY[f.kind];
-  // One error shows at both sizes: say it once.
+  // One error or one missing face shows at both sizes: say it once.
   const out = [];
   const errorSeen = new Set();
   for (const f of findings) {
-    if (f.kind === "error") {
+    if (f.kind === "error" || f.kind === "font-missing") {
       if (errorSeen.has(f.detail)) continue;
       errorSeen.add(f.detail);
     }
