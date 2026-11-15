@@ -149,11 +149,14 @@ run `struq_controle`'s detectors on your files until nothing fails.
 One film, not a showreel: one language, one motif (seen at the arrival, the opening, the centerpiece and the close),
 one centerpiece. A loud scene moves with the scroll; a quiet scene enters once and sits still.
 
-| Language | Feel | Frames: preloader, page transition, menu |
-|---|---|---|
-| weight | slow and settled; a print grows into place; long holds | `preloader-stack`, `page-transition-stack`, `menu-curtain:stack` |
-| cut | sharp and decisive; hard cuts, short masks, no fades | `preloader-slices`, `page-transition-slices`, `menu-curtain:slices` |
-| curtain | held, then revealed; panels part after a long hold | `preloader-gate` or `preloader-wordmark:split`, `page-transition-gate`, `menu-curtain:gate` |
+| Language | Feel | Temperament | Frames: preloader, page transition, menu |
+|---|---|---|---|
+| weight | slow and settled; a print grows into place; long holds | weighted | `preloader-stack`, `page-transition-stack`, `menu-curtain:stack` |
+| cut | sharp and decisive; hard cuts, short masks, no fades | crisp | `preloader-slices`, `page-transition-slices`, `menu-curtain:slices` |
+| curtain | held, then revealed; panels part after a long hold | slow | `preloader-gate` or `preloader-wordmark:split`, `page-transition-gate`, `menu-curtain:gate` |
+
+Set the temperament once, as `data-temperament` on `<body>` beside `data-blocks`: the language's default, or its
+neighbour (weighted beside crisp or slow) with the reason on the Language line. Every primitive and `feel()` read it.
 
 Pick by the tempo the idea needs, never by trade; calm and the held reveal are both reflexes. The Opening and the
 Centerpiece may come from anywhere in the catalogue: choose the pair that could only be this client's.

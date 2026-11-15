@@ -99,7 +99,7 @@ Idea: <lens>: <a point of view in one sentence: what a visitor believes when the
 Passed over: <your two other ideas, one line>
 Subject: <what the visitor must see> -> <shown by: the client's photo, a pack photo that shows it, or drawn in code>
 Unlike: <the likeliest site, and Struq's reflexes> -> <what this one does instead>
-Language: <weight | cut | curtain> (<the tempo the idea needs>; not <each of the other two>, because <why not>)
+Language: <weight | cut | curtain> (<the tempo the idea needs>; not <each of the other two>, because <why not>; temperament: <the language's default, or its neighbour and why>)
 Motif: <line | frame | aperture | cut | word | field>: <what it is in this client's world and how it changes down the page>
 Lexicon: <three to five working words of the trade; every label and caption uses them>
 Palette: <id> (<mood>)
@@ -150,11 +150,15 @@ ticket, badge or poster), `PatternPaper` (a sewing pattern) and `SectionDrawing`
 this client's content and palette; read each file header for its props and its scroll motion.
 
 Own scenes may move. Give at least two of them a motion of their own, tied to the scroll and reversing (a line that
-draws as you read, a document that assembles, a grid that sorts itself), with `gsap` and `ScrollTrigger` from
-`@/components/struq/kit/gsap`, never a pin over one screen; mark the root `data-scene="<name>" data-energy="2"`, tag
-it (loud) in the storyboard, and keep the budgets. A still own scene is `data-scene="<name>"` alone. The kit's `Statement`, `PhotoText`, `Rows` and `Close`
-(`@/components/struq/kit/quiet`) remain for a plain moment, at most one per page. Read each file header for its
-props. Wrap ink or field scenes in
+draws as you read, a document that assembles, a grid that sorts itself), never a pin over one screen; mark the root
+`data-scene="<name>" data-energy="2"`, tag it (loud) in the storyboard, and keep the budgets. Compose them from
+`@/components/struq/kit/motion` first (`RevealText`, `MaskWipe`, `ImageCurtain`, `ScrubLine`, `HoverLink`,
+`Pressable`); write `gsap` from `@/components/struq/kit/gsap` only for what they cannot do, timed by `feel()` from
+`@/components/struq/kit/feel`, never a literal ease or duration. A still own scene is `data-scene="<name>"` alone.
+The kit's `Statement`, `PhotoText` and `Rows` (`@/components/struq/kit/quiet`) remain for a plain moment, at most one
+per page. Build the close with `Close`: shape `idea` (the idea's last line and the motif drawn), `echo` (the opening
+returns smaller) or `door` (the brief's real address, phone, mail or booking link, set large). The name at full width
+is never the close; a wordmark there stays at text size. Read each file header for its props. Wrap ink or field scenes in
 `scene-inverse` or `scene-field`. Every section, the hero too, says its ground with `data-bar-tone` ("photo" only
 where the bar sits over the photo); the bar never repeats a name the hero sets at poster scale.
 
@@ -188,11 +192,14 @@ are sure is false goes in the final report with the reason, never worked around.
 One film, not a showreel: one language, one motif (seen at the arrival, the opening, the centerpiece and the close),
 one centerpiece. A loud scene moves with the scroll; a quiet scene enters once and sits still.
 
-| Language | Feel | Frames: preloader, page transition, menu |
-|---|---|---|
-| weight | slow and settled; a print grows into place; long holds | `preloader-stack`, `page-transition-stack`, `menu-curtain:stack` |
-| cut | sharp and decisive; hard cuts, short masks, no fades | `preloader-slices`, `page-transition-slices`, `menu-curtain:slices` |
-| curtain | held, then revealed; panels part after a long hold | `preloader-gate` or `preloader-wordmark:split`, `page-transition-gate`, `menu-curtain:gate` |
+| Language | Feel | Temperament | Frames: preloader, page transition, menu |
+|---|---|---|---|
+| weight | slow and settled; a print grows into place; long holds | weighted | `preloader-stack`, `page-transition-stack`, `menu-curtain:stack` |
+| cut | sharp and decisive; hard cuts, short masks, no fades | crisp | `preloader-slices`, `page-transition-slices`, `menu-curtain:slices` |
+| curtain | held, then revealed; panels part after a long hold | slow | `preloader-gate` or `preloader-wordmark:split`, `page-transition-gate`, `menu-curtain:gate` |
+
+Set the temperament once, as `data-temperament` on `<body>` beside `data-blocks`: the language's default, or its
+neighbour (weighted beside crisp or slow) with the reason on the Language line. Every primitive and `feel()` read it.
 
 Pick by the tempo the idea needs, never by trade; calm and the held reveal are both reflexes. The Opening and the
 Centerpiece may come from anywhere in the catalogue: choose the pair that could only be this client's.
