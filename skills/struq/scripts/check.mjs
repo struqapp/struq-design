@@ -139,6 +139,36 @@ const pkg = JSON.parse(read("package.json"));
 const deps = { ...pkg.dependencies, ...pkg.devDependencies };
 const plan = read("STRUQ.md");
 
+/** "file:line" for an index into a file's text. */
+const lineOf = (f, index) => `${f.rel}:${f.text.slice(0, index).split("\n").length}`;
+
+/**
+ * The names a site shows: the wordmark props of its header, preloader, hero and footer blocks, a data-wordmark element,
+ * the name and title in lib/site.ts or a file like it, and the page title. Each with where it stands.
+ */
+const SHOWN_NAMES = (() => {
+  const shown = [];
+  const seen = (name, where) => name.trim() && shown.push({ name: name.trim(), where });
+  for (const f of own.filter((x) => !x.rel.endsWith(".css"))) {
+    for (const m of f.text.matchAll(/<(?:Header|MenuCurtain|Preloader|Footer|Wordmark|Hero|PageTransition|SiteHeader)\w*\b[^>]*?\bname=\{?\s*["'`]([^"'`]+)["'`]/g)) seen(m[1], lineOf(f, m.index));
+    for (const m of f.text.matchAll(/<\w+\b[^>]*\bdata-wordmark\b[^>]*>([^<{]+)</g)) seen(m[1], lineOf(f, m.index));
+    if (/(?:^|\/)(?:lib|src\/lib|config|src\/config|data|app)\/(?:site|brand|identity|config|constants|metadata)\.(?:ts|tsx|js|mjs)$/.test(f.rel)) {
+      for (const m of f.text.matchAll(/\b(?:name|siteName|brandName|title)\s*:\s*["'`]([^"'`]+)["'`]/g)) seen(m[1], lineOf(f, m.index));
+    }
+    if (/(?:^|\/)app\/layout\.(?:tsx|jsx|ts|js)$/.test(f.rel)) {
+      for (const m of f.text.matchAll(/\b(?:title|default)\s*:\s*["'`]([^"'`]+)["'`]/g)) seen(m[1], lineOf(f, m.index));
+    }
+  }
+  return shown;
+})();
+
+/** The plan's Brief line. A name it gives stands in it capitalised, never as its first word. */
+const BRIEF = plan.match(/^Brief:\s*(.+)$/m)?.[1] ?? "";
+function namedInBrief(name) {
+  const re = new RegExp(`(?<![\\p{L}\\p{N}])${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`, "gu");
+  return [...BRIEF.matchAll(re)].some((m) => m.index > 0);
+}
+
 /* ------------------------------------------------------------------ IMAGES */
 {
   const G = "IMAGES";
@@ -372,24 +402,8 @@ const plan = read("STRUQ.md");
       const t = tokens(name);
       return t.length > 0 && t.every((w) => GENERIC.has(w) || STOP.has(w)) && t.some((w) => GENERIC.has(w));
     };
-    const shown = [];
-    const seen = (name, where) => name.trim() && shown.push({ name: name.trim(), where });
-    const lineOf = (f, index) => `${f.rel}:${f.text.slice(0, index).split("\n").length}`;
-    for (const f of own.filter((x) => !x.rel.endsWith(".css"))) {
-      for (const m of f.text.matchAll(/<(?:Header|MenuCurtain|Preloader|Footer|Wordmark|Hero|PageTransition|SiteHeader)\w*\b[^>]*?\bname=\{?\s*["'`]([^"'`]+)["'`]/g)) seen(m[1], lineOf(f, m.index));
-      for (const m of f.text.matchAll(/<\w+\b[^>]*\bdata-wordmark\b[^>]*>([^<{]+)</g)) seen(m[1], lineOf(f, m.index));
-      if (/(?:^|\/)(?:lib|src\/lib|config|src\/config|data|app)\/(?:site|brand|identity|config|constants|metadata)\.(?:ts|tsx|js|mjs)$/.test(f.rel)) {
-        for (const m of f.text.matchAll(/\b(?:name|siteName|brandName|title)\s*:\s*["'`]([^"'`]+)["'`]/g)) seen(m[1], lineOf(f, m.index));
-      }
-      if (/(?:^|\/)app\/layout\.(?:tsx|jsx|ts|js)$/.test(f.rel)) {
-        for (const m of f.text.matchAll(/\b(?:title|default)\s*:\s*["'`]([^"'`]+)["'`]/g)) seen(m[1], lineOf(f, m.index));
-      }
-    }
-    const brief = plan.match(/^Brief:\s*(.+)$/m)?.[1] ?? "";
-    const named = (name) => {
-      const re = new RegExp(`(?<![\\p{L}\\p{N}])${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`, "gu");
-      return [...brief.matchAll(re)].some((m) => m.index > 0);
-    };
+    const shown = SHOWN_NAMES;
+    const named = namedInBrief;
     const standIns = shown.filter((s) => isStandIn(s.name) && !named(s.name));
     if (standIns.length) {
       const names = [...new Set(standIns.map((s) => `"${s.name}"`))].join(", ");
@@ -584,6 +598,127 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
 
   if (/prefers-reduced-motion/.test(all)) add(G, "PASS", "prefers-reduced-motion respected");
   else add(G, "FAIL", "Nothing reads prefers-reduced-motion.");
+
+  // The primitives (components/struq/kit/motion) and the feel (kit/feel.ts) carry the house moves and their timing.
+  // Your own scenes under app/ and components/ (not components/struq/) compose them before writing GSAP by hand.
+  const site = files.filter((f) => /^(?:src\/)?(?:app|components)\//.test(f.rel) && !/(?:^|\/)components\/struq\//.test(f.rel) && !f.rel.endsWith(".css"));
+  const gsapFiles = site.filter((f) => /from\s*["'](?:gsap(?:\/[\w/]+)?|@gsap\/react|[^"']*components\/struq\/kit\/gsap)["']|\bgsap\./.test(f.text));
+
+  const split = hits(/\bSplitText\b/, { scope: site });
+  if (split.length) add(G, "FAIL", "SplitText outside the kit: use RevealText (@/components/struq/kit/motion) for a line or word reveal; it keeps the masks descender-safe and reads the temperament.", split);
+  else add(G, "PASS", "No hand-rolled SplitText: text reveals go through the kit");
+
+  const inlineStyle = /style=\{\{/;
+  const clip = hits(/\bclipPath\s*:|["']clip-path["']\s*:|\binset\(/, { scope: gsapFiles, exclude: inlineStyle });
+  if (clip.length) add(G, "WARN", "A clip-path tween of your own: MaskWipe wipes an element or photo in, ImageCurtain uncovers a photo, both on the feel's curtain ease.", clip);
+  const draw = hits(/\bstrokeDashoffset\s*:|\bdrawSVG\s*:/, { scope: gsapFiles, exclude: inlineStyle });
+  if (draw.length) add(G, "WARN", "A stroke drawn by hand: ScrubLine draws a rule or a path with the scroll at an even pace.", draw);
+  // A literal ease or duration in a GSAP call. ease "none" passes, and so does a duration beside it: a scrub is linear
+  // in every temperament, and a scrubbed timeline's durations only set proportions.
+  const timing = hits(/\bease\s*:\s*["'`](?!none["'`])|\bduration\s*:\s*\d/, { scope: gsapFiles, exclude: /style=\{\{|\bease\s*:\s*["'`]none["'`]/ });
+  if (timing.length) add(G, "WARN", "Ease or duration written into a GSAP call: take them from feel() (@/components/struq/kit/feel), so the scene moves in the site's temperament.", timing);
+  if (!clip.length && !draw.length && !timing.length) add(G, "PASS", "Own GSAP takes its timing from the feel and leaves wipes and drawn lines to the kit");
+
+  // The temperament: one on <body>, from the language's default or its neighbour.
+  const bodies = files
+    .filter((f) => /(?:^|\/)app\/layout\.(?:tsx|jsx)$/.test(f.rel))
+    .flatMap((f) =>
+      [...f.text.matchAll(/<body\b[^>]*>/g)]
+        .filter((m) => !/^\s*(?:\/\/|\/?\*|\{\/\*)/.test(f.text.slice(f.text.lastIndexOf("\n", m.index) + 1, m.index + 1)))
+        .map((m) => ({ tag: m[0], where: lineOf(f, m.index) })),
+    );
+  const TEMPERAMENTS = ["crisp", "weighted", "slow"];
+  const badBody = bodies.filter(({ tag }) => {
+    const value = tag.match(/\bdata-temperament=(?:["']([^"']*)["']|\{\s*["'`]([^"'`]*)["'`]\s*\})/);
+    return !value || !TEMPERAMENTS.includes(value[1] ?? value[2]);
+  });
+  if (!bodies.length) add(G, "FAIL", "No <body> in app/layout: set <body data-blocks=\"\" data-temperament=\"weighted\"> (crisp, weighted or slow, the language's default).");
+  else if (badBody.length) add(G, "FAIL", "<body> without a temperament: set data-temperament to crisp, weighted or slow, the language's default (cut crisp, weight weighted, curtain slow) or its neighbour with the reason on the Language line.", badBody.map((b) => `${b.where}  ${b.tag.slice(0, 100)}`));
+  else add(G, "PASS", `The temperament is set on <body>: ${bodies.map((b) => b.tag.match(/data-temperament=\{?\s*["'`]([^"'`]*)/)[1]).join(", ")}`);
+
+  // The close is never the site's name at full width. What this reads: each page file's footer (a footer element, a
+  // Footer* block or WordmarkFinale), the scene just before it (or the last section passed into the footer as its
+  // children), followed one step into a local component. It fails when that scene's display-size text (text-display,
+  // text-sheet-moment, text-6xl to 9xl, text-[Nvw] at 8vw or more, text-[Nrem] at 6rem or more) is only a name the
+  // site shows or the Brief gives, and when wordmark-finale follows a block or loud scene directly, so the name at
+  // full width is the page's last scene. What it cannot read: a name passed as an expression ({site.name}), a size set
+  // in CSS or inline style, and a close built in a component more than one import away.
+  {
+    const DISPLAY = /\btext-(?:display|sheet-moment|poster|[6-9]xl)\b|\btext-\[(?:[^\]]*?[\s,(])?(\d+(?:\.\d+)?)(vw|rem)\b[^\]]*\]/;
+    const isDisplay = (cls) => {
+      const m = cls.match(DISPLAY);
+      if (!m) return false;
+      if (!m[1]) return true;
+      return m[2] === "vw" ? Number(m[1]) >= 8 : Number(m[1]) >= 6;
+    };
+    const norm = (s) => s.toLowerCase().replace(/&apos;|&amp;/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+    const names = new Set(SHOWN_NAMES.map((s) => norm(s.name)).filter(Boolean));
+    const isName = (text) => {
+      const t = norm(text);
+      if (!t) return false;
+      if (names.has(t)) return true;
+      return t.split(" ").length <= 3 && /^\p{Lu}/u.test(text.trim()) && namedInBrief(text.trim());
+    };
+    /** Display-size elements whose whole text is a name: `<tag class="...">Name</tag>`. */
+    const nameAtDisplay = (markup) =>
+      [...markup.matchAll(/<([\w.]+)\b([^>]*)>([^<{}]+)<\/\1>/g)]
+        .filter((m) => isDisplay(m[2].match(/className=(?:["'`]([^"'`]*)["'`]|\{\s*["'`]([^"'`]*)["'`]\s*\})/)?.slice(1).find(Boolean) ?? "") && isName(m[3]))
+        .map((m) => m[3].trim());
+    const importOf = (text, tag) => text.match(new RegExp(`import\\s*(?:\\{[^}]*\\b${tag}\\b[^}]*\\}|${tag})\\s*from\\s*["']([^"']+)["']`))?.[1] ?? "";
+    const localFile = (from, spec) => {
+      if (!spec || !(spec.startsWith(".") || spec.startsWith("@/"))) return null;
+      const base = spec.startsWith("@/") ? spec.slice(2) : join(from.rel, "..", spec).split(sep).join("/");
+      return files.find((f) => [".tsx", ".jsx", ".ts", ".js", "/index.tsx", "/index.ts"].some((ext) => f.rel === `${base}${ext}` || f.rel === `src/${base}${ext}`)) ?? null;
+    };
+    const FOOTER = /<(WordmarkFinale|Footer\w*|footer)\b/;
+    const fullWidth = [];
+    for (const page of files.filter((f) => /(?:^|\/)app\/(?:.*\/)?page\.(?:tsx|jsx)$/.test(f.rel))) {
+      const body = page.text.slice(Math.max(0, page.text.search(/\breturn\s*\(/)));
+      const offset = page.text.length - body.length;
+      const foot = body.match(FOOTER);
+      if (!foot) continue;
+      const before = body.slice(0, foot.index);
+      const end = body.indexOf(`</${foot[1]}>`, foot.index);
+      const inside = end > 0 ? body.slice(foot.index, end) : "";
+      // The candidate close: the last section passed into the footer, else the last section or component before it.
+      let markup = "";
+      let kind = "";
+      const innerSection = inside.lastIndexOf("<section");
+      if (innerSection >= 0) {
+        markup = inside.slice(innerSection, inside.indexOf("</section>", innerSection) + 10 || undefined);
+        kind = "own";
+      } else {
+        const tags = [...before.matchAll(/<(section\b|[A-Z][\w.]*)/g)].filter((m) => !/^(?:Header\w*|SiteHeader|MenuCurtain\w*|Fragment|SmoothScroll|Reveal|main)$/.test(m[1]));
+        const last = tags.at(-1);
+        if (!last) continue;
+        if (last[1].startsWith("section")) {
+          markup = before.slice(last.index, before.indexOf("</section>", last.index) + 10 || undefined);
+          kind = /data-energy=["']?[2-9]/.test(markup.slice(0, 300)) ? "loud" : "own";
+        } else {
+          const spec = importOf(page.text, last[1]);
+          if (/components\/struq\/kit\/quiet(?:\/Close)?$/.test(spec)) kind = "kit";
+          else if (/components\/struq\//.test(spec)) kind = "block";
+          else {
+            const file = localFile(page, spec);
+            markup = file?.text ?? before.slice(last.index);
+            kind = "own";
+          }
+        }
+      }
+      // One step into the local components the close renders.
+      for (const m of [...markup.matchAll(/<([A-Z]\w*)/g)]) {
+        const file = localFile(page, importOf(page.text, m[1]));
+        if (file) markup += `\n${file.text}`;
+      }
+      const hit = nameAtDisplay(markup);
+      if (hit.length) fullWidth.push(`${lineOf(page, offset + foot.index)}  the scene before the footer sets "${hit[0]}" at display size`);
+      else if (foot[1] === "WordmarkFinale" && (kind === "block" || kind === "loud")) {
+        fullWidth.push(`${lineOf(page, offset + foot.index)}  wordmark-finale follows a block directly, so the name at full width is the page's last scene`);
+      }
+    }
+    if (fullWidth.length) add(G, "FAIL", "The close is the site's name at full width: end on the idea, an echo of the opening or the real doors instead, with the kit's Close (shape idea, echo or door), and keep a wordmark there at text size.", fullWidth);
+    else add(G, "PASS", "The close is not the name at full width");
+  }
 }
 
 /* -------------------------------------------------------------------- TYPE */

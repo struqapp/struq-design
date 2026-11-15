@@ -29,7 +29,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="nl">
       <head><script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('sq-js')" }} /></head>
-      <body data-blocks=""><SmoothScroll>{children}</SmoothScroll></body>
+      <body data-blocks="" data-temperament="weighted"><SmoothScroll>{children}</SmoothScroll></body>
     </html>
   );
 }
@@ -533,4 +533,80 @@ test('the LOOK group fails without a look, on a failing look and on a look older
   write('PASS');
   writeFileSync(join(dir, 'app', 'page.tsx'), `${PAGE_OK}// changed after the look\n`);
   assert.ok(fails(run(dir), 'The look is older than the source: app/page.tsx'));
+});
+
+// why: proof round 6 found most own scenes written in raw GSAP (hand-rolled SplitText, clip-path wipes, dash-offset
+// draws, literal eases) and six of eight sites closing on the name at full width. The kit's motion primitives, the
+// feel's temperaments and the kit's Close replace each.
+test('MOTION: SplitText outside the kit fails; own wipes, drawn strokes and literal timing warn; the kit is not scanned', () => {
+  const scene = (body) => ({
+    'components/scenes/Cut.tsx': `"use client";\nimport { gsap } from "gsap";\nexport function Cut() {\n  ${body}\n  return null;\n}\n`,
+  });
+  const clean = run(fixture());
+  assert.ok(!fails(clean, 'SplitText outside the kit'));
+  assert.ok(!warns(clean, 'clip-path tween'));
+  assert.ok(!warns(clean, 'Ease or duration'));
+  const split = run(fixture({ extra: scene('const s = SplitText.create("h2", { type: "lines" });') }));
+  assert.ok(fails(split, 'SplitText outside the kit'), split);
+  assert.match(split, /components\/scenes\/Cut\.tsx:4 {2}const s = SplitText/);
+  assert.ok(warns(run(fixture({ extra: scene('gsap.to(el, { clipPath: "inset(0% 0% 0% 0%)" });') })), 'clip-path tween'));
+  assert.ok(warns(run(fixture({ extra: scene('gsap.to(path, { strokeDashoffset: 0 });') })), 'stroke drawn by hand'));
+  assert.ok(warns(run(fixture({ extra: scene('gsap.to(path, { drawSVG: "100%" });') })), 'stroke drawn by hand'));
+  assert.ok(warns(run(fixture({ extra: scene('gsap.to(el, { y: 0, ease: "power3.out" });') })), 'Ease or duration'));
+  assert.ok(warns(run(fixture({ extra: scene('gsap.to(el, { y: 0, duration: 1.2 });') })), 'Ease or duration'));
+  // Timing from the feel, a linear scrub and an inline style pass.
+  const fromFeel = scene('const f = feel(el); gsap.to(el, { y: 0, ease: f.ease.enter, duration: f.duration.enter });');
+  assert.ok(!warns(run(fixture({ extra: fromFeel })), 'Ease or duration'));
+  assert.ok(!warns(run(fixture({ extra: scene('gsap.timeline({ defaults: { ease: "none", duration: 1 } });') })), 'Ease or duration'));
+  assert.ok(!warns(run(fixture({ extra: scene('const x = <div style={{ clipPath: "inset(0)" }} />;') })), 'clip-path tween'));
+  // The kit itself is never scanned.
+  const kit = { 'components/struq/kit/motion/RevealText.tsx': 'import { gsap, SplitText } from "../gsap";\ngsap.to(el, { clipPath: "inset(0%)", ease: "expo.out", duration: 1 });\n' };
+  const kitOut = run(fixture({ extra: kit }));
+  assert.ok(!fails(kitOut, 'SplitText outside the kit'));
+  assert.ok(!warns(kitOut, 'clip-path tween'));
+});
+
+test('MOTION: <body> carries data-temperament, crisp, weighted or slow', () => {
+  assert.ok(!fails(run(fixture()), 'without a temperament'));
+  for (const t of ['crisp', 'slow']) {
+    assert.ok(!fails(run(fixture({ extra: { 'app/layout.tsx': LAYOUT_OK.replace('weighted', t) } })), 'without a temperament'), t);
+  }
+  const none = LAYOUT_OK.replace(' data-temperament="weighted"', '');
+  const out = run(fixture({ extra: { 'app/layout.tsx': none } }));
+  assert.ok(fails(out, 'without a temperament'), out);
+  assert.match(out, /app\/layout\.tsx:6 {2}<body data-blocks="">/);
+  assert.ok(fails(run(fixture({ extra: { 'app/layout.tsx': LAYOUT_OK.replace('weighted', 'calm') } })), 'without a temperament'));
+  // A <body> named in a comment is not the body.
+  const comment = `// data-blocks on <body> is the scope.\n${LAYOUT_OK}`;
+  assert.ok(!fails(run(fixture({ extra: { 'app/layout.tsx': comment } })), 'without a temperament'));
+});
+
+test('MOTION: the close is never the site name at full width', () => {
+  const page = (close, footer = '<FooterReveal />') =>
+    PAGE_OK.replace('      <section className="scene-inverse"><p>Een zaal aan het water.</p></section>\n      <FooterReveal />', `${close}\n      ${footer}`).replace(
+      'import { images }',
+      'import { WordmarkFinale } from "@/components/struq/showpieces/wordmark-finale";\nimport { PanelWipe } from "@/components/struq/showpieces/panel-wipe";\nimport { Close } from "@/components/struq/kit/quiet";\nimport { images }',
+    );
+  const name = (out) => fails(out, "The close is the site's name at full width");
+  assert.ok(!name(run(fixture())));
+  // A section whose display text is the header's name, or the Brief's name.
+  const big = '      <section className="scene-inverse"><h2 className="font-display text-[18vw]">Zout</h2></section>';
+  const out = run(fixture({ page: page(big) }));
+  assert.ok(name(out), out);
+  assert.ok(name(run(fixture({ page: page(big.replace('text-[18vw]', 'text-display')) }))));
+  const brief = PLAN.replace('# STRUQ.md: fixture\n', '# STRUQ.md: b\nBrief: a site for Haven Zeven, a fish restaurant\n');
+  const briefName = big.replace('>Zout<', '>Haven Zeven<');
+  assert.ok(name(run(fixture({ page: page(briefName), extra: { 'STRUQ.md': brief } }))));
+  // The idea at display size, the name at text size and a small 4vw name pass.
+  assert.ok(!name(run(fixture({ page: page(big.replace('>Zout<', '>Vis van het getij.<')) }))));
+  assert.ok(!name(run(fixture({ page: page(big.replace('font-display text-[18vw]', 'text-body')) }))));
+  assert.ok(!name(run(fixture({ page: page(big.replace('text-[18vw]', 'text-[4vw]')) }))));
+  // A local close component is read one step deep.
+  const own = { 'components/scenes/Slot.tsx': 'export function Slot() { return <section><p className="text-sheet-moment">Zout</p></section>; }\n' };
+  const ownPage = page('      <Slot />').replace('import { images }', 'import { Slot } from "@/components/scenes/Slot";\nimport { images }');
+  assert.ok(name(run(fixture({ page: ownPage, extra: own }))));
+  // wordmark-finale straight after a block is the name as the last scene; after the kit's Close it is the footer.
+  const finale = '<WordmarkFinale name="Zout" />';
+  assert.ok(name(run(fixture({ page: page('      <PanelWipe left="Vis" right="Zee" />', finale) }))));
+  assert.ok(!name(run(fixture({ page: page('      <PanelWipe left="Vis" right="Zee" />\n      <Close shape="idea" line="Vis van het getij." />', finale) }))));
 });
