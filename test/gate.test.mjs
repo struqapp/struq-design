@@ -56,6 +56,15 @@ test('add refuses until the reply to the treatment is logged', () => {
   assert.ok(!installed(dir));
 });
 
+test('a pending approval line logged before the stop does not hide the reply logged after it', async () => {
+  const { hasApproval } = await import('../skills/struq/scripts/gate.mjs');
+  const pending = '# log\n\n## Step 2 Approval (15 Nov 2026, 20:07)\nAsked: Akkoord?\nReply: pending\n';
+  assert.equal(hasApproval(pending), false);
+  assert.equal(hasApproval(pending.replace('Reply: pending', 'Reply: "pending"')), false, 'a quoted placeholder is no reply');
+  const answered = `${pending}\n## Step 2 Approval (15 Nov 2026, 20:09)\nAsked: Akkoord?\nReply: "Yes. Contact: phone 030 231 4478."\n\n## Step 3 Canon\nDone\n`;
+  assert.equal(hasApproval(answered), true);
+});
+
 test('add refuses every block the storyboard does not name, installs none of the call, and names the scene lines', () => {
   const dir = project();
   const r = add(dir, 'preloader-stack', 'hover-list', 'image-trail');
