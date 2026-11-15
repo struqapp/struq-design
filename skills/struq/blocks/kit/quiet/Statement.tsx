@@ -12,8 +12,9 @@
 // Props
 // - children: the sentence, plain text. Two to five lines at moment size on a wide screen.
 // - accent: one word of the sentence, set in the pairing's italic accent face (--face-accent) where it first stands
-//   (whole word, any case; punctuation stays outside). The site's one accent word: the opening and the Close carry it
-//   too (../accent). A word the sentence does not hold changes nothing.
+//   (whole word, any case; punctuation stays outside the mark but on its line, so a phone never sets the full stop
+//   alone). The site's one accent word: the opening and the Close carry it too (../accent). A word the sentence does
+//   not hold changes nothing.
 // - label: small, sentence case, body face. Beside the first line (wide screens), under the sentence (phones).
 // - image: a StruqImage, shown upright (4/5) and small: two columns wide, five on a phone.
 // - as: "h2" (default) or "p" when the page already has its heading here.

@@ -4,7 +4,9 @@
 // why it exists. With a pre-filled storyboard 11 of 12 sites opened the same way; naming the reflex only moved it to
 // the next one. Dealing each site a random hand and holding its plan to it gave real variety while the agent still
 // chooses. A hand is two of the three motion languages, three type pairings, four palettes (two light, two dark),
-// five openings and five centerpieces.
+// five openings, five centerpieces and three lenses. A lens is where the idea starts looking: the round of 2026-11-15
+// showed that asking for three ideas still gave each brief the same idea on every run, so the starting points are
+// dealt too, and the plan's Idea line names the lens it came from.
 //
 // A hand has a short id, and the id is the whole state: the same id deals the same hand from the same pools, so the
 // MCP (which keeps nothing between calls) and a check running on the client's machine both rebuild it from the
@@ -12,7 +14,7 @@
 // and the lowest ranks are dealt, so a block admitted or a palette added later changes a dealt hand only where the
 // newcomer outranks a card in it, never the whole hand.
 //
-// `checkHand` holds a plan's Language, Palette, Type, Opening and Centerpiece lines to a hand: anything else is
+// `checkHand` holds a plan's Idea, Language, Palette, Type, Opening and Centerpiece lines to a hand: anything else is
 // `off-draw`, except the client's own brand colours or faces, marked (brand), and a block or language the client
 // named, marked (named).
 //
@@ -22,8 +24,29 @@
 /** The motion languages a hand deals from. */
 export const HAND_LANGUAGES = ['weight', 'cut', 'curtain'];
 
+/**
+ * Where an idea can start looking. Each is a way into any client's world, never a style: the agent turns it on this
+ * client and writes the point of view it finds there.
+ */
+export const HAND_LENSES = [
+  { id: 'material', prompt: 'the stuff the work is made of, seen close enough to touch' },
+  { id: 'hour', prompt: "one hour of the client's day, and what is true only then" },
+  { id: 'first-minute', prompt: "the visitor's first minute with the thing itself" },
+  { id: 'number', prompt: 'one number this trade lives by, and what it means to the visitor' },
+  { id: 'tool', prompt: "the tool in the maker's hand and the mark it leaves" },
+  { id: 'place', prompt: 'the street, room or city where the work happens' },
+  { id: 'mistake', prompt: 'the mistake this client saves the visitor from' },
+  { id: 'ritual', prompt: 'a gesture the trade repeats every day' },
+  { id: 'before-after', prompt: 'the state of things before the work and after it' },
+  { id: 'leftover', prompt: 'what is left when the work is done: offcuts, crumbs, receipts, rings on a table' },
+  { id: 'scale', prompt: 'the work at a scale nobody sees it: one stitch, one bolt, the whole city' },
+  { id: 'sound', prompt: 'what the work sounds like, carried by type and motion' },
+  { id: 'season', prompt: 'how the work changes across a year' },
+  { id: 'name', prompt: "the client's name taken apart and used as material" },
+];
+
 /** How many of each a hand holds. */
-export const HAND_SIZE = { languages: 2, lightPalettes: 2, darkPalettes: 2, pairings: 3, openings: 5, centerpieces: 5 };
+export const HAND_SIZE = { languages: 2, lightPalettes: 2, darkPalettes: 2, pairings: 3, openings: 5, centerpieces: 5, lenses: 3 };
 
 const ID_LENGTH = 6;
 const ID_ALPHABET = 'abcdefghijkmnpqrstuvwxyz23456789';
@@ -63,6 +86,7 @@ export function handPools({ palettes = [], pairings = [], catalog = [] } = {}) {
     pairings: open(pairings).map((t) => t.id),
     openings: role('opening'),
     centerpieces: role('centerpiece'),
+    lenses: HAND_LENSES.map((lens) => lens.id),
   };
 }
 
@@ -108,7 +132,8 @@ function openingsFor(id, pool) {
 /**
  * Deal a hand from the pools (handPools). `source` is a hand id, to rebuild a hand already dealt, or a random source in
  * [0, 1) for a new one (Math.random when left out). Returns the id with the dealt names, in the shape of the skill's
- * .struq/draw.json: { id, languages, palettes, pairings, openings, centerpieces }, the palettes two light then two dark.
+ * .struq/draw.json: { id, languages, palettes, pairings, openings, centerpieces, lenses }, the palettes two light then
+ * two dark.
  */
 export function dealHand(pools, source = Math.random) {
   const id = typeof source === 'string' ? source : newHandId(source);
@@ -123,6 +148,7 @@ export function dealHand(pools, source = Math.random) {
     pairings: deal(id, pools.pairings ?? [], 'pairing', HAND_SIZE.pairings),
     openings: openingsFor(id, pools.openings ?? []),
     centerpieces: deal(id, pools.centerpieces ?? [], 'centerpiece', HAND_SIZE.centerpieces),
+    lenses: deal(id, pools.lenses ?? HAND_LENSES.map((lens) => lens.id), 'lens', HAND_SIZE.lenses),
   };
 }
 
@@ -140,7 +166,8 @@ const BRAND = /\(brand\b|\bbrand\)/i;
 const NAMED = /\(named\b|\bnamed\)/i;
 
 /**
- * Hold a plan to a hand: the Language, Palette and Type lines and the Opening and Centerpiece scenes of the storyboard
+ * Hold a plan to a hand: the Idea line opens with a dealt lens (`Idea: hour: <point of view>`), unless the client gave
+ * the idea, marked (named); the Language, Palette and Type lines and the Opening and Centerpiece scenes of the storyboard
  * each come from it. A Palette or Type line marked (brand) is the client's own and passes; a Language line or an
  * Opening or Centerpiece scene marked (named) is what the client asked for by name and passes. An own scene passes.
  * A line not written yet is no finding here: the film check reports a missing treatment. A hand without a list (an
@@ -153,6 +180,13 @@ export function checkHand(plan, hand) {
   const findings = [];
   const off = (field, name, ids, fix) =>
     findings.push({ severity: 'fail', id: 'off-draw', detail: `${field} ${name} is not in this site's hand (${ids.join(', ')})`, fix });
+  if (hand?.lenses) {
+    const idea = headLine(text, 'Idea');
+    const lens = idea.match(/^([a-z][\w-]*)\s*:/)?.[1];
+    if (idea && !(lens && hand.lenses.includes(lens)) && !NAMED.test(idea)) {
+      off('Idea', lens ? `lens ${lens}` : 'without a lens', hand.lenses, 'open the Idea line with the dealt lens it started from (Idea: <lens>: <point of view>), or mark an idea the client gave with (named)');
+    }
+  }
   for (const [field, ids] of [['Language', hand?.languages], ['Palette', hand?.palettes], ['Type', hand?.pairings]]) {
     if (!ids) continue;
     const line = headLine(text, field);

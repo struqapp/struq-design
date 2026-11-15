@@ -2,7 +2,7 @@
   "source": {
     "repo": "Struq blocks/",
     "ref": "staging",
-    "commit": "2696ba38"
+    "commit": "86739e4d"
   },
   "blocks": [
     {
@@ -65,7 +65,7 @@
       "slug": "preloader-stack",
       "kind": "preloader",
       "title": "Preloader: the stack",
-      "does": "The first paint is the page's ground with the client's name, a quiet count and the first print in a small portrait frame; five or six prints cut inside that frame, each held shorter than the last, ending on the hero's own photo, and the frame then grows to the hero image's exact place and crop (the page marks it data-stack-target) so the cover becomes the hero with no seam, within 2.4 seconds of the first paint, once per session.",
+      "does": "The first paint is the page's ground with the client's name, a quiet count and the first print in a small portrait frame; five or six prints cut inside that frame, each held shorter than the last, ending on the hero's own photo, and the frame then grows to the hero image's exact place and crop (the page marks it data-stack-target) so the cover becomes the hero with no seam, within 2.4 seconds of the first paint, once per session. Before an opening with no photo (opening=\"photoless\", or no hero) it flips palette panels with the name's first letter instead and lands on the opening's own ground.",
       "reference": "Kinetic Studio and Lowlight for pacing and the counter (v4vision/projects/kinetic-studio/index.html, Opus55/build/template.html); the grow follows image-to-fullbleed's numeric clip.",
       "variants": [],
       "role": "frame",
@@ -333,7 +333,8 @@
       "files": [
         "headers/header-bar.tsx",
         "kit/blocks.css",
-        "kit/gsap.ts"
+        "kit/gsap.ts",
+        "kit/photo-read.ts"
       ]
     },
     {
@@ -864,7 +865,7 @@
       "slug": "hero-opener",
       "kind": "showpiece",
       "title": "Hero opener",
-      "does": "A full-bleed photo (or the WebGL scene over it) with the display line at 14 to 20vw across it; on scroll it pins, scales down and darkens while the next section slides over.",
+      "does": "A full-bleed photo (or the WebGL scene over it) with the display line at 14 to 20vw across it; on scroll it pins, scales down and darkens while the next section slides over. Without a photo it is type on the inverse ground over the builder's own motif (`backdrop`, an SVG or small canvas from the site's world) or a stock field (`scene`: \"dots\", \"contours\" or \"none\"); the dots default is a fallback, not a choice.",
       "reference": null,
       "variants": [],
       "role": "opening",

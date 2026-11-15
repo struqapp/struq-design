@@ -8,8 +8,15 @@
 // <ImageToFullbleed image={images.hero[0]} left="Zout" right="Noord" line="Koken met wat het seizoen geeft." />
 //
 // Reduced motion and phones: the composed still, the photo full bleed with both words and the line.
+//
+// Each word fits its own column at every width, however long it is (a Dutch compound such as "Vakmanschap"): the
+// first paint sizes the pair from the longer word's letter count against its column (half the row on a phone, the
+// room beside the small frame on a wide screen), then the script measures both words in the loaded face and sets
+// the pair one size down until the longer one fits, again on a resize. Without scripts a word that still overflows
+// breaks with a hyphen in the document's language, never past its column. Nothing clips the words, so no descender is
+// ever cut.
 import Image from "next/image";
-import { useRef } from "react";
+import { useRef, type CSSProperties } from "react";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 
@@ -22,8 +29,13 @@ type Props = {
   className?: string;
 };
 
+/** The share of an em a letter of a display face takes on average: the first paint's estimate, measured after. */
+const LETTER_EM = 0.6;
+
 export function ImageToFullbleed({ image, left, right, line, className = "" }: Props) {
   const stage = useRef<HTMLElement>(null);
+  // The longer word's width in em, estimated from its letters, for the first paint's fit.
+  const letters = Math.max(1, Array.from(left).length, Array.from(right).length) * LETTER_EM;
 
   useGSAP(
     () => {
@@ -62,10 +74,52 @@ export function ImageToFullbleed({ image, left, right, line, className = "" }: P
           frame.style.clipPath = "";
         };
       });
-      return () => mm.revert();
+      // The pair one size, set so the longer word fits its column: half the row, less the small frame and a gap on
+      // either side of it while the frame waits between the words (data-motion).
+      const row = q("[data-name]")[0] as HTMLElement;
+      const words = q("[data-left], [data-right]") as HTMLElement[];
+      let frame = 0;
+      const fit = () => {
+        if (!row) return;
+        words.forEach((w) => (w.style.fontSize = ""));
+        const cs = getComputedStyle(row);
+        const inner = row.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+        const gap = parseFloat(cs.columnGap) || 0;
+        const hole = el.dataset.motion ? el.clientWidth * 0.2 : 0;
+        const col = (inner - hole - gap * (hole ? 2 : 1)) / 2;
+        let k = 1;
+        for (const w of words) {
+          w.style.whiteSpace = "nowrap";
+          const range = document.createRange();
+          range.selectNodeContents(w);
+          const width = range.getBoundingClientRect().width;
+          w.style.whiteSpace = "";
+          if (width > col && col > 0) k = Math.min(k, col / width);
+        }
+        if (k >= 1) return;
+        const size = parseFloat(getComputedStyle(words[0]).fontSize);
+        words.forEach((w) => (w.style.fontSize = `${Math.floor(size * k * 10) / 10}px`));
+      };
+      const later = () => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(fit);
+      };
+      fit();
+      document.fonts?.ready.then(later);
+      window.addEventListener("resize", later);
+      return () => {
+        cancelAnimationFrame(frame);
+        window.removeEventListener("resize", later);
+        words.forEach((w) => (w.style.fontSize = ""));
+        mm.revert();
+      };
     },
     { scope: stage },
   );
+
+  // Never larger than the column: half the row on a phone; on a wide screen the room beside the small frame (20vw).
+  const word =
+    "font-display block min-w-0 break-words hyphens-auto leading-[0.85] tracking-[-0.04em] text-[length:min(18vw,calc((100vw_-_3rem_-_4vw)/2/var(--itf-letters)))] md:text-[length:min(12vw,calc(32vw/var(--itf-letters)))]";
 
   return (
     <section ref={stage} data-showpiece="image-to-fullbleed" className={`relative h-svh overflow-hidden bg-surface-0 ${className}`}>
@@ -75,12 +129,16 @@ export function ImageToFullbleed({ image, left, right, line, className = "" }: P
         </div>
         <div data-scrim="" aria-hidden className="absolute inset-0 bg-black opacity-30" />
       </div>
-      <div className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 items-center justify-between px-6 text-on-photo md:px-[4vw] motion-safe:md:text-ink">
-        <span data-left="" className="font-display block text-[18vw] leading-[0.85] tracking-[-0.04em] md:text-[12vw]">{left}</span>
-        <span data-right="" className="font-display block text-[18vw] leading-[0.85] tracking-[-0.04em] md:text-[12vw]">{right}</span>
+      <div
+        data-name=""
+        className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 items-center justify-between gap-[4vw] px-6 text-on-photo md:px-[4vw] motion-safe:md:text-ink"
+        style={{ "--itf-letters": letters.toFixed(2) } as CSSProperties}
+      >
+        <span data-left="" className={word}>{left}</span>
+        <span data-right="" className={`${word} text-right`}>{right}</span>
       </div>
       {line ? (
-        <p data-line="" className="font-display text-h2 absolute bottom-[10vh] left-6 max-w-[18ch] text-on-photo md:left-[8vw]">
+        <p data-line="" className="font-display text-h2 absolute bottom-[10vh] left-6 right-6 max-w-[18ch] break-words hyphens-auto text-on-photo md:left-[8vw] md:right-[8vw]">
           {line}
         </p>
       ) : null}

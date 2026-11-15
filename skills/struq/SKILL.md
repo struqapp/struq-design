@@ -62,7 +62,7 @@ step has no entry.
 - [ ] 4 Images: images.mjs --brief printed OK; only photos whose alt fits the client
 - [ ] 5 Scenes: frames and the centerpiece installed, every other scene built as the storyboard says, composed in app/page.tsx with real copy
 - [ ] 6 Build: npm run build passes
-- [ ] 7 Look: look.mjs prints LOOK: PASS on the served build; the screenshots it names opened and read
+- [ ] 7 Look: LOOK: PASS on the served build, its screenshots read; a fresh subagent's art direction in .struq/art-direction.md built, then LOOK: PASS again
 - [ ] 8 Check: check.mjs prints RESULT: PASS
 ```
 
@@ -71,11 +71,11 @@ step has no entry.
 files, merge from `recipes/app/`).
 
 **2 Treatment, then stop once.** Think like a studio pitching this client. First run
-`node <skill-dir>/scripts/canon.mjs draw`: it deals this site a hand, two languages, three type pairings and four
-palettes, the way a creative director hands a team its constraints. Every site gets a different hand, so no two start
-from the same place; your craft is choosing well within it. Write three ideas (each a point of view, not a
-description): the first that comes to mind is the one every agent writes, so take the one a rival studio would least
-expect that still fits this client, and note the other two as Passed over. Name the Subject: what the brief is about
+`node <skill-dir>/scripts/canon.mjs draw`: it deals this site a hand, two languages, three type pairings, four
+palettes and three lenses, the way a creative director hands a team its constraints. Every site gets a different hand,
+so no two start from the same place; your craft is choosing well within it. Write three ideas, one from each lens
+(each a point of view on this client, not a description), take the one a rival studio would least expect that still
+fits this client, and note the other two as Passed over. Name the Subject: what the brief is about
 that a visitor must see (the app, the event, the garment, the cup, the bread); the site shows it (step 5). Then
 the Unlike line: the site any agent would build, and Struq's own reflexes, which you must also avoid (a framed photo
 with the name small beside it; one italic word in every headline; a middle of one-word rows, a sentence with a small
@@ -90,7 +90,7 @@ idea wants a moment no block gives. Outside the hand only what the client gave: 
 # STRUQ.md: <name>
 Brief: <one line: what, for whom, where, in which language>
 Hand: <the id canon.mjs draw printed>
-Idea: <a point of view in one sentence: what a visitor believes when they leave>
+Idea: <lens>: <a point of view in one sentence: what a visitor believes when they leave>
 Passed over: <your two other ideas, one line>
 Subject: <what the visitor must see> -> <shown by: the client's photo, a pack photo that shows it, or drawn in code>
 Unlike: <the likeliest site, and Struq's reflexes> -> <what this one does instead>
@@ -154,10 +154,18 @@ where the bar sits over the photo); the bar never repeats a name the hero sets a
 leave it running, and run `node <skill-dir>/scripts/look.mjs` (the first run installs Playwright into the project).
 Never stop a server you did not start. It scrolls the page at 390 and 1440 with motion on, saves every step to
 `.struq/look/`, and fails on text under the header, the site name twice on the first screen, letters cut by a mask
-or the screen edge, a page wider than the screen, low contrast on a solid ground, and console or image errors; it
-warns on text over a photo and on a screen-high empty stretch. Open the screenshots and crops it names and read
+or the screen edge, a page wider than the screen, low contrast on a solid ground or measured over a photo, a blank
+screen, a number broken across lines, a font that never loaded, and console or image errors; it warns on a
+screen-high empty stretch. Open the screenshots and crops it names and read
 them as a studio's art director would: the preloader lands, every pin engages and lets go, the first screen is bold
-enough to stop a visitor. Fix, rebuild, restart the server and run it again until `LOOK: PASS`. Then `check.mjs` to
+enough to stop a visitor. Fix, rebuild, restart the server and run it again until `LOOK: PASS`.
+
+**Art direction.** Then hand the site to a fresh pair of eyes: start a subagent (the Agent tool in Claude Code, or your
+host's equivalent) and give it only the brief, the Idea line, the paths of the stills in `.struq/look/` and
+[references/art-direction.md](references/art-direction.md), never your plan or your reasoning. Save its answer to
+`.struq/art-direction.md`. Build every change it names that keeps the rules, rebuild, run `look.mjs` again, and ask a
+new subagent once more; two rounds at most, each logged with `log.mjs`. A host without subagents: reread only the
+brief, then read the stills against that file yourself. Then `check.mjs` to
 `RESULT: PASS`; it fails while `.struq/look.json` is missing, failing or older than app/ and components/. A FAIL you
 are sure is false goes in the final report with the reason, never worked around. Stop the server when done.
 

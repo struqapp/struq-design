@@ -18,6 +18,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { projectHand } from "./draw.mjs";
+import { HAND_LENSES } from "./hand.mjs";
 import { refuse, stopRefusal } from "./gate.mjs";
 import { appendLog } from "./log.mjs";
 import { fontHrefs, headFamily, lightness, paletteTokens } from "./tokens.mjs";
@@ -116,6 +117,10 @@ const commands = {
     for (const t of pairings) {
       const [d, bo, ac] = [t.display, t.body, t.accentItalic].map((s) => (s ? headFamily(s) : null));
       console.log(`  ${t.id.padEnd(26)} ${d} + ${bo}${ac ? ` (+ ${ac} italic, optional)` : ""}, display weight ${t.displayScale?.weight ?? 300}`);
+    }
+    if (draw.lenses?.length) {
+      console.log("\nLENSES  where your three ideas start looking, one idea from each; the Idea line names its lens");
+      for (const id of draw.lenses) console.log(`  ${id.padEnd(14)} ${HAND_LENSES.find((lens) => lens.id === id)?.prompt ?? ""}`);
     }
     console.log("\nOK hand saved to .struq/draw.json");
   },
