@@ -817,8 +817,10 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
       else add(G, "PASS", "The hand-built hero line runs at poster size");
     }
   }
+  // A brief with no name gets a header with no wordmark (the stand-in rule), so an own <header> passes on its own.
   if (usesKind("headers") || own.some((f) => /data-wordmark/.test(f.text))) add(G, "PASS", "A header with the wordmark");
-  else add(G, "FAIL", "No header: use header-bar or menu-curtain, or mark your own header's name data-wordmark.");
+  else if (own.some((f) => /<header\b/.test(f.text))) add(G, "PASS", "An own header (no wordmark: the brief gives no name, or mark it data-wordmark)");
+  else add(G, "FAIL", "No header: use header-bar or menu-curtain, or build your own <header> (its name marked data-wordmark when the brief gives one).");
   if (usesKind("footers") || usedBlocks.has("showpieces/wordmark-finale")) add(G, "PASS", "A designed footer block closes the page");
   else add(G, "WARN", "No footer block: close with footer-reveal, footer-contact or wordmark-finale, or design your own as hard as the hero.");
 
