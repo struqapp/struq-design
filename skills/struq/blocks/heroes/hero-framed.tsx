@@ -42,9 +42,11 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { accentLines } from "../kit/accent";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances } from "../kit/photo-read";
+import { staggerIn, timeIn } from "../kit/tempo";
 import { covered, whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 export const HERO_FRAMED_VARIANTS = [
@@ -321,6 +323,7 @@ export function HeroFramed({ variant = "wand", image, name, line, place, caption
         },
         (ctx) => {
           const wide = Boolean(ctx.conditions?.wide);
+          const f = feel(el);
           const marks = q("[data-hf-mark]");
           const veil = el.querySelector<HTMLElement>("[data-hf-veil-on]");
 
@@ -394,10 +397,10 @@ export function HeroFramed({ variant = "wand", image, name, line, place, caption
           let intro: gsap.core.Timeline | null = null;
           let cancel = () => {};
           if (!late) {
-            intro = gsap.timeline({ delay: 0.15, paused: true, onUpdate: paint });
-            intro.to(s, { draw: 1, duration: 1.0, ease: "expo.out" }, 0);
-            if (s.open < 1) intro.to(s, { open: 1, duration: 1.1, ease: "power3.inOut" }, 0.3);
-            intro.to(rises, { yPercent: 0, duration: 1.0, stagger: 0.07, ease: "expo.out" }, 0.75);
+            intro = gsap.timeline({ delay: timeIn(f, 0.15), paused: true, onUpdate: paint });
+            intro.to(s, { draw: 1, duration: timeIn(f, 1.0), ease: f.ease.enter }, 0);
+            if (s.open < 1) intro.to(s, { open: 1, duration: timeIn(f, 1.1, "swap"), ease: f.ease.swap }, timeIn(f, 0.3, "swap"));
+            intro.to(rises, { yPercent: 0, duration: timeIn(f, 1.0, "line"), stagger: staggerIn(f, 0.07), ease: f.ease.enter }, timeIn(f, 0.75, "line"));
             faceIn.then(() => {
               if (!dead) cancel = whenUncovered(() => intro?.play());
             });
@@ -417,14 +420,14 @@ export function HeroFramed({ variant = "wand", image, name, line, place, caption
                 start: "top top",
                 end: "+=150%",
                 pin: true,
-                scrub: variant === "wand" ? 1 : 0.4,
+                scrub: variant === "wand" ? f.scrub.pinned : f.scrub.flow,
                 onRefresh: again,
               },
             });
             tl.to({}, { duration: 0.6 })
-              .to(leave, { yPercent: -140, duration: 0.45, stagger: 0.03, ease: "power2.in" }, 0.6)
-              .to(s, { grow: 1, duration: 1.2, ease: "power3.inOut" }, 0.6)
-              .to(copyRise, { yPercent: 0, duration: 0.7, stagger: 0.08, ease: "expo.out" }, back ? 1.35 : 1.6)
+              .to(leave, { yPercent: -140, duration: 0.45, stagger: 0.03, ease: f.ease.exit }, 0.6)
+              .to(s, { grow: 1, duration: 1.2, ease: f.ease.swap }, 0.6)
+              .to(copyRise, { yPercent: 0, duration: 0.7, stagger: 0.08, ease: f.ease.enter }, back ? 1.35 : 1.6)
               .to({}, { duration: 1.0 }, 2.0);
           }
 

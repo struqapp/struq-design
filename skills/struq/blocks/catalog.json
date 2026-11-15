@@ -2,7 +2,7 @@
   "source": {
     "repo": "Struq blocks/",
     "ref": "origin/main",
-    "commit": "f98bd198"
+    "commit": "f65e9208"
   },
   "blocks": [
     {
@@ -58,6 +58,7 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-slices-uncovered.ts",
         "preloaders/preloader-wordmark.tsx"
       ]
@@ -95,6 +96,7 @@
         "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-slices-uncovered.ts",
         "preloaders/preloader-stack.tsx"
       ]
@@ -131,6 +133,7 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-slices-uncovered.ts",
         "preloaders/preloader-slices.tsx"
       ]
@@ -167,6 +170,7 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-gate.tsx",
         "preloaders/preloader-slices-uncovered.ts"
       ]
@@ -203,6 +207,7 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
+        "kit/tempo.ts",
         "page-transitions/page-transition-stack.tsx",
         "preloaders/preloader-slices-uncovered.ts"
       ]
@@ -239,6 +244,7 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
+        "kit/tempo.ts",
         "page-transitions/page-transition-slices.tsx",
         "preloaders/preloader-slices-uncovered.ts"
       ]
@@ -277,6 +283,7 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
+        "kit/tempo.ts",
         "page-transitions/page-transition-gate.tsx",
         "preloaders/preloader-slices-uncovered.ts"
       ]
@@ -342,7 +349,8 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
-        "kit/photo-read.ts"
+        "kit/photo-read.ts",
+        "kit/tempo.ts"
       ]
     },
     {
@@ -406,7 +414,8 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
-        "kit/images.ts"
+        "kit/images.ts",
+        "kit/tempo.ts"
       ]
     },
     {
@@ -463,6 +472,7 @@
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-slices-uncovered.ts"
       ]
     },
@@ -522,6 +532,7 @@
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-slices-uncovered.ts"
       ]
     },
@@ -584,6 +595,7 @@
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-slices-uncovered.ts"
       ]
     },
@@ -650,6 +662,7 @@
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-slices-uncovered.ts"
       ]
     },
@@ -704,6 +717,7 @@
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-slices-uncovered.ts"
       ]
     },
@@ -761,6 +775,7 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-slices-uncovered.ts"
       ]
     },
@@ -818,6 +833,7 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-slices-uncovered.ts"
       ]
     },
@@ -875,6 +891,7 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-slices-uncovered.ts"
       ]
     },
@@ -920,6 +937,7 @@
         "kit/scenes/dots.ts",
         "kit/scenes/ripple.ts",
         "kit/scenes/types.ts",
+        "kit/tempo.ts",
         "preloaders/preloader-slices-uncovered.ts",
         "showpieces/hero-opener.tsx"
       ]
@@ -1124,6 +1142,7 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
+        "kit/tempo.ts",
         "showpieces/fill-rows.tsx"
       ]
     },
@@ -1191,6 +1210,7 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
+        "kit/tempo.ts",
         "showpieces/wordmark-finale.tsx"
       ]
     },
@@ -1288,6 +1308,7 @@
         "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
+        "kit/tempo.ts",
         "sections/about-studio.tsx"
       ]
     },
@@ -1351,6 +1372,7 @@
         "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
+        "kit/tempo.ts",
         "sections/approach.tsx"
       ]
     },
@@ -1415,6 +1437,7 @@
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
+        "kit/tempo.ts",
         "sections/manifesto.tsx"
       ]
     },
@@ -1534,6 +1557,7 @@
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
+        "kit/tempo.ts",
         "sections/cta-closing.tsx"
       ]
     },
@@ -1588,6 +1612,7 @@
         "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
+        "kit/tempo.ts",
         "sections/reveals.tsx"
       ]
     },
@@ -1661,6 +1686,7 @@
         "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
+        "kit/tempo.ts",
         "sections/panel-accordion.tsx"
       ]
     },
@@ -1696,6 +1722,7 @@
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
+        "kit/tempo.ts",
         "sections/grid-assembly.tsx"
       ]
     },
@@ -1837,6 +1864,7 @@
         "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
+        "kit/tempo.ts",
         "sections/hover-list.tsx"
       ]
     },
@@ -1872,6 +1900,7 @@
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
+        "kit/tempo.ts",
         "sections/split-pair.tsx"
       ]
     },
@@ -1908,6 +1937,7 @@
         "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
+        "kit/tempo.ts",
         "sections/fanned-cards.tsx"
       ]
     },
@@ -1963,7 +1993,8 @@
         "kit/SmoothScroll.tsx",
         "kit/blocks.css",
         "kit/feel.ts",
-        "kit/gsap.ts"
+        "kit/gsap.ts",
+        "kit/tempo.ts"
       ]
     },
     {

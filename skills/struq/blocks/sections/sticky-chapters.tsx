@@ -9,7 +9,7 @@
 //
 // The swaps are tied to the scroll, not fired by it: each chapter after the first owns one short stretch
 // of scroll (its top travelling from 70% to 45% of the screen) and its photograph's mask follows that
-// stretch, lightly smoothed. So the frame always matches the chapter you are reading, a fast flick scrubs
+// stretch, lightly smoothed (0.4 s in weighted; the feel sets it). So the frame always matches the chapter you are reading, a fast flick scrubs
 // straight through, scrolling back simply lowers the photograph again, and the stretches never overlap,
 // so the frame never holds more than two photographs. The emphasis follows the same positions, so text
 // and photograph change together. Every photograph loads at the frame's size and is decoded before it
@@ -24,6 +24,7 @@
 // and beside it on desktop. Reduced motion: the sticky frame with hard cuts and no push-in.
 import Image from "next/image";
 import { useRef } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 
@@ -44,8 +45,6 @@ type Props = {
 /** Each chapter's stretch of scroll: from its top at this share of the screen to its top at that one. */
 const FROM = "top 70%";
 const TO = "top 45%";
-/** The smoothing on the scrub, in seconds: enough to feel like a camera, never enough to lag the text. */
-const SMOOTH = 0.4;
 /** A rising photograph settles out of this push-in. */
 const PUSH = 1.12;
 
@@ -69,6 +68,9 @@ export function StickyChapters({ title, chapters, className = "" }: Props) {
       mm.add({ wide: "(min-width: 1024px)", reduce: "(prefers-reduced-motion: reduce)" }, (ctx) => {
         const { wide, reduce } = ctx.conditions as { wide: boolean; reduce: boolean };
         if (!wide) return;
+        const f = feel(el);
+        // The smoothing on the scrub, in seconds: enough to feel like a camera, never enough to lag the text.
+        const smooth = f.scrub.flow;
 
         // Every photograph loads now, at the frame's size. A layer stays hidden until its photograph is
         // decoded, so an undecoded one can only ever show the photograph beneath it, never an empty frame.
@@ -135,7 +137,7 @@ export function StickyChapters({ title, chapters, className = "" }: Props) {
               paint(i);
               mark();
             },
-            scrollTrigger: { trigger: item, start: FROM, end: TO, scrub: reduce ? true : SMOOTH },
+            scrollTrigger: { trigger: item, start: FROM, end: TO, scrub: reduce ? true : smooth },
           });
         });
 
@@ -147,7 +149,7 @@ export function StickyChapters({ title, chapters, className = "" }: Props) {
               {
                 scaleY: 1,
                 ease: "none",
-                scrollTrigger: { trigger: list, start: "top 52%", end: "bottom 52%", scrub: reduce ? true : SMOOTH },
+                scrollTrigger: { trigger: list, start: "top 52%", end: "bottom 52%", scrub: reduce ? true : smooth },
               },
             )
           : null;
@@ -243,7 +245,7 @@ export function StickyChapters({ title, chapters, className = "" }: Props) {
                   className="object-cover"
                 />
               </span>
-              <div className="max-w-[30rem] transition-[opacity,translate] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[back]/item:-translate-x-[0.8vw] group-data-[back]/item:opacity-[0.24]">
+              <div className="max-w-[30rem] transition-[opacity,translate] duration-[var(--dur-hover-fill)] ease-[var(--ease-enter)] group-data-[back]/item:-translate-x-[0.8vw] group-data-[back]/item:opacity-[0.24]">
                 <h3 className="font-display text-h2 text-ink">{c.title}</h3>
                 <p className="mt-5 text-lead text-ink-muted">{c.text}</p>
               </div>

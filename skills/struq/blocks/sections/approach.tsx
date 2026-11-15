@@ -17,8 +17,8 @@
 // <Approach variant="draad" title="Van de eerste koffie tot de sleutel." stages={[{ name: "Kennismaken", line: "...",
 //   text: "...", clause: "We lopen eerst samen door wat er al staat,", image: images.card[1] }, ...]} />
 //
-// Scroll moves are scrubbed with 0.4 s of smoothing (a fast flick never stacks states, going back reverses); the
-// scrubber follows the hand in about 0.18 s and a swap overtaken mid-way turns back from where it is. Transforms are
+// Scroll moves are scrubbed with 0.4 s of smoothing (weighted; the feel sets it) (a fast flick never stacks states,
+// going back reverses); the scrubber follows the hand in about 0.18 s and a swap overtaken mid-way turns back from where it is. Transforms are
 // written in whole pixels, clips from plain numbers. Every photograph is decoded before it can show. Names and titles
 // are cut into lines with the face they are read in (the cut waits for the fonts, capped).
 //
@@ -28,7 +28,9 @@
 import Image from "next/image";
 import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { gsap, ScrollTrigger, SplitText, useGSAP } from "../kit/gsap";
+import { feel } from "../kit/feel";
 import type { StruqImage } from "../kit/images";
+import { timeIn, travelIn } from "../kit/tempo";
 
 export const APPROACH_VARIANTS = [
   { id: "draad", title: "Draad" },
@@ -59,7 +61,6 @@ type Props = {
   className?: string;
 };
 
-const SMOOTH = 0.4;
 const FONT_CAP = 1200;
 const RISE = 1.12;
 const SOFT = 16;
@@ -70,7 +71,7 @@ const STEP = 0.5;
 const HOLD = 0.4;
 /** zin: how faint a clause waits. */
 const FAINT = 0.2;
-/** schuif: the follow while dragging, and the settle after a release or a click, in seconds. */
+/** schuif: the follow while dragging (pointer smoothing, the feel leaves it), and the settle after a release or a click, in seconds. */
 const FOLLOW = 0.18;
 const SETTLE = 0.6;
 
@@ -138,6 +139,9 @@ function runDraad(el: HTMLElement, wide: boolean, reduce: boolean) {
     el.dataset.ready = "1";
     return;
   }
+  const f = feel(el);
+  const smooth = f.scrub.flow;
+  const soft = travelIn(f, SOFT);
   const heads = [title, ...stages.map((s) => s.querySelector<HTMLElement>("[data-ap-head]"))].filter(Boolean) as HTMLElement[];
   const ticks = stages.map((s) => s.querySelector<HTMLElement>("[data-ap-tick]"));
   const softs = stages.map((s) => [...s.querySelectorAll<HTMLElement>("[data-ap-soft]")]);
@@ -165,7 +169,7 @@ function runDraad(el: HTMLElement, wide: boolean, reduce: boolean) {
       const spans = windows(softs[i].length, 0.7);
       softs[i].forEach((s, j) => {
         const e = out2(within(p, 0.3 + spans[j][0] * 0.7, 0.3 + spans[j][1] * 0.7));
-        s.style.transform = `translate3d(0, ${px((1 - e) * SOFT)}, 0)`;
+        s.style.transform = `translate3d(0, ${px((1 - e) * soft)}, 0)`;
         s.style.opacity = e.toFixed(3);
       });
     });
@@ -173,7 +177,7 @@ function runDraad(el: HTMLElement, wide: boolean, reduce: boolean) {
 
   const tip = `${Math.round(TIP * 100)}%`;
   const scrub = (target: object, vars: gsap.TweenVars, trigger: Element, start: string, end: string) =>
-    gsap.to(target, { ...vars, ease: "none", onUpdate: paint, scrollTrigger: { trigger, start, end, scrub: SMOOTH } });
+    gsap.to(target, { ...vars, ease: "none", onUpdate: paint, scrollTrigger: { trigger, start, end, scrub: smooth } });
   if (title) scrub(prog, { title: 1 }, title, "top 90%", "top 55%");
   scrub(prog, { draw: 1 }, path, `top ${tip}`, `bottom ${tip}`);
   // A stage's stretch starts as the tip reaches its top.
@@ -212,6 +216,7 @@ function runZin(el: HTMLElement, reduce: boolean) {
     el.dataset.ready = "1";
     return;
   }
+  const smooth = feel(el).scrub.flow;
   // From here the notes share one cell (blocks.css), so only the current one stands under the sentence.
   el.dataset.stacked = "1";
   const n = clauses.length;
@@ -246,7 +251,7 @@ function runZin(el: HTMLElement, reduce: boolean) {
       start: "top top",
       end: () => `+=${Math.round(length * window.innerHeight)}`,
       pin: true,
-      scrub: SMOOTH,
+      scrub: smooth,
       onRefresh: () => {
         heights = notes.map((nt) => nt.offsetHeight);
         paint();
@@ -289,6 +294,9 @@ function runSchuif(el: HTMLElement, reduce: boolean, onActive: (i: number) => vo
   const n = notes.length;
   if (!track || !n) return;
   el.dataset.stacked = "1";
+  const f = feel(el);
+  const smooth = f.scrub.flow;
+  const soft = travelIn(f, SOFT);
 
   let alive = true;
   let split: SplitText[] = [];
@@ -330,8 +338,8 @@ function runSchuif(el: HTMLElement, reduce: boolean, onActive: (i: number) => vo
     const q = state.q;
     // Layer i opens from the right edge as q travels from i - 1 to i: the next photograph wipes in with the hand.
     layers.forEach((layer, i) => {
-      const f = i === 0 ? 1 : clamp01(q - (i - 1));
-      layer.style.clipPath = `inset(0% 0% 0% ${((1 - f) * 100).toFixed(3)}%)`;
+      const open = i === 0 ? 1 : clamp01(q - (i - 1));
+      layer.style.clipPath = `inset(0% 0% 0% ${((1 - open) * 100).toFixed(3)}%)`;
       layer.style.opacity = shown[i].v.toFixed(3);
     });
     const x = xAt(q);
@@ -340,7 +348,7 @@ function runSchuif(el: HTMLElement, reduce: boolean, onActive: (i: number) => vo
     notes.forEach((nt, i) => {
       const v = vis[i].v;
       nt.style.opacity = v.toFixed(3);
-      nt.style.transform = `translate3d(0, ${px((1 - v) * SOFT)}, 0)`;
+      nt.style.transform = `translate3d(0, ${px((1 - v) * soft)}, 0)`;
       nt.style.visibility = v > 0.001 ? "inherit" : "hidden";
     });
   };
@@ -354,9 +362,9 @@ function runSchuif(el: HTMLElement, reduce: boolean, onActive: (i: number) => vo
       const on = j === i;
       gsap.to(v, {
         v: on ? 1 : 0,
-        duration: reduce ? 0.15 : on ? 0.55 : 0.22,
-        delay: on && !reduce ? 0.08 : 0,
-        ease: on ? "power3.out" : "power2.in",
+        duration: reduce ? 0.15 : on ? timeIn(f, 0.55) : timeIn(f, 0.22, "exit"),
+        delay: on && !reduce ? timeIn(f, 0.08) : 0,
+        ease: on ? "power3.out" : f.ease.exit,
         overwrite: true,
         onUpdate: paint,
       });
@@ -377,7 +385,7 @@ function runSchuif(el: HTMLElement, reduce: boolean, onActive: (i: number) => vo
   };
 
   api.current = {
-    go: (i: number) => moveTo(Math.min(n - 1, Math.max(0, i)), reduce ? 0 : SETTLE, "power3.inOut"),
+    go: (i: number) => moveTo(Math.min(n - 1, Math.max(0, i)), reduce ? 0 : timeIn(f, SETTLE, "swap"), f.ease.swap),
   };
 
   // The hand on the rule: a press that moves more than a few pixels becomes a drag, which the scrubber follows; letting
@@ -409,7 +417,7 @@ function runSchuif(el: HTMLElement, reduce: boolean, onActive: (i: number) => vo
     if (!dragging) return;
     dragging = false;
     if (track.hasPointerCapture(e.pointerId)) track.releasePointerCapture(e.pointerId);
-    moveTo(Math.round(target), reduce ? 0.15 : 0.45, "power3.out");
+    moveTo(Math.round(target), reduce ? 0.15 : timeIn(f, 0.45), "power3.out");
   };
   track.addEventListener("pointerdown", down);
   track.addEventListener("pointermove", move);
@@ -423,7 +431,7 @@ function runSchuif(el: HTMLElement, reduce: boolean, onActive: (i: number) => vo
   ScrollTrigger.addEventListener("refresh", remeasure);
   window.addEventListener("resize", remeasure);
   if (title && !reduce) {
-    gsap.to(prog, { title: 1, ease: "none", onUpdate: paint, scrollTrigger: { trigger: title, start: "top 90%", end: "top 55%", scrub: SMOOTH } });
+    gsap.to(prog, { title: 1, ease: "none", onUpdate: paint, scrollTrigger: { trigger: title, start: "top 90%", end: "top 55%", scrub: smooth } });
   }
 
   // Every photograph is decoded before it can show; the first fades in once it is.
@@ -436,7 +444,7 @@ function runSchuif(el: HTMLElement, reduce: boolean, onActive: (i: number) => vo
     img.loading = "eager";
     decoded(img).then(() => {
       if (!alive) return;
-      gsap.to(shown[i], { v: 1, duration: reduce ? 0 : 0.45, ease: "power2.out", onUpdate: paint });
+      gsap.to(shown[i], { v: 1, duration: reduce ? 0 : timeIn(f, 0.45), ease: "power2.out", onUpdate: paint });
     });
   });
 

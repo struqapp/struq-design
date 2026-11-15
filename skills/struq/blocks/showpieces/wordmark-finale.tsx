@@ -10,7 +10,9 @@
 //
 // Reduced motion and phones: the name stands still at full width; the clock still ticks.
 import { useEffect, useRef, useState } from "react";
+import { feel } from "../kit/feel";
 import { gsap, SplitText, useGSAP } from "../kit/gsap";
+import { staggerIn, timeIn, travelIn } from "../kit/tempo";
 
 type Props = {
   name: string;
@@ -90,6 +92,7 @@ export function WordmarkFinale({ name, line, place, timeZone, children, classNam
       if (!el) return;
       const mm = gsap.matchMedia();
       mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
+        const f = feel(el);
         const split = SplitText.create(el, {
           type: "chars",
           mask: "chars",
@@ -97,10 +100,10 @@ export function WordmarkFinale({ name, line, place, timeZone, children, classNam
           charsClass: "struq-char",
           onSplit(self) {
             return gsap.from(self.chars, {
-              yPercent: 105,
-              duration: 1.4,
-              ease: "expo.out",
-              stagger: 0.05,
+              yPercent: travelIn(f, 105, "text"),
+              duration: timeIn(f, 1.4, "line"),
+              ease: f.ease.enter,
+              stagger: staggerIn(f, 0.05, "word"),
               scrollTrigger: { trigger: el, start: "top 95%", once: true },
             });
           },

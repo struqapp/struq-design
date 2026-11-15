@@ -19,7 +19,7 @@
 // Mounting: a page section of its own. The root carries data-scene="photo-text" and data-energy="1".
 // Motion: it enters once. The photo opens from its foot (MediaFrame, no parallax), the heading's lines rise through
 // their masks (SplitHeadline), the paragraphs and the caption line follow (Reveal). No pin, no scrub, no hover motion.
-// Reduced motion: a short fade. Without scripts: the composed scene. Phones: photo, caption line, then the text.
+// Moves on the site's temperament (../feel). Reduced motion: the composed scene at once. Without scripts: the composed scene. Phones: photo, caption line, then the text.
 import { MediaFrame } from "../MediaFrame";
 import { Reveal } from "../Reveal";
 import { SplitHeadline } from "../SplitHeadline";

@@ -33,10 +33,12 @@
 // and plays at once when nothing covers the page.
 import { useRef, type ReactNode } from "react";
 import { findAccent, withAccent } from "../kit/accent";
+import { feel } from "../kit/feel";
 import { HeroCanvas } from "../kit/HeroCanvas";
 import { MagneticButton } from "../kit/MagneticButton";
 import { SplitText, gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
+import { staggerIn, timeIn, travelIn } from "../kit/tempo";
 import { whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 type Props = {
@@ -111,12 +113,21 @@ export function HeroOpener({
       });
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         // Every part is set in its start state now and the whole entrance plays once nothing covers the page.
+        const f = feel(el);
         let uncovered = false;
         const intro = gsap.timeline({ paused: true });
         if (split) {
-          intro.from(q("[data-split-word]"), { yPercent: 110, duration: 1.4, ease: "expo.out", stagger: 0.12 }, 0.25);
+          intro.from(
+            q("[data-split-word]"),
+            { yPercent: travelIn(f, 110, "text"), duration: timeIn(f, 1.4, "line"), ease: f.ease.enter, stagger: staggerIn(f, 0.12, "word") },
+            timeIn(f, 0.25),
+          );
         }
-        intro.from(q("[data-opener-copy] > *"), { y: 32, autoAlpha: 0, duration: 1, ease: "expo.out", stagger: 0.1 }, 0.7);
+        intro.from(
+          q("[data-opener-copy] > *"),
+          { y: travelIn(f, 32), autoAlpha: 0, duration: timeIn(f, 1), ease: f.ease.enter, stagger: staggerIn(f, 0.1, "block") },
+          timeIn(f, 0.7),
+        );
         // The poster line rises line by line through its masks, cut again when the width or the face changes (a cut
         // after the entrance carries its progress over, so it never replays).
         let lines: gsap.core.Timeline | null = null;
@@ -129,7 +140,7 @@ export function HeroOpener({
               onSplit(self) {
                 lines = gsap
                   .timeline({ paused: !uncovered })
-                  .from(self.lines, { yPercent: 115, duration: 1.25, ease: "expo.out", stagger: 0.09 }, 0.15);
+                  .from(self.lines, { yPercent: f.travel.text, duration: f.duration.line, ease: f.ease.enter, stagger: f.stagger.line }, timeIn(f, 0.15, "line"));
                 return lines;
               },
             })

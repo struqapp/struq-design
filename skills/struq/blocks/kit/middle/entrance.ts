@@ -32,6 +32,20 @@ function faceReady() {
   return Promise.race([fonts ?? Promise.resolve(), new Promise((res) => window.setTimeout(res, FONT_CAP))]);
 }
 
+/**
+ * One entrance per group, for a scene that runs long down the page (plates, a sheet of photos): the root is marked
+ * ready at once and every element carrying data-middle-group (itself a data-middle root for the gate in blocks.css)
+ * gets its own entrance and its own trigger, so a part far down the page opens when it arrives, not with the first.
+ * Returns the cleanup.
+ */
+export function entranceEach(root: HTMLElement): () => void {
+  root.dataset.ready = "1";
+  const stops = Array.from(root.querySelectorAll<HTMLElement>("[data-middle-group]")).map((group) => entrance(group));
+  return () => {
+    for (const stop of stops) stop();
+  };
+}
+
 export function entrance(root: HTMLElement, extend?: (tl: gsap.core.Timeline, f: Feel, at: EntranceMarks) => void): () => void {
   if (prefersReduced()) {
     root.dataset.ready = "1";

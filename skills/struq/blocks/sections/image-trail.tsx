@@ -405,7 +405,7 @@ export function ImageTrail({ title, items, className = "" }: Props) {
             </>
           );
           const rowClass =
-            "group/row flex items-center gap-4 py-4 transition-opacity duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none! lg:py-[1.2vw] group-data-[active]/list:not-data-[current]:opacity-[0.3]";
+            "group/row flex items-center gap-4 py-4 transition-opacity duration-[var(--dur-hover-fill)] ease-[var(--ease-enter)] focus-visible:outline-none! lg:py-[1.2vw] group-data-[active]/list:not-data-[current]:opacity-[0.3]";
           return (
             <li key={item.title} className="border-b border-line">
               {item.href ? (

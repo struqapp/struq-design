@@ -36,7 +36,9 @@
 // covered. Without JavaScript the cover never paints. Reduced motion: the filled name, held briefly, then a short fade.
 // `always` plays it on every load (the lab).
 import { useRef, useState, type CSSProperties } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
+import { staggerIn, timeIn } from "../kit/tempo";
 import { closeCurtain, covered, liftCurtain, whenUncovered } from "./preloader-slices-uncovered";
 
 export { whenUncovered };
@@ -317,16 +319,22 @@ export function PreloaderWordmark({
       }
 
       // The opening: its full length when there is room, shorter when the script came late.
-      const exitFor = () => Math.min(EXIT[variant], BUDGET - since() - 0.04);
-      const fillBy = BUDGET - EXIT[variant] - T.beat - 0.04;
+      // The opening and the beat move with the feel; the 2.4s BUDGET does not (the arm script's hold and the CSS failsafe
+      // are fixed), so a slower opening leaves the fill less time, and the rush at the cap draws in the rest.
+      const f = feel(el);
+      const exitLen = timeIn(f, EXIT[variant], "curtain");
+      const beatLen = timeIn(f, T.beat);
+      const minExit = timeIn(f, T.minExit, "curtain");
+      const exitFor = () => Math.min(exitLen, BUDGET - since() - 0.04);
+      const fillBy = BUDGET - exitLen - beatLen - 0.04;
 
       /** Opens the cover. Every cut is decided now, on whole pixels, and appears in this same frame. */
       const open = () => {
         const dur = exitFor();
-        if (dur < T.minExit) return quit();
+        if (dur < minExit) return quit();
         const vw = el.clientWidth;
         const vh = el.clientHeight;
-        const ease = "power4.inOut";
+        const ease = f.ease.curtain;
         const y = (v: number) => `translate3d(0, ${Math.round(v)}px, 0)`;
         const tl = gsap.timeline({ onComplete: finish });
         exitTl = tl;
@@ -363,7 +371,7 @@ export function PreloaderWordmark({
           edges.push(vw);
           const pieces = q("[data-piece]") as HTMLElement[];
           const count = pieces.length;
-          const stagger = count > 1 ? Math.min(0.075, (dur * 0.34) / (count - 1)) : 0;
+          const stagger = count > 1 ? Math.min(staggerIn(f, 0.075, "block"), (dur * 0.34) / (count - 1)) : 0;
           const fall = dur - stagger * (count - 1);
           pieces.forEach((piece, i) => {
             const ground = piece.querySelector<HTMLElement>("[data-ground]")!;
@@ -428,7 +436,7 @@ export function PreloaderWordmark({
               baseName.style.transform = `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0) scale(${sc.toFixed(5)})`;
             };
             // The name leaves a beat after the cover starts to lift, and slows into the mark as the cover clears.
-            tl.to(travel, { p: 1, duration: dur * 0.94, ease: "power3.inOut", onUpdate: paint }, dur * 0.06);
+            tl.to(travel, { p: 1, duration: dur * 0.94, ease: f.ease.swap, onUpdate: paint }, dur * 0.06);
           }
           tl.to(s, { p: 1, duration: dur, ease, onUpdate: paint }, 0);
           tl.add(() => {
@@ -468,7 +476,7 @@ export function PreloaderWordmark({
           render();
           if (p >= 1) {
             phase = "beat";
-            beatUntil = Math.min(t + T.beat, fillBy + T.beat);
+            beatUntil = Math.min(t + beatLen, fillBy + beatLen);
           }
         } else if (phase === "beat" && t >= beatUntil) {
           phase = "open";

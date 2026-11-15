@@ -20,17 +20,19 @@
 // <CtaClosing variant="photo" lines={["Heb je een plek", "die beter kan?"]} link={{ href: "#gesprek", label: "Plan een
 //   gesprek" }} image={images.hero[2]} />
 //
-// Every arrival is scrubbed to the scroll over a short stretch with 0.4 s of smoothing, so scrolling back runs it
-// backwards. Transforms are written in whole pixels and every clip from plain numbers. Each photograph is decoded
+// Every arrival is scrubbed to the scroll over a short stretch with 0.4 s of smoothing (weighted; the feel sets it), so
+// scrolling back runs it backwards. Transforms are written in whole pixels and every clip from plain numbers. Each photograph is decoded
 // before it can show. The line is sized to fit its column with the display face it is read in (the fit waits for the
 // fonts, capped, and runs again on resize). Start states wait behind the `.js` / `.sq-js` gate with a 3 s CSS fallback
 // (blocks.css, "--- cta-closing ---"). Reduced motion: the composed screen; the band is set as still lines and the
 // project frame stands beside the link without following.
 import Image from "next/image";
 import { useId, useRef } from "react";
+import { feel } from "../kit/feel";
 import { gsap, ScrollTrigger, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances } from "../kit/photo-read";
+import { timeIn, travelIn } from "../kit/tempo";
 
 export const CTA_CLOSING_VARIANTS = [
   { id: "photo", title: "Foto" },
@@ -53,8 +55,6 @@ type Props = {
   className?: string;
 };
 
-/** Seconds of smoothing on every scrub: a camera settling, never a delay. */
-const SMOOTH = 0.4;
 /** The longest the fit waits for the display face, in ms. */
 const FONT_CAP = 1200;
 /** A line travels this share of its own height to its place. */
@@ -84,7 +84,6 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const within = (p: number, from: number, to: number) => clamp01((p - from) / (to - from));
 const out3 = gsap.parseEase("power3.out");
 const out2 = gsap.parseEase("power2.out");
-const inOut3 = gsap.parseEase("power3.inOut");
 
 const linear = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
 const encode = (l: number) => (l <= 0.0031308 ? l * 12.92 : 1.055 * Math.pow(l, 1 / 2.4) - 0.055);
@@ -196,6 +195,11 @@ export function CtaClosing({ variant = "photo", lines, link, image, caption, cla
         },
         (ctx) => {
           const { wide, reduce, fine } = ctx.conditions as { wide: boolean; reduce: boolean; fine: boolean };
+          const f = feel(el);
+          // Seconds of smoothing on every scrub: a camera settling, never a delay.
+          const smooth = f.scrub.flow;
+          const soft = travelIn(f, SOFT);
+          const inOut3 = gsap.parseEase(f.ease.swap);
           let alive = true;
           const undo: (() => void)[] = [];
 
@@ -315,7 +319,7 @@ export function CtaClosing({ variant = "photo", lines, link, image, caption, cla
             });
             softs.forEach((s) => {
               const e = out2(prog.soft);
-              s.style.transform = `translate3d(0, ${Math.round((1 - e) * SOFT)}px, 0)`;
+              s.style.transform = `translate3d(0, ${Math.round((1 - e) * soft)}px, 0)`;
               s.style.opacity = e.toFixed(3);
             });
             if (frame && kind === "photo") {
@@ -338,7 +342,7 @@ export function CtaClosing({ variant = "photo", lines, link, image, caption, cla
               [key]: 1,
               ease: "none",
               onUpdate: paint,
-              scrollTrigger: { trigger: el, start, end, scrub: SMOOTH },
+              scrollTrigger: { trigger: el, start, end, scrub: smooth },
             });
           };
 
@@ -368,7 +372,7 @@ export function CtaClosing({ variant = "photo", lines, link, image, caption, cla
                 measure();
                 grade();
                 if (reduce) return;
-                gsap.to(gate, { v: 1, duration: 0.45, ease: "power2.out", onUpdate: paint });
+                gsap.to(gate, { v: 1, duration: timeIn(f, 0.45), ease: "power2.out", onUpdate: paint });
               }),
             );
           } else if (kind === "photo") {
@@ -486,7 +490,7 @@ export function CtaClosing({ variant = "photo", lines, link, image, caption, cla
                   paintFloat();
                   return;
                 }
-                gsap.to(open, { o: 1, duration: 0.42, ease: "power3.out", onUpdate: paintFloat, overwrite: true });
+                gsap.to(open, { o: 1, duration: timeIn(f, 0.42), ease: "power3.out", onUpdate: paintFloat, overwrite: true });
               });
             };
             const hide = () => {
@@ -498,7 +502,7 @@ export function CtaClosing({ variant = "photo", lines, link, image, caption, cla
                 return;
               }
               // From wherever it stands: a frame still opening closes back the way it came.
-              gsap.to(open, { o: 0, duration: 0.3, ease: "power2.in", onUpdate: paintFloat, overwrite: true });
+              gsap.to(open, { o: 0, duration: timeIn(f, 0.3, "exit"), ease: f.ease.exit, onUpdate: paintFloat, overwrite: true });
             };
             const onEnter = (e: PointerEvent) => {
               if (e.pointerType !== "mouse") return;
@@ -639,7 +643,7 @@ export function CtaClosing({ variant = "photo", lines, link, image, caption, cla
         strokeWidth="1.25"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="h-[0.72em] w-[0.72em] shrink-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/cc:translate-x-[0.22em] group-focus-visible/cc:translate-x-[0.22em] motion-reduce:transition-none"
+        className="h-[0.72em] w-[0.72em] shrink-0 transition-transform duration-[var(--dur-hover-fill)] ease-[var(--ease-enter)] group-hover/cc:translate-x-[0.22em] group-focus-visible/cc:translate-x-[0.22em] motion-reduce:transition-none"
       >
         <path d="M3 12h17M14 5.5l6.5 6.5-6.5 6.5" />
       </svg>
@@ -647,7 +651,7 @@ export function CtaClosing({ variant = "photo", lines, link, image, caption, cla
       <span
         aria-hidden
         data-cc-rule=""
-        className="absolute inset-x-0 bottom-0 h-[2px] origin-right scale-x-0 bg-current transition-transform duration-[650ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/cc:origin-left group-hover/cc:scale-x-100 group-focus-visible/cc:origin-left group-focus-visible/cc:scale-x-100 motion-reduce:transition-none"
+        className="absolute inset-x-0 bottom-0 h-[2px] origin-right scale-x-0 bg-current transition-transform duration-[calc(var(--dur-hover-fill)*1.3)] ease-[var(--ease-enter)] group-hover/cc:origin-left group-hover/cc:scale-x-100 group-focus-visible/cc:origin-left group-focus-visible/cc:scale-x-100 motion-reduce:transition-none"
       />
     </a>
   );

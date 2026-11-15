@@ -1,7 +1,8 @@
 "use client";
 // components/struq/SplitHeadline.tsx (Struq recipe)
 // The hero headline: SplitText cuts it into lines, each line rises out of its own mask.
-// autoSplit re-cuts it when the width or the webfont changes, so mobile line breaks stay right.
+// autoSplit re-cuts it when the width or the webfont changes, so mobile line breaks stay right. The rise is the site's
+// temperament (./feel): travel.text, duration.line, the enter ease, stagger.line. Reduced motion: the finished text.
 //
 // <SplitHeadline as="h1" className="font-display text-display max-w-[14ch]">
 //   Vis en groente, van het seizoen.
@@ -10,7 +11,9 @@
 // Pass plain text (or text with <em>): SplitText needs text nodes, not components. The accent helper's no-wrap unit
 // (the mark with the punctuation touching it, ./accent) is cut as one piece, so it always lands whole on one line.
 import { useRef } from "react";
+import { feel, prefersReduced } from "./feel";
 import { gsap, SplitText, useGSAP } from "./gsap";
+import { timeIn } from "./tempo";
 
 type Props = {
   children: React.ReactNode;
@@ -30,14 +33,13 @@ export function SplitHeadline({ children, as = "h1", className = "", on = "load"
     () => {
       const el = ref.current;
       if (!el) return;
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-      if (reduce) {
+      // Reduced motion: the finished headline at once, full ink. No fade: a fade that never runs leaves it grey.
+      if (prefersReduced()) {
         el.dataset.ready = "1";
-        gsap.from(el, { autoAlpha: 0, duration: 0.6 });
         return;
       }
 
+      const f = feel(el);
       const split = SplitText.create(el, {
         type: "lines",
         mask: "lines",
@@ -45,11 +47,11 @@ export function SplitHeadline({ children, as = "h1", className = "", on = "load"
         autoSplit: true,
         onSplit(self) {
           return gsap.from(self.lines, {
-            yPercent: 115,
-            duration: 1.25,
-            ease: "expo.out",
-            stagger: 0.09,
-            delay,
+            yPercent: f.travel.text,
+            duration: f.duration.line,
+            ease: f.ease.enter,
+            stagger: f.stagger.line,
+            delay: timeIn(f, delay),
             scrollTrigger: on === "scroll" ? { trigger: el, start: "top 80%", once: true } : undefined,
           });
         },

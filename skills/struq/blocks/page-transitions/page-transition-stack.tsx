@@ -4,7 +4,8 @@
 // destination's own hero photo appears where the pointer is (centred for a keyboard press, back and forward) and grows
 // until it fills the screen; the route loads under it; on the new page the print is already that page's hero photo,
 // and it settles into the hero's exact place and crop, so arriving is the same seamless landing the preloader ends on.
-// About 0.35s to fill the screen and 0.38s to land: door to door under 0.9 seconds once the route is in.
+// About 0.35s to fill the screen and 0.38s to land: door to door under 0.9 seconds once the route is in (weighted; the
+// feel sets them).
 //
 // The destination photo: a link names it with data-transition-image (the same src its page's hero renders). It is
 // decoded ahead (links in view on idle, any link on hover or focus); a print is never shown half drawn. When it is not
@@ -38,8 +39,10 @@ import {
 } from "react";
 import { getImageProps } from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import { getLenis } from "../kit/SmoothScroll";
+import { timeIn } from "../kit/tempo";
 import { closeCurtain, liftCurtain, whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 export { whenUncovered };
@@ -126,6 +129,11 @@ export function PageTransitionStack({
       const box = el.querySelector("[data-box]") as HTMLElement;
       const label = el.querySelector("[data-label]") as HTMLElement;
       const reduce = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      // The print's schedule in the site's feel (weighted: T as written).
+      const f = feel(el);
+      const cover0 = timeIn(f, T.cover, "swap");
+      const land0 = timeIn(f, T.land, "swap");
+      const lift0 = timeIn(f, T.lift, "swap");
 
       let phase: Phase = "idle";
       let kind: "push" | "pop" | null = null;
@@ -316,8 +324,8 @@ export function PageTransitionStack({
         const V = screen();
         motion = gsap.to(F, {
           ...V,
-          duration: T.cover,
-          ease: "power3.inOut",
+          duration: cover0,
+          ease: f.ease.swap,
           onUpdate: paint,
           onComplete: () => {
             phase = "covered";
@@ -371,7 +379,7 @@ export function PageTransitionStack({
             paint();
             motion = gsap.to(F, {
               ...R,
-              duration: T.land,
+              duration: land0,
               ease: "power2.inOut",
               onUpdate: paint,
               onComplete: () => {
@@ -393,7 +401,7 @@ export function PageTransitionStack({
               },
             });
           } else {
-            motion = gsap.to(layer, { yPercent: -100, duration: T.lift, ease: "power3.inOut", onComplete: reset });
+            motion = gsap.to(layer, { yPercent: -100, duration: lift0, ease: f.ease.swap, onComplete: reset });
           }
           warm();
         });

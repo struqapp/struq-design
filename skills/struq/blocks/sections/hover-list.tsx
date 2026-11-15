@@ -22,8 +22,10 @@
 // phones: no floating frame; each row carries its photograph inline.
 import Image from "next/image";
 import { useRef } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
+import { timeIn } from "../kit/tempo";
 
 type Item = {
   title: string;
@@ -79,6 +81,7 @@ export function HoverList({ title, items, className = "" }: Props) {
       mm.add({ fine: FINE, reduce: "(prefers-reduced-motion: reduce)" }, (ctx) => {
         const { fine, reduce } = ctx.conditions as { fine: boolean; reduce: boolean };
         if (!fine) return;
+        const f = feel(el);
 
         // Every photograph loads now, at the frame's size, and is decoded before it is first shown.
         const ready = imgs.map((img) => {
@@ -194,8 +197,8 @@ export function HoverList({ title, items, className = "" }: Props) {
             gsap.set(frame, { scale: 1 });
             return;
           }
-          gsap.to(fd, { v: 0, duration: 0.6, ease: "expo.out", onUpdate: paintFold, overwrite: true });
-          gsap.to(frame, { scale: 1, duration: 0.6, ease: "expo.out", overwrite: "auto" });
+          gsap.to(fd, { v: 0, duration: timeIn(f, 0.6), ease: f.ease.enter, onUpdate: paintFold, overwrite: true });
+          gsap.to(frame, { scale: 1, duration: timeIn(f, 0.6), ease: f.ease.enter, overwrite: "auto" });
         };
 
         const swap = (i: number, from: number) => {
@@ -216,7 +219,7 @@ export function HoverList({ title, items, className = "" }: Props) {
                 wj.a = 100;
                 paintLayer(j);
               } else {
-                gsap.to(wj, { a: 100, duration: WIPE * 0.85, ease: "expo.out", onUpdate: () => paintLayer(j) });
+                gsap.to(wj, { a: 100, duration: timeIn(f, WIPE * 0.85, "swap"), ease: f.ease.enter, onUpdate: () => paintLayer(j) });
               }
             }
             const wi = wipe[i];
@@ -226,7 +229,7 @@ export function HoverList({ title, items, className = "" }: Props) {
                 wi.a = 0;
                 paintLayer(i);
               } else {
-                gsap.to(wi, { a: 0, duration: WIPE, ease: "expo.out", onUpdate: () => paintLayer(i) });
+                gsap.to(wi, { a: 0, duration: timeIn(f, WIPE, "swap"), ease: f.ease.enter, onUpdate: () => paintLayer(i) });
               }
             }
             return;
@@ -245,11 +248,11 @@ export function HoverList({ title, items, className = "" }: Props) {
             return;
           }
           const pic = pics[i];
-          if (pic) gsap.fromTo(pic, { scale: PUSH, yPercent: -7 * dir }, { scale: 1, yPercent: 0, duration: WIPE + 0.2, ease: "expo.out", overwrite: true });
+          if (pic) gsap.fromTo(pic, { scale: PUSH, yPercent: -7 * dir }, { scale: 1, yPercent: 0, duration: timeIn(f, WIPE + 0.2, "swap"), ease: f.ease.enter, overwrite: true });
           gsap.to(w, {
             a: 0,
-            duration: WIPE,
-            ease: "expo.out",
+            duration: timeIn(f, WIPE, "swap"),
+            ease: f.ease.enter,
             onUpdate: () => paintLayer(i),
             onComplete: () => {
               // Only the photograph on top stays open, so the next wipe always covers a whole picture.
@@ -292,15 +295,15 @@ export function HoverList({ title, items, className = "" }: Props) {
           // The frame folds shut on its middle and steps back.
           gsap.to(fd, {
             v: 50,
-            duration: 0.38,
-            ease: "power2.in",
+            duration: timeIn(f, 0.38, "exit"),
+            ease: f.ease.exit,
             onUpdate: paintFold,
             overwrite: true,
             onComplete: () => {
               if (!st.shown) frame.style.visibility = "hidden";
             },
           });
-          gsap.to(frame, { scale: 0.92, duration: 0.38, ease: "power2.in", overwrite: "auto" });
+          gsap.to(frame, { scale: 0.92, duration: timeIn(f, 0.38, "exit"), ease: f.ease.exit, overwrite: "auto" });
         };
 
         const onMove = (e: PointerEvent) => {
@@ -329,7 +332,7 @@ export function HoverList({ title, items, className = "" }: Props) {
             gsap.to(frame, { rotation: 0, duration: 0.3, ease: "power3.out", overwrite: "auto" });
             if (st.shown) {
               const p = placeFor(i);
-              gsap.to(frame, { x: p.x, y: p.y, duration: reduce ? 0 : 0.45, ease: "expo.out", overwrite: "auto" });
+              gsap.to(frame, { x: p.x, y: p.y, duration: reduce ? 0 : timeIn(f, 0.45), ease: f.ease.enter, overwrite: "auto" });
             }
             show(i);
           };
@@ -404,7 +407,7 @@ export function HoverList({ title, items, className = "" }: Props) {
               {/* The focus ring is drawn around the words only, so the placed frame can stand clear of it. */}
               <span
                 data-text=""
-                className="flex min-w-0 flex-col gap-1.5 rounded-[0.15rem] outline-offset-[0.6rem] transition-[translate] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[current]/row:translate-x-[1.4vw] group-focus-visible/row:outline-2 group-focus-visible/row:outline-solid group-focus-visible/row:outline-accent lg:flex-row lg:flex-wrap lg:items-baseline lg:gap-x-[2.2vw]"
+                className="flex min-w-0 flex-col gap-1.5 rounded-[0.15rem] outline-offset-[0.6rem] transition-[translate] duration-[calc(var(--dur-hover-fill)*1.4)] ease-[var(--ease-enter)] group-data-[current]/row:translate-x-[1.4vw] group-focus-visible/row:outline-2 group-focus-visible/row:outline-solid group-focus-visible/row:outline-accent lg:flex-row lg:flex-wrap lg:items-baseline lg:gap-x-[2.2vw]"
               >
                 <span
                   data-name=""
@@ -419,7 +422,7 @@ export function HoverList({ title, items, className = "" }: Props) {
             </>
           );
           const rowClass =
-            "group/row flex items-center gap-4 py-4 focus-visible:outline-none! transition-opacity duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] lg:py-[1.3vw] group-data-[active]/list:not-data-[current]:opacity-[0.28]";
+            "group/row flex items-center gap-4 py-4 focus-visible:outline-none! transition-opacity duration-[var(--dur-hover-fill)] ease-[var(--ease-enter)] lg:py-[1.3vw] group-data-[active]/list:not-data-[current]:opacity-[0.28]";
           return (
             <li key={item.title} className="border-b border-line">
               {item.href ? (

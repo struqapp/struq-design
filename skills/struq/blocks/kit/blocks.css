@@ -178,6 +178,7 @@
 @keyframes struq-show { to { visibility: visible; } }
 @keyframes struq-fade { to { opacity: 1; } }
 @keyframes struq-open { to { clip-path: inset(0 0 0 0); } }
+@keyframes struq-draw { to { transform: scaleX(1); } }
 
 /* The one line mask (SplitText's `mask: "lines"` with linesClass "struq-line", `mask: "chars"` with charsClass
    "struq-char", and every hand-rolled mask: a .struq-line-mask whose direct child is the part that rises).
@@ -496,7 +497,7 @@
   background: var(--inverse);
   background: oklch(from var(--surface-0) min(l, 0.2) c h);
   opacity: 0.45;
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity calc(var(--dur-enter) * 2 / 3) var(--ease-enter);
 }
 [data-blocks] [data-hero-still][data-side="right"] [data-veil] {
   opacity: 0.36;
@@ -579,7 +580,7 @@
   background: var(--inverse);
   background: oklch(from var(--surface-0) min(l, 0.2) c h);
   opacity: 0.45;
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity calc(var(--dur-enter) * 2 / 3) var(--ease-enter);
 }
 :is(.js, .sq-js) [data-blocks] [data-hero-index] [data-veil] {
   opacity: 0;
@@ -592,7 +593,7 @@
   color: oklch(from var(--surface-0) min(l, 0.2) c h);
 }
 [data-blocks] [data-hero-index] [data-meta] {
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity var(--dur-hover-fill) var(--ease-enter);
 }
 [data-blocks] [data-hero-index] [data-row][data-place-ink="light"] [data-meta] {
   color: var(--on-photo);
@@ -638,7 +639,7 @@
   background: var(--inverse);
   background: oklch(from var(--surface-0) min(l, 0.2) c h);
   opacity: 0.3;
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity calc(var(--dur-enter) * 2 / 3) var(--ease-enter);
 }
 @media (max-width: 767px) {
   [data-blocks] [data-hero-split] [data-veil] {
@@ -1017,8 +1018,8 @@
 /* The hovered or focused link stands; the others step back. */
 [data-blocks] [data-menu-curtain] [data-menu-link] {
   transition:
-    opacity 0.3s var(--ease-out-expo),
-    transform 0.45s var(--ease-out-expo);
+    opacity calc(var(--dur-hover-fill) * 0.6) var(--ease-enter),
+    transform calc(var(--dur-hover-fill) * 0.9) var(--ease-enter);
 }
 [data-blocks] [data-menu-curtain] [data-menu-list]:is(:hover, :focus-within) [data-menu-link]:not([data-on]) {
   opacity: 0.42;
@@ -1164,7 +1165,7 @@
 }
 /* Every photograph waits unseen until it is decoded, and shows after 3 s whatever happens. */
 [data-blocks] [data-cta-closing] [data-cc-pic] {
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity calc(var(--dur-enter) / 3) var(--ease-enter);
 }
 :is(.js, .sq-js) [data-blocks] [data-cta-closing] [data-cc-pic]:not([data-shown]) {
   opacity: 0;
@@ -1267,7 +1268,7 @@
   position: relative;
   padding-block: var(--struq-mask-top) var(--struq-mask-bottom);
   margin-block: calc(var(--struq-mask-top) * -1) calc(var(--struq-mask-bottom) * -1);
-  transition: transform 0.75s var(--ease-out-expo) var(--d, 0s);
+  transition: transform calc(var(--dur-hover-fill) * 1.5) var(--ease-enter) var(--d, 0s);
 }
 [data-blocks] [data-footer-contact] [data-fc-roll] > span {
   display: block;
@@ -1290,7 +1291,7 @@
   background: currentColor;
   transform: scaleX(0);
   transform-origin: var(--fc-o, left) center;
-  transition: transform 0.55s var(--ease-out-expo);
+  transition: transform calc(var(--dur-hover-fill) * 1.1) var(--ease-enter);
 }
 [data-blocks] [data-footer-contact] [data-fc-draw]:is(:hover, :focus-visible)::after {
   transform: scaleX(1);
@@ -1307,7 +1308,7 @@
   background: currentColor;
 }
 [data-blocks] [data-footer-contact] :is([data-fc-fade], [data-fc-dot], [data-fc-clock]) {
-  transition: opacity 0.45s cubic-bezier(0.33, 1, 0.68, 1);
+  transition: opacity calc(var(--dur-hover-fill) * 0.9) cubic-bezier(0.33, 1, 0.68, 1);
 }
 .sq-js [data-blocks] [data-footer-contact] [data-pending] {
   opacity: 0;
@@ -1352,10 +1353,10 @@ html:not(.sq-js) [data-blocks] [data-footer-contact] [data-pending] {
 [data-blocks] [data-footer-contact] [data-fc-out] {
   position: absolute;
   inset: 0;
-  animation: struq-fc-out 0.8s var(--ease-out-expo) forwards;
+  animation: struq-fc-out 0.8s var(--ease-enter) forwards;
 }
 [data-blocks] [data-footer-contact] [data-fc-in] {
-  animation: struq-fc-in 0.8s var(--ease-out-expo) both;
+  animation: struq-fc-in 0.8s var(--ease-enter) both;
 }
 @keyframes struq-fc-breathe {
   0%,
@@ -1426,7 +1427,7 @@ html:not(.sq-js) [data-blocks] [data-footer-contact] [data-pending] {
 }
 [data-blocks] [data-manifesto] [data-mf-veil] {
   opacity: 0.4;
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity calc(var(--dur-enter) * 2 / 3) var(--ease-enter);
 }
 [data-blocks] [data-manifesto] [data-mf-caret] {
   opacity: 0;
@@ -1528,7 +1529,7 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
     animation: struq-show 0s 3s forwards;
   }
   .sq-js [data-blocks] [data-header-bar="settle"] [data-hb-word] [data-hb-wroll] {
-    animation: hb-rise 1.2s var(--ease-out-expo) both;
+    animation: hb-rise calc(var(--dur-enter) * 4 / 3) var(--ease-enter) both;
   }
 }
 @keyframes hb-plain {
@@ -1573,7 +1574,7 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
   top: calc(100% + var(--struq-mask-top));
 }
 [data-blocks] [data-header-bar] [data-hb-wroll] {
-  transition: transform 0.6s var(--ease-out-expo);
+  transition: transform calc(var(--dur-hover-fill) * 1.2) var(--ease-enter);
 }
 [data-blocks] [data-header-bar] [data-hb-word][data-hot] [data-hb-wroll] {
   transform: translateY(-100%);
@@ -1586,7 +1587,7 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
 }
 [data-blocks] [data-header-bar] [data-hb-ch] > span {
   display: block;
-  transition: transform 0.55s var(--ease-out-expo) calc(var(--i, 0) * 24ms);
+  transition: transform calc(var(--dur-hover-fill) * 1.1) var(--ease-enter) calc(var(--i, 0) * var(--stagger-word) * 8 / 15);
 }
 [data-blocks] [data-header-bar] [data-hb-ch] > span:last-child {
   position: absolute;
@@ -1606,7 +1607,7 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
   height: 1px;
   background: currentColor;
   opacity: 0.35;
-  transition: opacity 0.3s var(--ease-out-expo);
+  transition: opacity calc(var(--dur-hover-fill) * 0.6) var(--ease-enter);
 }
 [data-blocks] [data-header-bar="quiet"] [data-hb-action][data-hot]::before {
   opacity: 1;
@@ -1624,14 +1625,14 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
   background: currentColor;
   transform: scaleX(0);
   transform-origin: var(--hb-o, left) center;
-  transition: transform 0.5s var(--ease-out-expo);
+  transition: transform var(--dur-hover-fill) var(--ease-enter);
 }
 [data-blocks] [data-header-bar="settle"] [data-hb-link][data-hot]::after,
 [data-blocks] [data-header-bar="split"] [data-hb-action][data-hot]::after {
   transform: scaleX(1);
 }
 [data-blocks] [data-header-bar="settle"] [data-hb-fade] [data-hb-link] {
-  transition: opacity 0.3s var(--ease-out-expo);
+  transition: opacity calc(var(--dur-hover-fill) * 0.6) var(--ease-enter);
 }
 [data-blocks] [data-header-bar="settle"][data-hot-any] [data-hb-fade] [data-hb-link]:not([data-hot]) {
   opacity: 0.45;
@@ -1643,15 +1644,15 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-move] {
   transform: translate3d(var(--hb-mx, 0px), 0, 0);
   opacity: 0;
   transition:
-    transform 0.45s var(--ease-out-expo),
-    width 0.45s var(--ease-out-expo),
-    opacity 0.25s linear;
+    transform calc(var(--dur-hover-fill) * 0.9) var(--ease-enter),
+    width calc(var(--dur-hover-fill) * 0.9) var(--ease-enter),
+    opacity calc(var(--dur-hover-fill) * 0.5) linear;
 }
 [data-blocks] [data-header-bar="split"][data-mark] [data-hb-mark] {
   opacity: 1;
 }
 [data-blocks] [data-header-bar="split"][data-mark-snap] [data-hb-mark] {
-  transition: opacity 0.25s linear;
+  transition: opacity calc(var(--dur-hover-fill) * 0.5) linear;
 }
 /* The local time: unseen until it is known; without scripts it is left out, never a made-up time. */
 .sq-js [data-blocks] [data-header-bar] [data-hb-time][data-pending] {
@@ -2319,7 +2320,7 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-time] {
 
 /* --- motion --- */
 /* The feel tokens (kit/feel.ts) as custom properties, and the CSS of the motion primitives (kit/motion: RevealText,
-   Rise, MaskWipe, ImageCurtain, HoverLink, Pressable, ScrubLine). A site sets data-temperament="crisp|weighted|slow" on
+   Rise, MaskWipe, ImageCurtain, HoverLink, Pressable, ScrubLine, FollowFrame, Track). A site sets data-temperament="crisp|weighted|slow" on
    <body>; weighted holds without it. These values are feelVars() in kit/feel.ts, and a unit test keeps them equal.
    The locked values live elsewhere and once: the mask room on .struq-line-mask, the focus ring on :focus-visible. */
 :root,
@@ -2654,6 +2655,19 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-time] {
     animation: struq-show 0s 3s forwards;
   }
   :is(.js, .sq-js) [data-blocks] [data-scene="process"] [data-stage]:not([data-ready]) [data-text] {
+    opacity: 0;
+    animation: struq-fade 0s 3s forwards;
+  }
+  /* ProductRow shelf: the shelf undrawn, the photos down behind it, the captions clear until the build. */
+  :is(.js, .sq-js) [data-blocks] [data-scene="product"][data-variant="shelf"]:not([data-ready]) [data-shelf-rule] {
+    transform: scaleX(0);
+    animation: struq-draw 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-scene="product"][data-variant="shelf"]:not([data-ready]) [data-object-photo] {
+    clip-path: inset(100% 0 0 0);
+    animation: struq-open 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-scene="product"][data-variant="shelf"]:not([data-ready]) [data-object-cap] {
     opacity: 0;
     animation: struq-fade 0s 3s forwards;
   }

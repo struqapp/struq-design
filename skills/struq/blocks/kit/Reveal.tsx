@@ -1,7 +1,8 @@
 "use client";
 // components/struq/Reveal.tsx (Struq recipe)
-// Staggered rise for a group of text blocks: every direct child rises 48px from a fade as the
-// group scrolls into view. Opacity AND transform, never opacity alone, expo.out, fired once.
+// Staggered rise for a group of text blocks: every direct child rises from a fade as the group scrolls into view, on
+// the site's temperament (./feel): travel.block px, duration.enter, the enter ease, stagger.block. Opacity AND
+// transform, never opacity alone, fired once. Reduced motion: the children at rest, at once.
 //
 // <Reveal className="grid gap-6">
 //   <h2 className="text-h2">...</h2>
@@ -11,48 +12,49 @@
 // Before hydration the children are hidden only when JavaScript runs (the `js` class from the
 // layout), and a CSS failsafe shows them after 3s if hydration never comes (globals.css).
 import { useRef } from "react";
+import { feel, LOCKED, prefersReduced } from "./feel";
 import { gsap, useGSAP } from "./gsap";
+import { staggerIn, travelIn } from "./tempo";
 
 type Props = {
   children: React.ReactNode;
   className?: string;
   as?: "div" | "section" | "header" | "footer" | "ul" | "ol";
-  /** Distance each child rises, in px. 24 to 80. */
+  /** Distance each child rises, in px as measured in the weighted feel (24 to 80); the feel's travel.block when unset. */
   y?: number;
+  /** Seconds between children as measured in the weighted feel; the feel's stagger.block when unset. */
   stagger?: number;
   delay?: number;
   /** "scroll" waits for the viewport; "load" plays on mount (for the hero). */
   on?: "scroll" | "load";
 };
 
-export function Reveal({ children, className = "", as = "div", y = 48, stagger = 0.08, delay = 0, on = "scroll" }: Props) {
+export function Reveal({ children, className = "", as = "div", y, stagger, delay = 0, on = "scroll" }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
       const el = ref.current;
       if (!el) return;
-      const items = Array.from(el.children);
-      const mm = gsap.matchMedia();
-      mm.add(
-        { motion: "(prefers-reduced-motion: no-preference)", reduce: "(prefers-reduced-motion: reduce)" },
-        (ctx) => {
-          const reduce = ctx.conditions?.reduce;
-          gsap.from(items, {
-            y: reduce ? 0 : y,
-            autoAlpha: 0,
-            duration: reduce ? 0.5 : 0.9,
-            ease: "expo.out",
-            stagger,
-            delay,
-            scrollTrigger: on === "scroll" ? { trigger: el, start: "top 85%", once: true } : undefined,
-          });
+      el.dataset.ready = "1";
+      if (prefersReduced()) return;
+      const f = feel(el);
+      // fromTo, so the pre-paint gate's opacity is never read as the end state.
+      gsap.fromTo(
+        Array.from(el.children),
+        { y: y === undefined ? f.travel.block : travelIn(f, y), autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          duration: f.duration.enter,
+          ease: f.ease.enter,
+          stagger: stagger === undefined ? f.stagger.block : staggerIn(f, stagger, "block"),
+          delay,
+          scrollTrigger: on === "scroll" ? { trigger: el, start: LOCKED.trigger.start, once: LOCKED.trigger.once } : undefined,
         },
       );
-      el.dataset.ready = "1";
-      return () => mm.revert();
     },
-    { scope: ref },
+    { scope: ref, dependencies: [y, stagger, delay, on] },
   );
 
   const Tag = as as "div";

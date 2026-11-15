@@ -27,9 +27,11 @@
 // its line. Reduced motion and pages without scripts: the same still layout, nothing hidden.
 import Image from "next/image";
 import { useRef } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances } from "../kit/photo-read";
+import { staggerIn, travelIn } from "../kit/tempo";
 
 type Props = {
   /** Eight photos for the grid around the hero cell (more are ignored). */
@@ -111,8 +113,6 @@ const PLACE_ORDER = ["h", "a", "e", "d", "b", "c", "f", "j", "i"];
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-/** power4.inOut: a hard settle, so each print lands exactly. */
-const settle = (t: number) => (t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2);
 const linear = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
 const encode = (l: number) => (l <= 0.0031308 ? l * 12.92 : 1.055 * Math.pow(l, 1 / 2.4) - 0.055);
 const contrast = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
@@ -264,6 +264,9 @@ export function GridAssembly({ tiles, hero, title, text, heading, line, classNam
         // the flight is skipped rather than thrown back into the pile.
         const fellBack = getComputedStyle(heroTile).getPropertyValue("--p").trim() === "1";
         el.dataset.motion = "1";
+        const f = feel(el);
+        // The curtain curve (power4.inOut in weighted): a hard settle, so each print lands exactly.
+        const settle = gsap.parseEase(f.ease.curtain);
         const tilesEls = all("[data-tile]");
         const copyRise = all("[data-bleed] [data-rise]");
         const stageBox = one("[data-stage]")!;
@@ -359,7 +362,7 @@ export function GridAssembly({ tiles, hero, title, text, heading, line, classNam
 
         measure();
         paint();
-        gsap.set(copyRise, { yPercent: 118 });
+        gsap.set(copyRise, { yPercent: travelIn(f, 118, "text") });
 
         const tl = gsap.timeline({
           defaults: { ease: "none" },
@@ -369,7 +372,7 @@ export function GridAssembly({ tiles, hero, title, text, heading, line, classNam
             start: "top top",
             end: "+=250%",
             pin: true,
-            scrub: 1,
+            scrub: f.scrub.pinned,
             onRefresh: () => {
               measure();
               paint();
@@ -384,7 +387,7 @@ export function GridAssembly({ tiles, hero, title, text, heading, line, classNam
           .to({}, { duration: 1.3 }, 2.0)
           .to(s, { grow: 1, duration: 1.8, ease: "power2.inOut" }, 3.3)
           // The line rises once the frame is fully open.
-          .to(copyRise, { yPercent: 0, duration: 0.9, stagger: 0.09, ease: "expo.out" }, 5.1)
+          .to(copyRise, { yPercent: 0, duration: 0.9, stagger: 0.09, ease: f.ease.enter }, 5.1)
           // The last hold: the copy is whole from about 6.1, held 1.4 more; 2.4 after the grow lands.
           .to({}, { duration: 2.4 }, 5.1);
 
@@ -419,6 +422,7 @@ export function GridAssembly({ tiles, hero, title, text, heading, line, classNam
 
       // Phones with motion: the grid at rest, each tile opening from its foot as the grid arrives.
       mm.add("(max-width: 767px) and (prefers-reduced-motion: no-preference)", () => {
+        const f = feel(el);
         const tilesEls = all("[data-tile]");
         const open = tilesEls.map(() => ({ v: 0 }));
         const write = () =>
@@ -429,9 +433,9 @@ export function GridAssembly({ tiles, hero, title, text, heading, line, classNam
         el.dataset.shown = "1";
         const tw = gsap.to(open, {
           v: 1,
-          duration: 0.9,
-          stagger: 0.07,
-          ease: "expo.out",
+          duration: f.duration.enter,
+          stagger: staggerIn(f, 0.07, "block"),
+          ease: f.ease.enter,
           paused: true,
           onUpdate: write,
         });

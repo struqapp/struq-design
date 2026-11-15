@@ -20,8 +20,10 @@
 // simply there. Without scripts: the panels at equal size with their names, each a working link.
 import Image from "next/image";
 import { useRef } from "react";
+import { feel } from "../kit/feel";
 import { ScrollTrigger, gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
+import { staggerIn, timeIn } from "../kit/tempo";
 
 type Item = {
   image: StruqImage;
@@ -40,6 +42,7 @@ type Props = {
   className?: string;
 };
 
+// Seconds as measured in the weighted feel; the site's temperament sets the live numbers.
 const T = {
   open: 0.85, // one panel opening while the others narrow
   arrive: 1.0, // one panel rising from its bottom edge
@@ -120,6 +123,7 @@ export function PanelAccordion({ title, items, className = "" }: Props) {
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const phoneQuery = window.matchMedia("(max-width: 767px)");
       const touch = window.matchMedia("(hover: none)").matches;
+      const f = feel(el);
 
       // The numbers everything is drawn from.
       const open: Record<string, number> = {};
@@ -215,8 +219,8 @@ export function PanelAccordion({ title, items, className = "" }: Props) {
           // The two names swap as one roll in the same window of openness, so between them one whole name always stands:
           // as much of the display name rises in as the small one sinks out. A closing panel runs the same in reverse.
           const roll = smooth(a, 0.36, 0.62);
-          smalls[i].style.transform = `translate3d(0, ${roll * 115}%, 0)`;
-          bigs[i].style.transform = `translate3d(0, ${(1 - roll) * 115}%, 0)`;
+          smalls[i].style.transform = `translate3d(0, ${roll * f.travel.text}%, 0)`;
+          bigs[i].style.transform = `translate3d(0, ${(1 - roll) * f.travel.text}%, 0)`;
         });
       };
 
@@ -234,7 +238,7 @@ export function PanelAccordion({ title, items, className = "" }: Props) {
           return;
         }
         // From wherever the panels are now: an overtaken open turns back, it never restarts.
-        tween = gsap.to(open, { ...target, duration: T.open, ease: "power3.out", onUpdate: mark });
+        tween = gsap.to(open, { ...target, duration: timeIn(f, T.open, "swap"), ease: "power3.out", onUpdate: mark });
       };
 
       // One draw per frame, after the tweens have moved, and only when something changed.
@@ -262,12 +266,12 @@ export function PanelAccordion({ title, items, className = "" }: Props) {
         decoded.then(() => {
           gsap.to(arrive, {
             v: 0,
-            duration: T.arrive,
-            ease: "expo.out",
-            stagger: T.stagger,
+            duration: timeIn(f, T.arrive, "swap"),
+            ease: f.ease.enter,
+            stagger: staggerIn(f, T.stagger),
             onUpdate: mark,
             onComplete: () => {
-              gsap.delayedCall(T.first, () => {
+              gsap.delayedCall(timeIn(f, T.first), () => {
                 if (current === -1) openTo(0);
               });
             },

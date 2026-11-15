@@ -41,8 +41,10 @@
 // travel (settle starts as the plain bar), the scrolled ground cuts in, and a hover underlines instead of rolling.
 // Without JavaScript the plain bar stands in the start tone's ink, and nothing waits.
 import { useEffect, useRef, useState, type CSSProperties, type FocusEvent, type HTMLAttributes, type PointerEvent } from "react";
+import { feel } from "../kit/feel";
 import { gsap, ScrollTrigger, useGSAP } from "../kit/gsap";
 import { photoLuminances } from "../kit/photo-read";
+import { scrubIn, timeIn } from "../kit/tempo";
 
 export const HEADER_BAR_VARIANTS = [
   { id: "quiet", title: "De stille balk" },
@@ -365,6 +367,7 @@ export function HeaderBar({
       if (!el) return;
       const q = gsap.utils.selector(el);
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const mood = feel(el);
       const host = el.closest<HTMLElement>("[data-blocks]") ?? document.documentElement;
 
       const move = q("[data-hb-move]")[0] as HTMLElement;
@@ -422,7 +425,7 @@ export function HeaderBar({
         // A refresh while the first-paint estimate is still easing in carries the ease on to the new size, never a cut.
         if (fitTw?.isActive()) {
           fitTw.kill();
-          fitTw = gsap.to(fit, { s: S, duration: 0.45, ease: "power2.out", onUpdate: paint });
+          fitTw = gsap.to(fit, { s: S, duration: timeIn(mood, 0.45), ease: "power2.out", onUpdate: paint });
         } else fit.s = S;
         bigTop = Math.round(barH * 0.5);
         D = Math.max(barH, Math.round(bigTop + S * wordH - barH));
@@ -603,7 +606,7 @@ export function HeaderBar({
       };
       const settleTo = (to: number) => {
         aim = to;
-        ease(to, 0.32);
+        ease(to, timeIn(mood, 0.32));
       };
       const onScroll = () => {
         const y = Math.max(0, window.scrollY);
@@ -613,7 +616,7 @@ export function HeaderBar({
         if (variant === "quiet" && !reduce) {
           const cap = Math.min(barH + 1, y);
           aim = focusIn ? 0 : Math.min(cap, Math.max(0, aim + dy));
-          if (Math.abs(aim - shown.o) > 0.01) ease(aim, 0.18);
+          if (Math.abs(aim - shown.o) > 0.01) ease(aim, scrubIn(mood, 0.18, "flow"));
           window.clearTimeout(rest);
           rest = window.setTimeout(() => {
             if (aim > 0 && aim < barH + 1) settleTo(aim > (barH + 1) / 2 ? Math.min(barH + 1, window.scrollY) : 0);
@@ -722,7 +725,7 @@ export function HeaderBar({
         const target = fit.s;
         if (variant === "settle" && !reduce && target > 1 && shownScale > 1 && Math.abs(shownScale - target) > 0.001) {
           fit.s = shownScale;
-          fitTw = gsap.to(fit, { s: target, duration: 0.6, ease: "power2.out", onUpdate: paint });
+          fitTw = gsap.to(fit, { s: target, duration: timeIn(mood, 0.6), ease: "power2.out", onUpdate: paint });
         }
         paint();
         el.setAttribute("data-ready", "");

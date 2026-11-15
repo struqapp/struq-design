@@ -3,7 +3,8 @@
 // The only way an image goes on the page. It always holds a real image from lib/struq-images.ts
 // (written by scripts/images.mjs), so a frame can never ship empty.
 //
-// - reveal "scroll": the frame opens bottom-up like a curtain as it enters, the photo settles from 1.3x.
+// - reveal "scroll": the frame opens bottom-up like a curtain as it enters, the photo settles from the feel's
+//   travel.media (1.3x in weighted), on the site's temperament (./feel): duration.curtain, duration.settle.
 // - reveal "load": the same curtain on mount, for the hero.
 // - parallax: the photo pans inside the frame while the frame scrolls past (scrubbed).
 //
@@ -11,7 +12,9 @@
 // <MediaFrame image={images.card[2]} ratio="3/2" sizes="(min-width: 768px) 40vw, 100vw" />
 import Image from "next/image";
 import { useRef } from "react";
+import { feel } from "./feel";
 import { gsap, useGSAP } from "./gsap";
+import { timeIn } from "./tempo";
 import type { StruqImage } from "./images";
 
 type Props = {
@@ -49,13 +52,19 @@ export function MediaFrame({
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         if (reveal !== "none") {
+          const f = feel(el);
           const trigger = reveal === "scroll" ? { trigger: el, start: "top 88%", once: true } : undefined;
+          const delay = reveal === "load" ? timeIn(f, 0.2) : 0;
           gsap.fromTo(
             el,
             { clipPath: "inset(100% 0% 0% 0%)" },
-            { clipPath: "inset(0% 0% 0% 0%)", duration: 1.4, ease: "power4.inOut", delay: reveal === "load" ? 0.2 : 0, scrollTrigger: trigger },
+            { clipPath: "inset(0% 0% 0% 0%)", duration: f.duration.curtain, ease: f.ease.curtain, delay, scrollTrigger: trigger },
           );
-          gsap.fromTo(photo, { scale: 1.3 }, { scale: parallax ? 1.12 : 1, duration: 1.8, ease: "expo.out", delay: reveal === "load" ? 0.2 : 0, scrollTrigger: trigger });
+          gsap.fromTo(
+            photo,
+            { scale: f.travel.media },
+            { scale: parallax ? 1.12 : 1, duration: f.duration.settle, ease: f.ease.enter, delay, scrollTrigger: trigger },
+          );
         }
         if (parallax) {
           gsap.fromTo(

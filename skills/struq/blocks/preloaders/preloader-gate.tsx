@@ -18,6 +18,7 @@
 // 1.15  the count completes (0.26s); the dial falls back; the line runs out and lights
 // 1.45  the gate opens (0.78s, the curtain ease); the page's entrance starts 0.1s in
 // 2.23  done, and never later than 2.4s after the first paint.
+// (Weighted; the exit's timings, from the count completing on, are the site's feel. The count's floor is the CSS clock.)
 //
 // Mount it first in <body> (app/layout.tsx), before the page it covers:
 //
@@ -36,7 +37,9 @@
 // `force` plays it on every load (the lab, a launch page). The tone is "deep" (a step darker than
 // the page in every palette), "inverse" or "field".
 import { useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
+import { timeIn } from "../kit/tempo";
 import { closeCurtain, covered, liftCurtain, whenUncovered } from "./preloader-slices-uncovered";
 
 export { whenUncovered };
@@ -134,8 +137,9 @@ export function onGateOpen(ready: () => void): () => void {
     ready();
   };
   window.addEventListener(GATE_OPEN_EVENT, fire);
-  // A gate that never reports can never keep the page blank.
-  const ceiling = gsap.delayedCall(BUDGET, fire);
+  // A gate that never reports can never keep the page blank. A slower feel's longer exit raises the ceiling; a quicker
+  // one keeps it (the count's floor is the CSS clock, so the budget never shrinks below it).
+  const ceiling = gsap.delayedCall(Math.max(BUDGET, timeIn(feel(), BUDGET, "swap")), fire);
   return () => {
     fired = true;
     window.removeEventListener(GATE_OPEN_EVENT, fire);
@@ -302,15 +306,16 @@ export function PreloaderGate({ name, marks = [], dial = "ring", force = false, 
 
       // The count completes, the leader falls away, the line runs out and lights, the gate opens on it.
       const span = window.innerWidth / Math.max(1, (edges[0] as HTMLElement).offsetWidth);
+      const f = feel(el);
       tl.addLabel("exit")
-        .to(count, { p: 1, duration: 0.26, ease: "power2.out", onUpdate: paint }, "exit")
-        .to(leader, { scale: 0.92, autoAlpha: 0, duration: 0.3, ease: "power2.in" }, "exit+=0.2")
-        .to(q("[data-name]"), { autoAlpha: 0, duration: 0.3, ease: "power2.in" }, "exit+=0.2")
-        .to(edges, { scaleX: span, duration: 0.42, ease: "power3.inOut" }, "exit+=0.2")
-        .to(lights, { scaleX: 1, duration: 0.4, ease: "expo.out" }, "exit+=0.26")
-        .to(top, { yPercent: -100, duration: 0.78, ease: "power4.inOut" }, "exit+=0.3")
-        .to(bottom, { yPercent: 100, duration: 0.78, ease: "power4.inOut" }, "exit+=0.3")
-        .call(open, [], "exit+=0.4");
+        .to(count, { p: 1, duration: timeIn(f, 0.26), ease: "power2.out", onUpdate: paint }, "exit")
+        .to(leader, { scale: 0.92, autoAlpha: 0, duration: timeIn(f, 0.3, "exit"), ease: f.ease.exit }, `exit+=${timeIn(f, 0.2)}`)
+        .to(q("[data-name]"), { autoAlpha: 0, duration: timeIn(f, 0.3, "exit"), ease: f.ease.exit }, `exit+=${timeIn(f, 0.2)}`)
+        .to(edges, { scaleX: span, duration: timeIn(f, 0.42, "swap"), ease: f.ease.swap }, `exit+=${timeIn(f, 0.2)}`)
+        .to(lights, { scaleX: 1, duration: timeIn(f, 0.4), ease: f.ease.enter }, `exit+=${timeIn(f, 0.26)}`)
+        .to(top, { yPercent: -100, duration: timeIn(f, 0.78, "curtain"), ease: f.ease.curtain }, `exit+=${timeIn(f, 0.3, "curtain")}`)
+        .to(bottom, { yPercent: 100, duration: timeIn(f, 0.78, "curtain"), ease: f.ease.curtain }, `exit+=${timeIn(f, 0.3, "curtain")}`)
+        .call(open, [], `exit+=${timeIn(f, 0.4, "curtain")}`);
 
       // The count stays where it was (data-driven and the inline number are kept), so a second run in strict mode
       // picks the leader up mid-beat instead of restarting the CSS clock.

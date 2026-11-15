@@ -14,6 +14,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 
@@ -33,7 +34,7 @@ export function ProjectStack({ items, label = "Bekijk", className = "" }: { item
         gsap.set(cards.slice(1), { yPercent: 100 });
         const tl = gsap.timeline({
           defaults: { ease: "none" },
-          scrollTrigger: { trigger: el, start: "top top", end: () => `+=${(cards.length - 1) * 110}%`, pin: true, scrub: 1 },
+          scrollTrigger: { trigger: el, start: "top top", end: () => `+=${(cards.length - 1) * 110}%`, pin: true, scrub: feel(el).scrub.pinned },
         });
         cards.slice(1).forEach((card, i) => {
           const below = cards[i];

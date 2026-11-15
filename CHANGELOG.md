@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.4 (2026-11-15)
+
+The middle of the page comes from designed scenes. Blocks and canon come from Struq main f65e9208.
+
+- Eight middle scenes in `kit/middle`, three variants each: `ServicesList`, `ProcessStrip`, `PlaceHours`, `WorkIndex`,
+  `GalleryRun`, `ProductRow`, `Programme` and `SubjectPlate`. Each fills only what the brief gives; an empty slot
+  changes the layout and never shows a placeholder, and there is no slot for a price, an hour or a date you would
+  have to guess.
+- SKILL.md sends agents to the scenes for the middle of the page, and `blocks.mjs add <scene>` prints the import and
+  the variants, so the scene is used, not rewritten.
+- Two new motion primitives, `FollowFrame` and `Track`.
+- Every block and the quiet kit follow the site's temperament; `Statement` shows in full ink with reduced motion.
+- The README shows the same brief built with and without the skill.
+
 ## 0.5.3 (2026-11-15)
 
 Proven against the same model building the same brief without the skill: eight one-line briefs, both on Haiku, and

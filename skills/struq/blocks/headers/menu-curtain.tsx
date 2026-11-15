@@ -37,9 +37,11 @@
 // its links in a row instead of the button.
 import Image from "next/image";
 import { useCallback, useEffect, useId, useRef, useState, type MouseEvent, type ReactNode, type Ref } from "react";
+import { feel } from "../kit/feel";
 import { gsap, ScrollTrigger, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { getLenis } from "../kit/SmoothScroll";
+import { staggerIn, timeIn } from "../kit/tempo";
 
 export const MENU_CURTAIN_VARIANTS = [
   { id: "gate", title: "De poort" },
@@ -330,6 +332,7 @@ export function MenuCurtain({
       el.setAttribute("data-ready", "");
       const q = gsap.utils.selector(el);
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const mood = feel(el);
 
       // --- the bar's ink, cut exactly where the sections under it meet ---
       const faces = TONES.map((t) => q(`[data-tone-face="${t}"]`)[0] as HTMLElement);
@@ -525,7 +528,7 @@ export function MenuCurtain({
         const d = Math.abs(to - pv[i].p);
         wipes[i] = gsap.to(pv[i], {
           p: to,
-          duration: Math.max(0.14, 0.6 * d),
+          duration: Math.max(0.14, timeIn(mood, 0.6) * d),
           ease: "power3.out",
           onUpdate: () => paintLayer(i, pv[i].p),
           onComplete: done,
@@ -579,36 +582,59 @@ export function MenuCurtain({
           const k = run[step];
           if (ready[k]) cutTo(k);
           step += 1;
-          if (step < run.length) flip = gsap.delayedCall(0.075 + step * 0.012, next);
+          if (step < run.length) flip = gsap.delayedCall(timeIn(mood, 0.075) + step * timeIn(mood, 0.012), next);
         };
         next();
       };
 
       // --- open and close: every part from where it is to where it is going ---
-      const lead = variant === "slices" ? 0.42 : 0.5;
+      // Every [delay, duration, ease] below is the weighted schedule, carried into the site's feel by its role.
+      const swap = (s: number) => timeIn(mood, s, "swap");
+      const curtain = (s: number) => timeIn(mood, s, "curtain");
+      const lead = swap(variant === "slices" ? 0.42 : 0.5);
       const plan = (): { parts: Part[]; ref: () => number } => {
         const n = rise.length;
-        const parts: Part[] = [{ o: P.roll, open: [0, 0.55, "power3.inOut"], close: [0, 0.5, "power3.inOut"] }];
+        const parts: Part[] = [{ o: P.roll, open: [0, swap(0.55), mood.ease.swap], close: [0, swap(0.5), mood.ease.swap] }];
         rise.forEach((o, i) =>
-          parts.push({ o, open: [lead + i * 0.06, 0.9, "expo.out"], close: [(n - 1 - i) * 0.04, 0.38, "power2.in"] }),
+          parts.push({
+            o,
+            open: [lead + i * staggerIn(mood, 0.06), mood.duration.enter, mood.ease.enter],
+            close: [(n - 1 - i) * staggerIn(mood, 0.04), timeIn(mood, 0.38, "exit"), mood.ease.exit],
+          }),
         );
-        parts.push({ o: P.foot, open: [lead + 0.32, 0.7, "expo.out"], close: [0, 0.3, "power2.in"] });
+        parts.push({
+          o: P.foot,
+          open: [lead + timeIn(mood, 0.32), timeIn(mood, 0.7), mood.ease.enter],
+          close: [0, timeIn(mood, 0.3, "exit"), mood.ease.exit],
+        });
         if (variant === "gate") {
-          parts.push({ o: P.line, open: [0, 0.35, "expo.out"], close: [0.8, 0.22, "power2.in"] });
-          parts.push({ o: P.cover, open: [0.2, 0.8, "power4.inOut"], close: [0.28, 0.6, "power4.inOut"] });
-          parts.push({ o: P.frame, open: [0.55, 0.75, "power3.inOut"], close: [0.1, 0.45, "power3.inOut"] });
+          parts.push({
+            o: P.line,
+            open: [0, timeIn(mood, 0.35), mood.ease.enter],
+            close: [swap(0.8), timeIn(mood, 0.22, "exit"), mood.ease.exit],
+          });
+          parts.push({ o: P.cover, open: [curtain(0.2), curtain(0.8), mood.ease.curtain], close: [curtain(0.28), curtain(0.6), mood.ease.curtain] });
+          parts.push({ o: P.frame, open: [swap(0.55), swap(0.75), mood.ease.swap], close: [swap(0.1), swap(0.45), mood.ease.swap] });
           return { parts, ref: () => P.cover.v };
         }
         if (variant === "slices") {
           sl.forEach((o, k) =>
-            parts.push({ o, open: [k * 0.07, 0.6, "power3.inOut"], close: [0.26 + (3 - k) * 0.06, 0.5, "power3.inOut"] }),
+            parts.push({
+              o,
+              open: [k * staggerIn(mood, 0.07, "block"), swap(0.6), mood.ease.swap],
+              close: [swap(0.26) + (3 - k) * staggerIn(mood, 0.06, "block"), swap(0.5), mood.ease.swap],
+            }),
           );
           return { parts, ref: () => sl.reduce((a, o) => a + o.v, 0) / sl.length };
         }
         pn.forEach((o, k) =>
-          parts.push({ o, open: [k * 0.08, 0.7, "power4.inOut"], close: [0.26 + (2 - k) * 0.08, 0.55, "power4.inOut"] }),
+          parts.push({
+            o,
+            open: [k * mood.stagger.block, curtain(0.7), mood.ease.curtain],
+            close: [curtain(0.26) + (2 - k) * mood.stagger.block, curtain(0.55), mood.ease.curtain],
+          }),
         );
-        parts.push({ o: P.frame, open: [0.62, 0, "none"], close: [0.02, 0, "none"], cut: true });
+        parts.push({ o: P.frame, open: [curtain(0.62), 0, "none"], close: [curtain(0.02), 0, "none"], cut: true });
         return { parts, ref: () => pn[2].v };
       };
 
@@ -638,7 +664,7 @@ export function MenuCurtain({
           if (p.cut) tl.set(p.o, { v: target }, delay * f);
           else tl.to(p.o, { v: target, duration: Math.max(0.12, duration * Math.abs(target - p.o.v)), ease }, delay * f);
         }
-        if (variant === "stack" && opening && P.frame.v < 0.5) tl.call(flipIn, [], 0.62 * f);
+        if (variant === "stack" && opening && P.frame.v < 0.5) tl.call(flipIn, [], curtain(0.62) * f);
         paint();
       };
 

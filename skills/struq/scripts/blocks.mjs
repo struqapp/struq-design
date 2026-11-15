@@ -33,6 +33,20 @@ const KIT_SCENES = readdirSync(join(BLOCKS, "kit", "quiet"))
   .filter((n) => /^[A-Z]\w*\.tsx$/.test(n))
   .map((n) => n.replace(/\.tsx$/, ""));
 const kitScene = (name) => KIT_SCENES.find((k) => k.toLowerCase() === name.split(":")[0].toLowerCase()) ?? null;
+/** The kit's middle scenes (kit/middle/): designed middles with variants, imported and filled, never rewritten. A
+ *  scene round on 2026-11-15 saw an agent plan ServicesList and then write its own rows, because add said nothing. */
+const MIDDLE_DIR = join(BLOCKS, "kit", "middle");
+const MIDDLE_SCENES = existsSync(MIDDLE_DIR)
+  ? readdirSync(MIDDLE_DIR).filter((n) => /^[A-Z]\w*\.tsx$/.test(n)).map((n) => n.replace(/\.tsx$/, ""))
+  : [];
+const middleScene = (name) => MIDDLE_SCENES.find((k) => k.toLowerCase() === name.split(":")[0].toLowerCase()) ?? null;
+/** The variant ids a middle scene's header lists on its "- variant:" line. */
+function middleVariants(name) {
+  const head = readFileSync(join(MIDDLE_DIR, `${name}.tsx`), "utf8").split(/\r?\n/).slice(0, 80);
+  // Some headers carry tone and className on the same line; only the part before them names variants.
+  const line = (head.find((l) => /^\/\/\s*-\s*variant:/.test(l)) ?? "").split(/\.\s+\w+:/)[0];
+  return [...line.matchAll(/"([a-z][\w-]*)"/g)].map((m) => m[1]);
+}
 
 const args = process.argv.slice(2);
 const dirAt = args.indexOf("--dir");
@@ -227,7 +241,18 @@ const commands = {
       const name = kitScene(arg);
       console.log(`${name} is a kit quiet scene, already in components/struq/kit/quiet/ (blocks.mjs init): import { ${name} } from "@/components/struq/kit/quiet";`);
     }
-    rest.splice(0, rest.length, ...rest.filter((arg) => !kitScene(arg)));
+    // A middle scene is no block either: init copied it; say how to import it and which variants it has.
+    for (const arg of rest.filter(middleScene)) {
+      const name = middleScene(arg);
+      const variants = middleVariants(name);
+      const pick = arg.includes(":") ? ` variant="${arg.split(":")[1]}"` : "";
+      console.log(
+        `${name} is a middle scene, already in components/struq/kit/middle/ (blocks.mjs init): import { ${name} } from "@/components/struq/kit/middle"; then <${name}${pick} ... />.` +
+          (variants.length ? ` Variants: ${variants.join(", ")}.` : "") +
+          ` Fill its props from the brief (the file header lists them and what renders when one is empty); never rewrite it.`,
+      );
+    }
+    rest.splice(0, rest.length, ...rest.filter((arg) => !kitScene(arg) && !middleScene(arg)));
     if (!rest.length) return;
     const requests = rest.map((arg) => {
       const [slug, variant = null] = arg.split(":");

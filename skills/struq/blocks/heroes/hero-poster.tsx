@@ -46,9 +46,11 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { accentFaceReady, accentLines } from "../kit/accent";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { covered, whenUncovered } from "../preloaders/preloader-slices-uncovered";
+import { staggerIn, timeIn } from "../kit/tempo";
 import { inkOver } from "./hero-still";
 
 export const HERO_POSTER_VARIANTS = [
@@ -125,6 +127,7 @@ function PosterWindow({ image, lines, accent, place, link, className = "" }: Inn
     () => {
       const el = stage.current;
       if (!el) return;
+      const f = feel(el);
       const q = <T extends HTMLElement = HTMLElement>(s: string) => Array.from(el.querySelectorAll<T>(s));
       const wordEls = q("[data-hp-word]");
       const slot = el.querySelector<HTMLElement>("[data-hp-slot]");
@@ -196,8 +199,8 @@ function PosterWindow({ image, lines, accent, place, link, className = "" }: Inn
         gsap.to(sizeNow, {
           a,
           b,
-          duration: 0.7,
-          ease: "power3.inOut",
+          duration: timeIn(f, 0.7, "swap"),
+          ease: f.ease.swap,
           overwrite: true,
           onUpdate: () => {
             write();
@@ -226,7 +229,7 @@ function PosterWindow({ image, lines, accent, place, link, className = "" }: Inn
       const listeners: Array<() => void> = [];
       const frame = () => {
         place();
-        for (const f of listeners) f();
+        for (const fn of listeners) fn();
       };
       const refit = () => {
         if (dead) return;
@@ -315,9 +318,9 @@ function PosterWindow({ image, lines, accent, place, link, className = "" }: Inn
           let intro: gsap.core.Timeline | null = null;
           let cancel = () => {};
           if (!late) {
-            intro = gsap.timeline({ delay: 0.15, paused: true });
-            intro.to(masks, { yPercent: 0, duration: 1.15, stagger: 0.12, ease: "expo.out" }, 0);
-            if (s.open < 1) intro.to(s, { open: 1, duration: 1.1, ease: "power3.inOut", onUpdate: paint }, 0.35);
+            intro = gsap.timeline({ delay: timeIn(f, 0.15), paused: true });
+            intro.to(masks, { yPercent: 0, duration: timeIn(f, 1.15, "line"), stagger: staggerIn(f, 0.12), ease: f.ease.enter }, 0);
+            if (s.open < 1) intro.to(s, { open: 1, duration: timeIn(f, 1.1, "swap"), ease: f.ease.swap, onUpdate: paint }, timeIn(f, 0.35, "swap"));
             faceIn.then(() => {
               if (!dead) cancel = whenUncovered(() => intro?.play());
             });
@@ -329,10 +332,10 @@ function PosterWindow({ image, lines, accent, place, link, className = "" }: Inn
             const tl = gsap.timeline({
               defaults: { ease: "none" },
               onUpdate: paint,
-              scrollTrigger: { trigger: el, start: "top top", end: "+=150%", pin: true, scrub: 1, onRefresh: again },
+              scrollTrigger: { trigger: el, start: "top top", end: "+=150%", pin: true, scrub: f.scrub.pinned, onRefresh: again },
             });
             tl.to({}, { duration: 0.6 })
-              .to(s, { grow: 1, duration: 1.2, ease: "power3.inOut" }, 0.6)
+              .to(s, { grow: 1, duration: 1.2, ease: f.ease.swap }, 0.6)
               .to({}, { duration: 0.6 }, 1.8);
           }
 
@@ -465,7 +468,7 @@ function PosterWindow({ image, lines, accent, place, link, className = "" }: Inn
                   <span data-hp-rise="" data-hp-line="" className="block">
                     <a
                       href={link.href}
-                      className="text-ink underline decoration-1 underline-offset-[0.3em] transition-[text-decoration-color] duration-500 hover:decoration-accent"
+                      className="text-ink underline decoration-1 underline-offset-[0.3em] transition-[text-decoration-color] duration-[var(--dur-hover-fill)] hover:decoration-accent"
                     >
                       {link.label}
                     </a>
@@ -528,10 +531,11 @@ function sizer(el: HTMLElement, names: string[], onScreen: () => number[], shown
         onFrame();
         return;
       }
+      const f = feel(el);
       gsap.to(now, {
         ...Object.fromEntries(keys.map((k, i) => [k, next[i]])),
-        duration: 0.7,
-        ease: "power3.inOut",
+        duration: timeIn(f, 0.7, "swap"),
+        ease: f.ease.swap,
         overwrite: true,
         onUpdate: () => {
           write();
@@ -566,7 +570,7 @@ const SMALL = "struq-line-mask block";
 // or a page that transitions every property hands the fit a size from mid-change.
 const NOWRAP = { whiteSpace: "nowrap", textWrap: "nowrap", transition: "none" } as React.CSSProperties;
 const LINK =
-  "underline decoration-1 underline-offset-[0.3em] transition-[text-decoration-color] duration-500 hover:decoration-accent";
+  "underline decoration-1 underline-offset-[0.3em] transition-[text-decoration-color] duration-[var(--dur-hover-fill)] hover:decoration-accent";
 
 /** The foot line: place, one link. The copy under the slit keeps its place in the layout but shows nothing. */
 function Foot({ place, link, copy = false }: { place?: string; link?: Inner["link"]; copy?: boolean }) {
@@ -723,6 +727,7 @@ function PosterColumn({ image, lines, accent, place, link, className = "" }: Inn
         },
         (ctx) => {
           const wide = Boolean(ctx.conditions?.wide);
+          const f = feel(el);
           const ones = q("[data-hp-l1]");
           const twos = q("[data-hp-l2]");
           const feet = q("[data-hp-foot]");
@@ -739,7 +744,7 @@ function PosterColumn({ image, lines, accent, place, link, className = "" }: Inn
             const y = Math.round(g.f * s.grow);
             for (const o of ones) o.style.transform = `translate3d(${x1}px, 0, 0)`;
             for (const t of twos) t.style.transform = `translate3d(${x2}px, 0, 0)`;
-            for (const f of feet) f.style.transform = `translate3d(0, ${y}px, 0)`;
+            for (const ft of feet) ft.style.transform = `translate3d(0, ${y}px, 0)`;
           };
 
           // The CSS gate lets go first: GSAP would otherwise read the gate's `translate` into its own y and keep it.
@@ -752,9 +757,9 @@ function PosterColumn({ image, lines, accent, place, link, className = "" }: Inn
           let intro: gsap.core.Timeline | null = null;
           let cancel = () => {};
           if (!late) {
-            intro = gsap.timeline({ delay: 0.15, paused: true });
-            intro.to(masks, { yPercent: 0, duration: 1.15, stagger: 0.1, ease: "expo.out" }, 0);
-            if (s.open < 1) intro.to(s, { open: 1, duration: 1.2, ease: "power3.inOut", onUpdate: paint }, 0.2);
+            intro = gsap.timeline({ delay: timeIn(f, 0.15), paused: true });
+            intro.to(masks, { yPercent: 0, duration: timeIn(f, 1.15, "line"), stagger: staggerIn(f, 0.1), ease: f.ease.enter }, 0);
+            if (s.open < 1) intro.to(s, { open: 1, duration: timeIn(f, 1.2, "swap"), ease: f.ease.swap, onUpdate: paint }, timeIn(f, 0.2, "swap"));
             faceIn.then(() => {
               if (!dead) cancel = whenUncovered(() => intro?.play());
             });
@@ -770,7 +775,7 @@ function PosterColumn({ image, lines, accent, place, link, className = "" }: Inn
                 start: "top top",
                 end: "+=150%",
                 pin: true,
-                scrub: 0.4,
+                scrub: f.scrub.flow,
                 onRefresh: () => {
                   measure();
                   paint();
@@ -778,7 +783,7 @@ function PosterColumn({ image, lines, accent, place, link, className = "" }: Inn
               },
             });
             tl.to({}, { duration: 0.5 })
-              .to(s, { grow: 1, duration: 1.3, ease: "power3.inOut" }, 0.5)
+              .to(s, { grow: 1, duration: 1.3, ease: f.ease.swap }, 0.5)
               .to({}, { duration: 0.6 }, 1.8);
           }
 
@@ -965,6 +970,7 @@ function PosterStack({ image, lines, accent, place, link, className = "" }: Inne
         },
         (ctx) => {
           const wide = Boolean(ctx.conditions?.wide);
+          const f = feel(el);
           const s = { open: late || covered() ? 1 : 0, grow: 0 };
           type Box = { x: number; y: number; w: number; h: number };
           const g = { W: 1, H: 1, slots: [] as Box[], d: [] as number[], travel: [] as number[], foot: 0 };
@@ -1032,9 +1038,9 @@ function PosterStack({ image, lines, accent, place, link, className = "" }: Inne
           let intro: gsap.core.Timeline | null = null;
           let cancel = () => {};
           if (!late) {
-            intro = gsap.timeline({ delay: 0.15, paused: true });
-            intro.to(masks, { yPercent: 0, duration: 1.1, stagger: 0.08, ease: "expo.out" }, 0);
-            if (s.open < 1) intro.to(s, { open: 1, duration: 1.1, ease: "power3.inOut", onUpdate: paint }, 0.35);
+            intro = gsap.timeline({ delay: timeIn(f, 0.15), paused: true });
+            intro.to(masks, { yPercent: 0, duration: timeIn(f, 1.1, "line"), stagger: f.stagger.block, ease: f.ease.enter }, 0);
+            if (s.open < 1) intro.to(s, { open: 1, duration: timeIn(f, 1.1, "swap"), ease: f.ease.swap, onUpdate: paint }, timeIn(f, 0.35, "swap"));
             faceIn.then(() => {
               if (!dead) cancel = whenUncovered(() => intro?.play());
             });
@@ -1044,10 +1050,10 @@ function PosterStack({ image, lines, accent, place, link, className = "" }: Inne
             const tl = gsap.timeline({
               defaults: { ease: "none" },
               onUpdate: paint,
-              scrollTrigger: { trigger: el, start: "top top", end: "+=150%", pin: true, scrub: 0.4, onRefresh: again },
+              scrollTrigger: { trigger: el, start: "top top", end: "+=150%", pin: true, scrub: f.scrub.flow, onRefresh: again },
             });
             tl.to({}, { duration: 0.5 })
-              .to(s, { grow: 1, duration: 1.3, ease: "power3.inOut" }, 0.5)
+              .to(s, { grow: 1, duration: 1.3, ease: f.ease.swap }, 0.5)
               .to({}, { duration: 0.6 }, 1.8);
           }
 
