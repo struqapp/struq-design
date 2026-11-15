@@ -651,7 +651,10 @@ function holdBudgets(add, { used, scenes, extraOwn, treatment, planned, routes, 
   // FAIL
 
   const centerpieces = used.filter((block) => block.role === 'centerpiece');
-  if (centerpieces.length === 0) add('one-centerpiece', 1, `No centerpiece on the ${where}.`);
+  // The plan's Centerpiece line may name an own scene ("Centerpiece: own scene ..."). The storyboard shows it in its
+  // slot; the built page cannot tell an own scene's role, so there a plan that names own needs no centerpiece block.
+  const ownCenter = planned && treatment.centerpiece === 'own';
+  if (centerpieces.length === 0 && !(ownCenter && where === 'page')) add('one-centerpiece', 1, `No centerpiece on the ${where}.`);
   else if (centerpieces.length > 1) {
     add('one-centerpiece', centerpieces.length, `${plural(centerpieces.length, 'centerpiece')}: ${list(centerpieces)}.`);
   }
@@ -703,7 +706,7 @@ function holdBudgets(add, { used, scenes, extraOwn, treatment, planned, routes, 
   if (planned) {
     const named = treatment.centerpiece;
     if (!named) add('centerpiece-is-planned', 1, 'The plan has no Centerpiece line.');
-    else if (!centerpieces.some((block) => block.slug === named)) {
+    else if (ownCenter ? centerpieces.some((block) => !block.own) : !centerpieces.some((block) => block.slug === named)) {
       const onPage = centerpieces.length ? `the ${where} has ${list(centerpieces)}` : `it is not on the ${where}`;
       add('centerpiece-is-planned', 1, `The plan names ${named}; ${onPage}.`);
     }
@@ -976,6 +979,9 @@ export function planCheck({ plan, catalog, routes = 1 } = {}) {
       });
     }
     if (line.own) {
+      // An own scene in the Centerpiece slot is the centerpiece: the hand deals one centerpiece since 2026-11-15, and
+      // when it does not fit the brief the agent builds its own (release proof saas: film-strip for an invoicing app).
+      const center = /^centerpiece$/i.test((line.name || '').trim());
       used.push({
         scene,
         tone: line.tone,
@@ -984,11 +990,11 @@ export function planCheck({ plan, catalog, routes = 1 } = {}) {
         slug: null,
         variant: null,
         kind: 'own-scene',
-        role: 'scene',
+        role: center ? 'centerpiece' : 'scene',
         home: null,
         motif: null,
         metaphor: null,
-        energy: 1,
+        energy: center ? 3 : 1,
         pins: false,
         scroll: 0,
         fullBleed: false,
