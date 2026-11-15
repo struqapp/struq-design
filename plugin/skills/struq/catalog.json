@@ -2,7 +2,7 @@
   "source": {
     "repo": "Struq blocks/",
     "ref": "staging",
-    "commit": "86739e4d"
+    "commit": "c4c67180"
   },
   "tool": "struq_blok(slug, variant)",
   "blocks": [

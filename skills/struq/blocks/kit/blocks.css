@@ -2207,3 +2207,111 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-time] {
     animation: struq-fade 0s 3s forwards;
   }
 }
+
+/* --- subject --- */
+/* The subject pieces (kit/subject: Document, AppScreen, Ticket, PatternPaper, Section): what the client makes, drawn
+   from the page's tokens. Figures are tabular and never break. Printed matter ("print" paper) stands in the palette's
+   own light colour with its own dark ink in every scene, a step brighter than a light ground; the tokens turn inside
+   it, so text-ink, border-line and bg-accent mean the sheet's ink there. */
+[data-blocks] [data-subject] {
+  --subject-accent: var(--accent);
+}
+[data-blocks] [data-subject] .subject-figures {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+[data-blocks] [data-subject] .subject-paper {
+  --paper: var(--surface-1);
+  background-color: var(--paper);
+  color: var(--ink);
+}
+[data-blocks] [data-subject] .subject-paper[data-paper="print"] {
+  --paper: var(--on-photo);
+  --ink: var(--photo-ground, var(--inverse));
+  --ink-muted: color-mix(in oklab, var(--ink) 68%, var(--paper));
+  --line: color-mix(in oklab, var(--ink) 16%, transparent);
+  --surface-0: var(--paper);
+  --surface-1: color-mix(in oklab, var(--paper), var(--ink) 5%);
+  --surface-2: color-mix(in oklab, var(--paper), var(--ink) 10%);
+  --surface-3: color-mix(in oklab, var(--paper), var(--ink) 20%);
+  --accent-ink: var(--paper);
+  /* bg-accent reads --color-accent, which [data-blocks] resolved once; point it at the sheet's own accent. */
+  --color-accent: var(--accent);
+}
+@supports (color: oklch(from red l c h)) {
+  [data-blocks] [data-subject] .subject-paper[data-paper="print"] {
+    --paper: oklch(from var(--on-photo) min(calc(l + 0.025), 0.985) calc(c * 0.55) h);
+    --ink: var(--photo-ground, oklch(from var(--on-photo) 0.22 calc(c * 0.6) h));
+    --accent: oklch(from var(--subject-accent) min(l, 0.52) c h);
+  }
+}
+[data-blocks] [data-subject] .subject-dashed {
+  border-top: 1px dashed color-mix(in oklab, var(--ink) 34%, transparent);
+}
+[data-blocks] [data-subject] .subject-slip {
+  margin-inline: calc(var(--pad, 1.5rem) * -1);
+  padding-inline: var(--pad, 1.5rem);
+  border-top: 2px dotted color-mix(in oklab, var(--ink) 40%, transparent);
+}
+[data-blocks] [data-subject] .subject-fold {
+  position: absolute;
+  inset-inline: 0;
+  top: 33.333%;
+  height: 2px;
+  border-top: 1px solid color-mix(in oklab, var(--ink) 6%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, var(--paper) 30%, white);
+  pointer-events: none;
+}
+[data-blocks] [data-subject] .subject-paper[data-edge="torn"] {
+  border-bottom-width: 0;
+  margin-bottom: 0.5rem;
+}
+[data-blocks] [data-subject] .subject-torn polygon {
+  fill: var(--paper);
+}
+/* AppScreen: the changed row warms for a moment (the build tweens --app-glow), over its own ground. */
+[data-blocks] [data-subject] .subject-app-row {
+  box-shadow: inset 0 0 0 100vmax color-mix(in oklab, var(--accent) var(--app-glow, 0%), transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-blocks] [data-subject] .subject-caret {
+    animation: subject-caret 1.1s steps(1) infinite;
+  }
+}
+@keyframes subject-caret { 50% { opacity: 0; } }
+/* Ticket: two notches cut where the stub tears off (across on a phone, down the side on a wide ticket), and the
+   perforation between them. The badge's lanyard slot shows the ground it hangs over. */
+[data-blocks] [data-subject] .subject-ticket {
+  --notch: 0.75rem;
+  --tear: calc(100% - 7rem);
+  -webkit-mask:
+    radial-gradient(circle at 0 var(--tear), #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% var(--tear), #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle at 0 var(--tear), #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% var(--tear), #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) right / 51% 100% no-repeat;
+}
+[data-blocks] [data-subject] .subject-perforation {
+  border-top: 2px dotted color-mix(in oklab, var(--ink) 45%, transparent);
+}
+@container (min-width: 36rem) {
+  [data-blocks] [data-subject] .subject-ticket {
+    -webkit-mask:
+      radial-gradient(circle at 72% 0, #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) top / 100% 51% no-repeat,
+      radial-gradient(circle at 72% 100%, #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) bottom / 100% 51% no-repeat;
+    mask:
+      radial-gradient(circle at 72% 0, #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) top / 100% 51% no-repeat,
+      radial-gradient(circle at 72% 100%, #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) bottom / 100% 51% no-repeat;
+  }
+  [data-blocks] [data-subject] .subject-perforation {
+    border-top: 0;
+    border-left: 2px dotted color-mix(in oklab, var(--ink) 45%, transparent);
+  }
+}
+[data-blocks] [data-subject] {
+  --subject-ground: var(--surface-0);
+}
+[data-blocks] [data-subject] .subject-slot {
+  background-color: var(--subject-ground);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 30%, transparent);
+}

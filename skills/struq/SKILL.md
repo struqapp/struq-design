@@ -139,6 +139,10 @@ app's real screen or document (the invoice of an invoicing app) built in HTML wi
 poster system, a badge, a programme grid with only the slots the brief gives), the label's lookbook frame, a menu
 board. Sample content inside it reads as an example of the trade (an invoice for "Studio Noord, identity, round 2"),
 never as a fact about the client: no customer names, no figures they would quote, no feature the brief did not give.
+Start from the kit's designed pieces in `@/components/struq/kit/subject` before drawing your own: `Document` (an
+invoice, quote, receipt, menu or label), `AppScreen` (a window or phone with the app's real screen), `Ticket` (a
+ticket, badge or poster), `PatternPaper` (a sewing pattern) and `SectionDrawing` (a technical section). Fill them with
+this client's content and palette; read each file header for its props and its scroll motion.
 
 Own scenes may move. Give at least two of them a motion of their own, tied to the scroll and reversing (a line that
 draws as you read, a document that assembles, a grid that sorts itself), with `gsap` and `ScrollTrigger` from
