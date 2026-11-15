@@ -149,6 +149,14 @@ invoice, quote, receipt, menu or label), `AppScreen` (a window or phone with the
 ticket, badge or poster), `PatternPaper` (a sewing pattern) and `SectionDrawing` (a technical section). Fill them with
 this client's content and palette; read each file header for its props and its scroll motion.
 
+For the middle of the page, start from the designed scenes in `@/components/struq/kit/middle` before composing your
+own: `ServicesList` (what the business does, as rows, photo panels or a pair; never an icon grid), `ProcessStrip` (how
+the work goes, as a drawn thread, sticky chapters or rows; never numbered steps) and `PlaceHours` (where to find the
+business and when, as a timetable, a photo plate or one line). Each has variants and fills only what the brief gives:
+a slot left empty changes the layout, it never shows a placeholder, and there is no slot for a price, an hour or a
+duration you would have to guess. In the storyboard write one as an own scene that names it (`own scene: ServicesList
+rows`); it marks its own root. Read each file header for its props, its fallbacks and its motion.
+
 Own scenes may move. Give at least two of them a motion of their own, tied to the scroll and reversing (a line that
 draws as you read, a document that assembles, a grid that sorts itself), never a pin over one screen; mark the root
 `data-scene="<name>" data-energy="2"`, tag it (loud) in the storyboard, and keep the budgets. Compose them from
