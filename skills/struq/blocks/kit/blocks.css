@@ -206,8 +206,9 @@
   initial-value: 0px;
 }
 [data-blocks] :is(.struq-line-mask, .struq-char-mask) {
+  /* The locked room (LOCKED.mask in ./feel.ts): the kit's measured 0.3em above, the site's safer 0.42em below. */
   --struq-mask-top: 0.3em;
-  --struq-mask-bottom: 0.35em;
+  --struq-mask-bottom: 0.42em;
   padding-block: var(--struq-mask-top) var(--struq-mask-bottom);
   margin-block: calc(var(--struq-mask-top) * -1) calc(var(--struq-mask-bottom) * -1);
   overflow: hidden !important;
@@ -2314,4 +2315,244 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-time] {
 [data-blocks] [data-subject] .subject-slot {
   background-color: var(--subject-ground);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 30%, transparent);
+}
+
+/* --- motion --- */
+/* The feel tokens (kit/feel.ts) as custom properties, and the CSS of the motion primitives (kit/motion: RevealText,
+   MaskWipe, ImageCurtain, HoverLink, Pressable, ScrubLine). A site sets data-temperament="crisp|weighted|slow" on
+   <body>; weighted holds without it. These values are feelVars() in kit/feel.ts, and a unit test keeps them equal.
+   The locked values live elsewhere and once: the mask room on .struq-line-mask, the focus ring on :focus-visible. */
+:root,
+[data-temperament="weighted"] {
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.32, 0, 0.67, 0);
+  --ease-swap: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-curtain: cubic-bezier(0.83, 0, 0.17, 1);
+  --dur-enter: 0.9s;
+  --dur-line: 1.25s;
+  --dur-exit: 0.35s;
+  --dur-swap: 1s;
+  --dur-curtain: 1.4s;
+  --dur-hover-line: 360ms;
+  --dur-hover-color: 280ms;
+  --dur-hover-fill: 500ms;
+  --dur-press-in: 120ms;
+  --dur-press-out: 600ms;
+  --press-sink: 1px;
+  --press-lift: 2px;
+  --travel-block: 48px;
+  --stagger-word: 0.045s;
+}
+[data-temperament="crisp"] {
+  --ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-exit: cubic-bezier(0.5, 0, 0.75, 0);
+  --ease-swap: cubic-bezier(0.83, 0, 0.17, 1);
+  --ease-curtain: cubic-bezier(0.83, 0, 0.17, 1);
+  --dur-enter: 0.6s;
+  --dur-line: 0.85s;
+  --dur-exit: 0.25s;
+  --dur-swap: 0.7s;
+  --dur-curtain: 0.9s;
+  --dur-hover-line: 240ms;
+  --dur-hover-color: 180ms;
+  --dur-hover-fill: 320ms;
+  --dur-press-in: 90ms;
+  --dur-press-out: 360ms;
+  --press-sink: 1px;
+  --press-lift: 1px;
+  --travel-block: 24px;
+  --stagger-word: 0.03s;
+}
+[data-temperament="slow"] {
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.12, 0, 0.39, 0);
+  --ease-swap: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-curtain: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-enter: 1.3s;
+  --dur-line: 1.7s;
+  --dur-exit: 0.5s;
+  --dur-swap: 1.4s;
+  --dur-curtain: 1.9s;
+  --dur-hover-line: 520ms;
+  --dur-hover-color: 400ms;
+  --dur-hover-fill: 750ms;
+  --dur-press-in: 160ms;
+  --dur-press-out: 900ms;
+  --press-sink: 1px;
+  --press-lift: 3px;
+  --travel-block: 72px;
+  --stagger-word: 0.07s;
+}
+
+/* RevealText by words: each word is a shared mask, set top-aligned, because a clipping inline-block sits on its bottom
+   edge instead of its text's baseline; the rising word carries the mask's room, as every mask child does. */
+[data-blocks] [data-reveal-text] [data-word] {
+  display: inline-block;
+  vertical-align: top;
+}
+[data-blocks] [data-reveal-text] [data-word-rise] {
+  display: inline-block;
+}
+
+/* MaskWipe and ImageCurtain: the panel rests off the photo, so without scripts the photo stands uncovered. */
+[data-blocks] [data-curtain="up"] [data-curtain-panel] {
+  transform: translateY(-100%);
+}
+[data-blocks] [data-curtain="down"] [data-curtain-panel] {
+  transform: translateY(100%);
+}
+[data-blocks] [data-curtain="left"] [data-curtain-panel] {
+  transform: translateX(-100%);
+}
+[data-blocks] [data-curtain="right"] [data-curtain-panel] {
+  transform: translateX(100%);
+}
+
+/* HoverLink: one rule under the text (draw, slide) or a colour turn (color). Focus shows what hover shows. */
+[data-blocks] [data-hover-link] {
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--dur-hover-color) var(--ease-enter);
+}
+[data-blocks] :is([data-hover-link="draw"], [data-hover-link="slide"])::after,
+[data-blocks] [data-hover-link="slide"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.08em;
+  height: 1px;
+  background: currentColor;
+  pointer-events: none;
+}
+[data-blocks] [data-hover-link="draw"]::after {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-hover-line) var(--ease-enter);
+}
+[data-blocks] [data-hover-link="draw"]:is(:hover, :focus-visible)::after {
+  transform: scaleX(1);
+}
+[data-blocks] [data-hover-link="slide"]::before {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path var(--dur-hover-line) var(--ease-enter) calc(var(--dur-hover-line) * 0.35);
+}
+[data-blocks] [data-hover-link="slide"]::after {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path var(--dur-hover-line) var(--ease-enter);
+}
+[data-blocks] [data-hover-link="slide"]:is(:hover, :focus-visible)::before {
+  clip-path: inset(0 0 0 100%);
+  transition-delay: 0s;
+}
+[data-blocks] [data-hover-link="slide"]:is(:hover, :focus-visible)::after {
+  clip-path: inset(0 0 0 0);
+  transition-delay: calc(var(--dur-hover-line) * 0.35);
+}
+[data-blocks] [data-hover-link="color"]:is(:hover, :focus-visible) {
+  color: var(--accent);
+}
+
+/* Pressable: lift on hover and focus, give way on press. `translate`, so a magnet's GSAP transform never meets it. */
+[data-blocks] [data-pressable] {
+  -webkit-tap-highlight-color: transparent;
+  transition: translate var(--dur-press-out) var(--ease-enter);
+}
+@media (hover: hover) {
+  [data-blocks] [data-pressable][data-lift]:not(:disabled):hover {
+    translate: 0 calc(var(--press-lift) * -1);
+  }
+}
+[data-blocks] [data-pressable][data-lift]:focus-visible {
+  translate: 0 calc(var(--press-lift) * -1);
+}
+[data-blocks] [data-pressable="sink"]:not(:disabled):active {
+  translate: 0 var(--press-sink);
+  transition-duration: var(--dur-press-in);
+}
+[data-blocks] [data-pressable="fill"] {
+  overflow: hidden;
+  isolation: isolate;
+}
+[data-blocks] [data-pressable] [data-press-fill] {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--press-fill, var(--ink));
+  transform: scaleY(0);
+  transform-origin: bottom center;
+  transition: transform var(--dur-press-out) var(--ease-enter);
+}
+[data-blocks] [data-pressable] [data-press-label] {
+  position: relative;
+  transition: color var(--dur-press-out) var(--ease-enter);
+}
+[data-blocks] [data-pressable="fill"]:not(:disabled):active [data-press-fill] {
+  transform: scaleY(1);
+  transition-duration: var(--dur-press-in);
+}
+[data-blocks] [data-pressable="fill"]:not(:disabled):active [data-press-label] {
+  color: var(--surface-0);
+  transition-duration: var(--dur-press-in);
+}
+
+/* ScrubLine: a rule grows from its start edge. */
+[data-blocks] [data-scrub-line="x"] {
+  transform-origin: left center;
+}
+[data-blocks] [data-scrub-line="y"] {
+  transform-origin: center top;
+}
+
+/* The motion gate: with scripts on and motion allowed, each primitive waits in its start state until it is wired
+   (data-ready), and shows its final state after 3s if that never comes. */
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-reveal-text]:not([data-ready]) {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-wipe]:not([data-ready]) {
+    animation: struq-open 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-wipe="bottom"]:not([data-ready]) {
+    clip-path: inset(100% 0 0 0);
+  }
+  :is(.js, .sq-js) [data-blocks] [data-wipe="top"]:not([data-ready]) {
+    clip-path: inset(0 0 100% 0);
+  }
+  :is(.js, .sq-js) [data-blocks] [data-wipe="left"]:not([data-ready]) {
+    clip-path: inset(0 100% 0 0);
+  }
+  :is(.js, .sq-js) [data-blocks] [data-wipe="right"]:not([data-ready]) {
+    clip-path: inset(0 0 0 100%);
+  }
+  :is(.js, .sq-js) [data-blocks] [data-curtain]:not([data-ready]) [data-curtain-panel] {
+    transform: none;
+    animation: struq-unveil 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-scrub-line="x"]:not([data-ready]) {
+    transform: scaleX(0);
+  }
+  :is(.js, .sq-js) [data-blocks] [data-scrub-line="y"]:not([data-ready]) {
+    transform: scaleY(0);
+  }
+  :is(.js, .sq-js) [data-blocks] [data-scrub-line="path"]:not([data-ready]) {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+}
+
+/* Reduced motion: the same states, cut in, nothing travels. */
+@media (prefers-reduced-motion: reduce) {
+  [data-blocks] [data-hover-link],
+  [data-blocks] [data-hover-link]::before,
+  [data-blocks] [data-hover-link]::after,
+  [data-blocks] [data-pressable],
+  [data-blocks] [data-pressable] :is([data-press-fill], [data-press-label]) {
+    transition: none;
+  }
+  [data-blocks] [data-pressable] {
+    translate: none !important;
+  }
 }
