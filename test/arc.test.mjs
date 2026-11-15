@@ -268,6 +268,18 @@ test('add <kit scene> says it is in the kit and how to import it, installs nothi
   assert.ok(!existsSync(join(dir, 'components')));
 });
 
+test('add <middle scene> prints the import and its variants, installs nothing, and exits 0', () => {
+  // trial-scenes 2026-11-15: an agent planned ServicesList and wrote its own rows, because add said nothing.
+  const dir = nextProject();
+  const r = blocks('add', 'ServicesList:rows', 'PlaceHours', '--dir', dir, '--no-install');
+  assert.equal(r.status, 0, r.stderr);
+  const lines = r.stdout.trim().split('\n');
+  assert.equal(lines.length, 2, r.stdout);
+  assert.match(lines[0], /^ServicesList is a middle scene, .*import \{ ServicesList \} from "@\/components\/struq\/kit\/middle"; then <ServicesList variant="rows" \.\.\. \/>\. Variants: rows, panels, pair\./);
+  assert.match(lines[1], /Variants: line, timetable, plate\. .*never rewrite it\.$/);
+  assert.ok(!existsSync(join(dir, 'components')));
+});
+
 test('the gate takes a storyboard that names kit quiet scenes, and add installs the blocks beside them', () => {
   const dir = nextProject();
   writeFileSync(join(dir, 'STRUQ.md'), planFor('weight'));

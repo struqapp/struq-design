@@ -155,7 +155,8 @@ the work goes, as a drawn thread, sticky chapters or rows; never numbered steps)
 business and when, as a timetable, a photo plate or one line). Each has variants and fills only what the brief gives:
 a slot left empty changes the layout, it never shows a placeholder, and there is no slot for a price, an hour or a
 duration you would have to guess. In the storyboard write one as an own scene that names it (`own scene: ServicesList
-rows`); it marks its own root. Read each file header for its props, its fallbacks and its motion.
+rows`), then import it and fill it, never rewrite it: `blocks.mjs add ServicesList` prints the import and its variants.
+It marks its own root. Read each file header for its props, its fallbacks and its motion.
 
 Own scenes may move. Give at least two of them a motion of their own, tied to the scroll and reversing (a line that
 draws as you read, a document that assembles, a grid that sorts itself), never a pin over one screen; mark the root
