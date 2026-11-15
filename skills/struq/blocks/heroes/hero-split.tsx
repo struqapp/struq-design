@@ -41,9 +41,11 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { accentFaceReady, accentLines } from "../kit/accent";
+import { feel } from "../kit/feel";
 import { ScrollTrigger, gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances } from "../kit/photo-read";
+import { scrubIn, staggerIn, timeIn } from "../kit/tempo";
 import { covered, whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 type Item = {
@@ -145,6 +147,7 @@ export function HeroSplit({ name, lead, items, accent, line, link, photo = "righ
       if (!el || !contextSafe) return;
       const q = gsap.utils.selector(el);
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const f = feel(el);
       const wide = window.matchMedia("(min-width: 768px)");
       const column = q("[data-type]")[0] as HTMLElement;
       const box = q("[data-photo-box]")[0] as HTMLElement;
@@ -202,7 +205,7 @@ export function HeroSplit({ name, lead, items, accent, line, link, photo = "righ
         const lines = Array.from(stage.querySelectorAll<HTMLElement>("[data-fit]"));
         const was = h.style.fontSize;
         h.style.fontSize = "100px";
-        const widest = Math.max(0, ...lines.map((f) => f.scrollWidth));
+        const widest = Math.max(0, ...lines.map((ln) => ln.scrollWidth));
         h.style.fontSize = was;
         if (widest <= 0) return T.maxSize; // hidden at this width: the other copy is the one in use
         return Math.max(24, Math.min(T.maxSize, Math.floor((avail / widest) * 100 * 0.99)));
@@ -225,8 +228,8 @@ export function HeroSplit({ name, lead, items, accent, line, link, photo = "righ
           gsap.to(sizes, {
             wide: wideSize,
             phone: phoneSize,
-            duration: 0.65,
-            ease: "power3.inOut",
+            duration: timeIn(f, 0.65, "swap"),
+            ease: f.ease.swap,
             onUpdate: apply,
           });
         } else {
@@ -342,7 +345,7 @@ export function HeroSplit({ name, lead, items, accent, line, link, photo = "righ
         if (!held) return;
         held = false;
         veils.forEach((v, i) => {
-          v.style.transition = "opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1)";
+          v.style.transition = "opacity calc(var(--dur-hover-fill) * 2.4) var(--ease-enter)";
           v.style.opacity = graded[i] !== undefined ? graded[i]!.toFixed(3) : "";
         });
       };
@@ -359,7 +362,8 @@ export function HeroSplit({ name, lead, items, accent, line, link, photo = "righ
       for (let i = 0; i < n; i += 1) gsap.set(wordsAt(i), { y: 0, yPercent: i === 0 ? 0 : AWAY });
 
       // One clock for words and photos. Change k runs from item k to item k+1 at k * period + hold.
-      const period = T.hold + T.change;
+      const change = timeIn(f, T.change, "swap");
+      const period = T.hold + change;
       const cycle = gsap.timeline({ paused: true, repeat: -1 });
       for (let k = 0; k < n; k += 1) {
         const cur = k;
@@ -368,15 +372,15 @@ export function HeroSplit({ name, lead, items, accent, line, link, photo = "righ
         cycle
           .set(layers, { zIndex: (i: number) => (i === next ? 2 : i === cur ? 1 : 0) }, at)
           .set(hidden[next], { v: 1, onComplete: paint }, at)
-          .to(hidden[next], { v: 0, duration: T.change, ease: "power3.inOut", onUpdate: paint }, at)
+          .to(hidden[next], { v: 0, duration: change, ease: f.ease.swap, onUpdate: paint }, at)
           // The photo copy takes the next photo's ink on the same clock as its wipe.
-          .to(over, { color: () => inks[next] ?? inks[cur] ?? "", duration: T.change, ease: "power3.inOut" }, at)
+          .to(over, { color: () => inks[next] ?? inks[cur] ?? "", duration: change, ease: f.ease.swap }, at)
           .to(
             wordsAt(cur),
             {
               yPercent: -AWAY,
-              duration: T.change * 0.85,
-              ease: "power3.inOut",
+              duration: change * 0.85,
+              ease: f.ease.swap,
             },
             at,
           )
@@ -385,11 +389,11 @@ export function HeroSplit({ name, lead, items, accent, line, link, photo = "righ
             { yPercent: AWAY },
             {
               yPercent: 0,
-              duration: T.change * 0.85,
-              ease: "power3.inOut",
+              duration: change * 0.85,
+              ease: f.ease.swap,
               immediateRender: false,
             },
-            at + T.change * 0.15,
+            at + change * 0.15,
           );
       }
       cycle.set({}, {}, n * period); // the loop's length, exactly n periods
@@ -444,10 +448,10 @@ export function HeroSplit({ name, lead, items, accent, line, link, photo = "righ
           shownOnce = true;
           gsap.to(rise, {
             yPercent: 0,
-            duration: 1.1,
-            ease: "expo.out",
-            stagger: 0.06,
-            delay: 0.1,
+            duration: timeIn(f, 1.1, "line"),
+            ease: f.ease.enter,
+            stagger: staggerIn(f, 0.06),
+            delay: timeIn(f, 0.1, "line"),
             onComplete: () => {
               entered = true;
               sync();
@@ -483,7 +487,7 @@ export function HeroSplit({ name, lead, items, accent, line, link, photo = "righ
               start: "top top",
               end: () => `+=${Math.round(window.innerHeight * 0.9)}`,
               pin: true,
-              scrub: 0.3,
+              scrub: scrubIn(f, 0.3),
               invalidateOnRefresh: true,
             },
           })
@@ -497,11 +501,11 @@ export function HeroSplit({ name, lead, items, accent, line, link, photo = "righ
               trigger: el,
               start: "top top",
               end: "bottom top",
-              scrub: 0.4,
+              scrub: f.scrub.flow,
             },
           })
           .to(drift, { yPercent: 10, ease: "none" }, 0)
-          .to(column, { yPercent: -16, ease: "none", duration: 0.6 }, 0);
+          .to(column,{ yPercent: -16, ease: "none", duration: 0.6 }, 0);
       } else if (!reduce) {
         // The hand-over: the photograph runs slower than the page, the type and the headline leave first.
         gsap
@@ -510,7 +514,7 @@ export function HeroSplit({ name, lead, items, accent, line, link, photo = "righ
               trigger: el,
               start: "top top",
               end: "bottom top",
-              scrub: 0.4,
+              scrub: f.scrub.flow,
             },
           })
           .to(drift, { yPercent: 10, ease: "none" }, 0)

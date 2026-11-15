@@ -37,7 +37,9 @@
 // No scripts: the composed hero on the plain ground (blocks.css, "--- background-silk ---").
 import { useRef } from "react";
 import { accentFaceReady, accentLines } from "../kit/accent";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
+import { timeIn } from "../kit/tempo";
 import { whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 export const SILK_VARIANTS = [
@@ -837,6 +839,7 @@ export function BackgroundSilk({ variant = "fold", lines, accent, lead, link, cl
       if (!el || !contextSafe) return;
       const q = gsap.utils.selector(el);
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const f = feel(el);
       const rise = q("[data-rise]");
       const holder = q("[data-field]")[0] as HTMLElement;
       const copy = q("[data-copy]")[0] as HTMLElement;
@@ -854,7 +857,7 @@ export function BackgroundSilk({ variant = "fold", lines, accent, lead, link, cl
       el.dataset.ready = "";
 
       const play = contextSafe(() => {
-        if (!shown) gsap.to(rise, { yPercent: 0, duration: 1.2, ease: "expo.out", stagger: 0.08, delay: 0.25 });
+        if (!shown) gsap.to(rise, { yPercent: 0, duration: timeIn(f, 1.2, "line"), ease: f.ease.enter, stagger: f.stagger.block, delay: timeIn(f, 0.25, "line") });
       });
       // The type rises with the first frame of the cloth, and only once nothing covers the page (a preloader or page
       // transition starting to leave, or none at all).
@@ -873,7 +876,7 @@ export function BackgroundSilk({ variant = "fold", lines, accent, lead, link, cl
       // The hand-over: the type leaves first; on fold and ripple the cloth drifts slower than the page, on drape it
       // stays put and the shader draws it down over the type.
       if (!reduce) {
-        const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: "top top", end: "bottom top", scrub: 0.4 } });
+        const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: "top top", end: "bottom top", scrub: f.scrub.flow } });
         if (variant === "drape") {
           // The copy is gone by a quarter of the way; the shader holds the hem until 0.3, so the cloth never passes
           // over half faded type.

@@ -10,7 +10,9 @@
 // Reduced motion: the fill changes without travel. Phones: the detail sits under each title.
 import Link from "next/link";
 import { useRef } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
+import { timeIn, travelIn } from "../kit/tempo";
 
 type Row = { title: string; text: string; href?: string };
 
@@ -23,12 +25,13 @@ export function FillRows({ rows, className = "" }: { rows: Row[]; className?: st
       if (!el) return;
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const f = feel(el);
         gsap.from(el.children, {
-          yPercent: 40,
+          yPercent: travelIn(f, 40),
           autoAlpha: 0,
-          duration: 1,
-          ease: "expo.out",
-          stagger: 0.08,
+          duration: timeIn(f, 1),
+          ease: f.ease.enter,
+          stagger: f.stagger.block,
           scrollTrigger: { trigger: el, start: "top 85%", once: true },
         });
       });
@@ -44,12 +47,12 @@ export function FillRows({ rows, className = "" }: { rows: Row[]; className?: st
           <>
             <span
               aria-hidden
-              className="absolute inset-0 origin-bottom scale-y-0 bg-accent transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-y-100 group-focus-visible:scale-y-100 motion-reduce:transition-none"
+              className="absolute inset-0 origin-bottom scale-y-0 bg-accent transition-transform duration-[calc(var(--dur-hover-fill)_*_1.4)] ease-[var(--ease-enter)] group-hover:scale-y-100 group-focus-visible:scale-y-100 motion-reduce:transition-none"
             />
-            <span className="font-display relative block text-[11vw] leading-[1] tracking-[-0.03em] transition-[color,translate] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-[1.5vw] group-hover:text-accent-ink group-focus-visible:translate-x-[1.5vw] group-focus-visible:text-accent-ink motion-reduce:transition-none md:text-[6vw]">
+            <span className="font-display relative block text-[11vw] leading-[1] tracking-[-0.03em] transition-[color,translate] duration-[calc(var(--dur-hover-fill)_*_1.4)] ease-[var(--ease-enter)] group-hover:translate-x-[1.5vw] group-hover:text-accent-ink group-focus-visible:translate-x-[1.5vw] group-focus-visible:text-accent-ink motion-reduce:transition-none md:text-[6vw]">
               {row.title}
             </span>
-            <span className="relative block max-w-[34ch] text-body text-ink-muted transition-[color,opacity,translate] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:text-accent-ink group-focus-visible:text-accent-ink motion-reduce:transition-none md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-focus-visible:translate-y-0 md:group-focus-visible:opacity-100">
+            <span className="relative block max-w-[34ch] text-body text-ink-muted transition-[color,opacity,translate] duration-[calc(var(--dur-hover-fill)_*_1.4)] ease-[var(--ease-enter)] group-hover:text-accent-ink group-focus-visible:text-accent-ink motion-reduce:transition-none md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-focus-visible:translate-y-0 md:group-focus-visible:opacity-100">
               {row.text}
             </span>
           </>

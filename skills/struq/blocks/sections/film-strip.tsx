@@ -26,6 +26,7 @@
 // plain row, no scrub.
 import Image from "next/image";
 import { useRef } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 
@@ -96,6 +97,7 @@ export function FilmStrip({ items, intro, outro, className = "" }: Props) {
         const metas = Array.from(el.querySelectorAll<HTMLElement>("[data-meta]"));
         const sprockets = Array.from(el.querySelectorAll<HTMLElement>("[data-sprockets]"));
         const last = stops.length - 1;
+        const f = feel(el);
 
         // Each stop's left edge in the track, measured from the first frame's (the gate).
         const g = { at: [] as number[], fw: [] as number[], hole: 32, W: 1 };
@@ -159,7 +161,7 @@ export function FilmStrip({ items, intro, outro, className = "" }: Props) {
             start: "top top",
             end: `+=${Math.min(300, 40 + 52 * last)}%`,
             pin: true,
-            scrub: 1,
+            scrub: f.scrub.pinned,
             onRefresh: () => {
               measure();
               paint();
@@ -169,7 +171,7 @@ export function FilmStrip({ items, intro, outro, className = "" }: Props) {
         // A hold on the opening frame, then for each stop: the move, the hold. The last hold is the longest.
         tl.to({}, { duration: 0.6 });
         for (let j = 1; j <= last; j += 1) {
-          tl.to(s, { pos: j, duration: MOVE, ease: "power3.inOut" });
+          tl.to(s, { pos: j, duration: MOVE, ease: f.ease.swap });
           tl.to({}, { duration: j === last ? 1.1 : HOLD });
         }
 
@@ -286,7 +288,7 @@ export function FilmStrip({ items, intro, outro, className = "" }: Props) {
                   {outro.cta ? (
                     <a
                       href={outro.cta.href}
-                      className="w-fit border-b border-ink pb-1 text-lead text-ink transition-[border-color] duration-500 [transition-timing-function:var(--ease-out-expo)] hover:border-accent"
+                      className="w-fit border-b border-ink pb-1 text-lead text-ink transition-[border-color] duration-[var(--dur-hover-fill)] [transition-timing-function:var(--ease-enter)] hover:border-accent"
                     >
                       {outro.cta.label}
                     </a>

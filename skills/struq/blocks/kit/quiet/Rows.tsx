@@ -17,8 +17,8 @@
 // Mounting: a page section of its own. The root carries data-scene="rows" and data-energy="1". The rows sit on the
 // page's own columns (subgrid), so every term starts on the same column as the heading and the blocks around it.
 // Motion: it enters once. The heading's lines rise through their masks, the rows follow one after another (Reveal), the
-// photo opens from its foot (MediaFrame, no parallax). No pin, no scrub, no hover motion. Reduced motion: a short
-// fade. Without scripts: the composed scene. Phones: heading, label, the rows with the sentence under its term, photo.
+// photo opens from its foot (MediaFrame, no parallax). No pin, no scrub, no hover motion. All on the site's
+// temperament (../feel). Reduced motion: the composed scene at once. Without scripts: the composed scene. Phones: heading, label, the rows with the sentence under its term, photo.
 import { MediaFrame } from "../MediaFrame";
 import { Reveal } from "../Reveal";
 import { SplitHeadline } from "../SplitHeadline";

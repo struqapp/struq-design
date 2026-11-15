@@ -19,8 +19,8 @@
 //   value: "2012" }]} images={[images.band[0]]} />
 // <AboutStudio variant="doorkijk" halves={["Negen mensen,", "één lange tafel."]} ... images={[images.column[1]]} />
 //
-// Every move is scrubbed to the scroll with 0.4 s of smoothing (a fast flick never stacks states, going back
-// reverses), transforms are written in whole pixels and every clip from plain numbers. Each photograph is decoded
+// Every move is scrubbed to the scroll with 0.4 s of smoothing (weighted; the feel sets it) (a fast flick never stacks
+// states, going back reverses), transforms are written in whole pixels and every clip from plain numbers. Each photograph is decoded
 // before it shows. The statement is cut into lines with the face it is read in (the cut waits for the fonts, capped).
 //
 // Start states wait behind the `.js` / `.sq-js` gate and a 3 s CSS fallback (blocks.css, "--- about-studio ---"), so
@@ -28,7 +28,9 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { gsap, ScrollTrigger, SplitText, useGSAP } from "../kit/gsap";
+import { feel } from "../kit/feel";
 import type { StruqImage } from "../kit/images";
+import { timeIn, travelIn } from "../kit/tempo";
 
 export const ABOUT_STUDIO_VARIANTS = [
   { id: "plaat", title: "Plaat" },
@@ -55,8 +57,6 @@ type Props = {
   className?: string;
 };
 
-/** Seconds of smoothing on every scrub: a camera settling, never a delay. */
-const SMOOTH = 0.4;
 /** The longest a line cut waits for the display face, in ms. */
 const FONT_CAP = 1200;
 /** A line travels this share of its own height to its place. */
@@ -78,7 +78,6 @@ const within = (p: number, from: number, to: number) => clamp01((p - from) / (to
 const out2 = gsap.parseEase("power2.out");
 const out3 = gsap.parseEase("power3.out");
 const inOut2 = gsap.parseEase("power2.inOut");
-const inOut3 = gsap.parseEase("power3.inOut");
 
 /** Staggered windows for n items inside 0 to 1: each runs `span`, the last one ends at 1. */
 function windows(n: number, span: number) {
@@ -119,6 +118,11 @@ function run(el: HTMLElement, kind: AboutStudioVariant, wide: boolean, reduce: b
     el.dataset.ready = "1";
     return;
   }
+  const f = feel(el);
+  // Seconds of smoothing on every scrub: a camera settling, never a delay.
+  const smooth = f.scrub.flow;
+  const soft = travelIn(f, SOFT);
+  const inOut3 = gsap.parseEase(f.ease.swap);
 
   let alive = true;
   const splits: SplitText[] = [];
@@ -149,7 +153,7 @@ function run(el: HTMLElement, kind: AboutStudioVariant, wide: boolean, reduce: b
     const softSpans = windows(softs.length, 0.72);
     softs.forEach((s, i) => {
       const e = out2(within(prog.soft, softSpans[i][0], softSpans[i][1]));
-      s.style.transform = `translate3d(0, ${px((1 - e) * SOFT)}, 0)`;
+      s.style.transform = `translate3d(0, ${px((1 - e) * soft)}, 0)`;
       s.style.opacity = e.toFixed(3);
     });
     // Each fact's rule draws from the left a little behind its row.
@@ -181,7 +185,7 @@ function run(el: HTMLElement, kind: AboutStudioVariant, wide: boolean, reduce: b
 
   const scrub = (target: object, vars: gsap.TweenVars, trigger: Element | null, start: string, end: string) => {
     if (!trigger) return;
-    gsap.to(target, { ...vars, ease: "none", onUpdate: paint, scrollTrigger: { trigger, start, end, scrub: SMOOTH } });
+    gsap.to(target, { ...vars, ease: "none", onUpdate: paint, scrollTrigger: { trigger, start, end, scrub: smooth } });
   };
 
   if (kind === "plaat") {
@@ -202,7 +206,7 @@ function run(el: HTMLElement, kind: AboutStudioVariant, wide: boolean, reduce: b
       open: 1,
       ease: "none",
       onUpdate: paint,
-      scrollTrigger: { trigger: stage, start: "top top", end: () => `+=${Math.round(PIN * window.innerHeight)}`, pin: true, scrub: SMOOTH },
+      scrollTrigger: { trigger: stage, start: "top top", end: () => `+=${Math.round(PIN * window.innerHeight)}`, pin: true, scrub: smooth },
     });
     scrub(prog, { soft: 1 }, copy, "top 92%", "top 52%");
   } else {
@@ -227,7 +231,7 @@ function run(el: HTMLElement, kind: AboutStudioVariant, wide: boolean, reduce: b
     img.loading = "eager";
     decoded(img).then(() => {
       if (!alive) return;
-      gsap.to(shown[i], { v: 1, duration: 0.45, ease: "power2.out", onUpdate: paint });
+      gsap.to(shown[i], { v: 1, duration: timeIn(f, 0.45), ease: "power2.out", onUpdate: paint });
     });
   });
 

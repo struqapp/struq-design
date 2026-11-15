@@ -31,8 +31,10 @@
 // Keyboard: a link in the footer that takes focus while the section still covers it scrolls the footer clear.
 // The last section should be at least a screen tall; a shorter one still opens no gap, the footer just follows sooner.
 import { useId, useRef, type ReactNode } from "react";
+import { feel } from "../kit/feel";
 import { gsap, ScrollTrigger, useGSAP } from "../kit/gsap";
 import { getLenis } from "../kit/SmoothScroll";
+import { timeIn } from "../kit/tempo";
 
 export const FOOTER_REVEAL_VARIANTS = [
   { id: "lift", title: "Optillen" },
@@ -115,6 +117,7 @@ export function FooterReveal({
 
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const f = feel(el);
         // The measures every paint reads, taken again on every refresh: the screen, the footer, the part of the
         // footer the lift uncovers (all of it, or its first screen when it is taller), and the sheet.
         let vw = window.innerWidth;
@@ -216,7 +219,7 @@ export function FooterReveal({
           const over = vh - reveal + below - (vh - 24);
           const y = st.end + Math.max(0, over);
           const lenis = getLenis();
-          if (lenis) lenis.scrollTo(y, { duration: 0.7 });
+          if (lenis) lenis.scrollTo(y, { duration: timeIn(f, 0.7, "swap") });
           else window.scrollTo({ top: y });
         };
         foot.addEventListener("focusin", onFocus);
@@ -243,7 +246,7 @@ export function FooterReveal({
   );
 
   const tel = phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : null;
-  const link = "underline decoration-transparent underline-offset-[0.22em] transition-[text-decoration-color] duration-200 hover:decoration-current focus-visible:decoration-current";
+  const link = "underline decoration-transparent underline-offset-[0.22em] transition-[text-decoration-color] duration-[calc(var(--dur-hover-color)*5/7)] hover:decoration-current focus-visible:decoration-current";
 
   return (
     <div ref={root} data-footer-reveal={variant} className={className}>

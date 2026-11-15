@@ -42,9 +42,11 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { accentLines } from "../kit/accent";
+import { feel } from "../kit/feel";
 import { ScrollTrigger, gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances, type PhotoBox } from "../kit/photo-read";
+import { scrubIn, timeIn } from "../kit/tempo";
 import {
   covered,
   whenUncovered,
@@ -103,7 +105,7 @@ const DIM = 0.8;
 /** The share of the pixels under a name that the ink is judged against: the brighter side for light ink, the darker
  * side for dark ink, so a name holds over most of what is under it, not just its average. */
 const SAFE = 0.35;
-/** A swap wipes the incoming photograph in over this long. */
+/** A swap wipes the incoming photograph in over this long (weighted; the feel sets it). */
 const WIPE = 0.85;
 /** After the hand leaves the list, the first project returns after this pause. */
 const RETURN = 0.45;
@@ -219,6 +221,8 @@ export function HeroIndex({ items, side, accent, variant = "lijst", className = 
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
+      const f = feel(el);
+      const wipeTime = timeIn(f, WIPE, "swap");
       let gone = false;
       const labelSide = el.dataset.side;
 
@@ -499,8 +503,8 @@ export function HeroIndex({ items, side, accent, variant = "lijst", className = 
             } else {
               gsap.to(wj, {
                 a: 1,
-                duration: WIPE * 0.8,
-                ease: "expo.out",
+                duration: wipeTime * 0.8,
+                ease: f.ease.enter,
                 onUpdate: () => paint(j),
               });
             }
@@ -514,8 +518,8 @@ export function HeroIndex({ items, side, accent, variant = "lijst", className = 
             } else {
               gsap.to(wi, {
                 a: 0,
-                duration: WIPE,
-                ease: "expo.out",
+                duration: wipeTime,
+                ease: f.ease.enter,
                 onUpdate: () => paint(i),
               });
             }
@@ -544,8 +548,8 @@ export function HeroIndex({ items, side, accent, variant = "lijst", className = 
         }
         gsap.to(w, {
           a: 0,
-          duration: WIPE,
-          ease: "expo.out",
+          duration: wipeTime,
+          ease: f.ease.enter,
           onUpdate: () => paint(i),
           onComplete: done,
         });
@@ -584,10 +588,10 @@ export function HeroIndex({ items, side, accent, variant = "lijst", className = 
           }
           gsap.to(rise, {
             yPercent: 0,
-            duration: 1.15,
-            ease: "expo.out",
-            stagger: 0.08,
-            delay: covered() ? 0.1 : 0.25,
+            duration: timeIn(f, 1.15, "line"),
+            ease: f.ease.enter,
+            stagger: f.stagger.block,
+            delay: timeIn(f, covered() ? 0.1 : 0.25, "line"),
           });
           // The drift: a very slow travel of the whole stack, written in whole pixels so the photograph never
           // shimmers between them.
@@ -667,7 +671,7 @@ export function HeroIndex({ items, side, accent, variant = "lijst", className = 
               start: "top top",
               end: () => `+=${Math.round((n - 1) * 0.6 * window.innerHeight)}`,
               pin: true,
-              scrub: reduce ? true : 0.3,
+              scrub: reduce ? true : scrubIn(f, 0.3),
               invalidateOnRefresh: true,
             },
           })
@@ -834,7 +838,7 @@ export function HeroIndex({ items, side, accent, variant = "lijst", className = 
               <a
                 data-row=""
                 href={item.href}
-                className="group/row block w-fit rounded-[0.15rem] py-[0.2svh] outline-offset-[0.35rem] transition-opacity duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-current group-data-[active]/list:not-data-[current]:opacity-80"
+                className="group/row block w-fit rounded-[0.15rem] py-[0.2svh] outline-offset-[0.35rem] transition-opacity duration-[var(--dur-hover-fill)] ease-[var(--ease-enter)] focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-current group-data-[active]/list:not-data-[current]:opacity-80"
               >
                 {/* The shared line mask carries the name's size, so its room is the name's; leading 0 keeps the
                     line box to the name and its place line. */}
@@ -843,7 +847,7 @@ export function HeroIndex({ items, side, accent, variant = "lijst", className = 
                     {/* The place line stands right-aligned under its name. */}
                     <span
                       data-text=""
-                      className="inline-flex flex-col items-end transition-[translate] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[current]/row:translate-x-[1.2vw] group-data-[side=right]/hero:group-data-[current]/row:-translate-x-[1.2vw]"
+                      className="inline-flex flex-col items-end transition-[translate] duration-[calc(var(--dur-hover-fill)*1.4)] ease-[var(--ease-enter)] group-data-[current]/row:translate-x-[1.2vw] group-data-[side=right]/hero:group-data-[current]/row:-translate-x-[1.2vw]"
                     >
                       <span
                         data-name=""

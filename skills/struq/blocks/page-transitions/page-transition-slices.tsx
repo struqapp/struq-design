@@ -4,7 +4,7 @@
 // in from above, left to right, a 5px accent line on each leading edge, and close over the page carrying the
 // destination's name in the display face with the preloader's hairline under it; then they carry on down and off,
 // so the new page shows from the top, its title first, while its own entrance starts (whenUncovered). About 0.35s to
-// close and 0.4s to leave. A slow route keeps the hairline moving under the name.
+// close and 0.4s to leave (weighted; the feel sets them). A slow route keeps the hairline moving under the name.
 //
 // Clicks: the route is fetched from the click on, under the closing cover, and RouteWatch holds the new page back
 // until the cover is shut (a router navigation is a transition, and a transition that suspends keeps the old page).
@@ -40,8 +40,10 @@ import {
   type CSSProperties,
 } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import { getLenis } from "../kit/SmoothScroll";
+import { staggerIn, timeIn } from "../kit/tempo";
 import { closeCurtain, liftCurtain, whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 export { whenUncovered };
@@ -129,6 +131,11 @@ export function PageTransitionSlices({
       const q = gsap.utils.selector(el);
       const live = (list: Element[]) => list.filter((n) => getComputedStyle(n).display !== "none");
       const reduce = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      // The slices' schedule in the site's feel (weighted: T as written).
+      const f = feel(el);
+      const cover0 = timeIn(f, T.cover, "swap");
+      const leave0 = timeIn(f, T.leave, "swap");
+      const step = staggerIn(f, T.stagger, "block");
 
       // The engine's state between events.
       let phase: Phase = "idle";
@@ -178,7 +185,7 @@ export function PageTransitionSlices({
       let creep: gsap.core.Tween | null = null;
       const line = { p: 0 };
       const paintLine = () => {
-        for (const f of q("[data-fill]")) f.style.transform = `scaleX(${line.p})`;
+        for (const bar of q("[data-fill]")) bar.style.transform = `scaleX(${line.p})`;
       };
 
       /** Close the cover over the page on screen; `then` runs once it is shut. */
@@ -217,8 +224,8 @@ export function PageTransitionSlices({
               stall = window.setTimeout(() => leave(), T.stall * 1000);
             },
           })
-          .to(sheets, { yPercent: 0, duration: T.cover, ease: "power3.inOut", stagger: T.stagger }, 0)
-          .to(line, { p: 0.55, duration: T.cover + T.stagger * 3, ease: "power2.out", onUpdate: paintLine }, 0);
+          .to(sheets, { yPercent: 0, duration: cover0, ease: f.ease.swap, stagger: step }, 0)
+          .to(line, { p: 0.55, duration: cover0 + step * 3, ease: "power2.out", onUpdate: paintLine }, 0);
       });
       let afterShut: (() => void) | null = null;
 
@@ -252,8 +259,8 @@ export function PageTransitionSlices({
                 gsap.set(sheets, { yPercent: -PARK });
               },
             })
-            .to(line, { p: 1, duration: 0.18, ease: "power2.out", onUpdate: paintLine }, 0)
-            .to(sheets, { yPercent: PARK, duration: T.leave, ease: "power3.inOut", stagger: T.stagger }, 0);
+            .to(line, { p: 1, duration: timeIn(f, 0.18, "swap"), ease: "power2.out", onUpdate: paintLine }, 0)
+            .to(sheets, { yPercent: PARK, duration: leave0, ease: f.ease.swap, stagger: step }, 0);
         });
         // A breath for the new page's first photos, capped, then away.
         const photos = Array.from(document.images).filter((img) => {

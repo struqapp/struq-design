@@ -32,8 +32,10 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { gsap, ScrollTrigger, SplitText, useGSAP } from "../kit/gsap";
+import { feel } from "../kit/feel";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances, type PhotoBox } from "../kit/photo-read";
+import { scrubIn, timeIn, travelIn } from "../kit/tempo";
 
 export const MANIFESTO_VARIANTS = [
   { id: "writes", title: "Schrift" },
@@ -60,9 +62,8 @@ type Props = {
   className?: string;
 };
 
-/** Seconds of smoothing on the rises and swaps: a camera settling, never a delay. */
-const SMOOTH = 0.4;
-/** The writing follows the reader more closely: the caret is where the eye is. */
+/** The writing follows the reader more closely than the rises and swaps (the feel's flow smoothing, 0.4 s in weighted):
+ * the caret is where the eye is. In seconds, as measured in the weighted feel. */
 const WRITE_SMOOTH = 0.25;
 /** The longest a line cut waits for the display face, in ms. */
 const FONT_CAP = 1200;
@@ -184,6 +185,8 @@ function runWrites(el: HTMLElement, reduce: boolean) {
     return;
   }
 
+  const f = feel(el);
+  const softY = travelIn(f, SOFT);
   let alive = true;
   let split: SplitText | null = null;
   let lines: HTMLElement[] = [];
@@ -238,7 +241,7 @@ function runWrites(el: HTMLElement, reduce: boolean) {
     if (soft) {
       const e = out2(within(P, write, write + (1 - write) * 0.55));
       soft.style.opacity = e.toFixed(3);
-      setY(soft, (1 - e) * SOFT);
+      setY(soft, (1 - e) * softY);
     }
   };
 
@@ -252,7 +255,7 @@ function runWrites(el: HTMLElement, reduce: boolean) {
       // The pin is as long as the writing (each line its own width's share) plus the beat it holds.
       end: () => `+=${Math.round((span * PER_LINE + HOLD) * window.innerHeight)}`,
       pin: true,
-      scrub: WRITE_SMOOTH,
+      scrub: scrubIn(f, WRITE_SMOOTH, "flow"),
       onRefresh: () => {
         measure();
         paint();
@@ -299,6 +302,8 @@ function runQuote(el: HTMLElement, reduce: boolean, fixedSide: "left" | "right" 
   const img = layer?.querySelector("img") ?? null;
   if (!frame || !layer || !veil || !text) return;
 
+  const f = feel(el);
+  const softY = travelIn(f, SOFT);
   let alive = true;
   let split: SplitText | null = null;
   let lines: HTMLElement[] = [];
@@ -328,7 +333,7 @@ function runQuote(el: HTMLElement, reduce: boolean, fixedSide: "left" | "right" 
       // The attribution rides the quote's own scrub, its last 40%, so it lands with the quote's last line.
       const e = out2(within(prog.type, 0.6, 1));
       soft.style.opacity = e.toFixed(3);
-      setY(soft, (1 - e) * SOFT);
+      setY(soft, (1 - e) * softY);
     }
   };
 
@@ -399,7 +404,7 @@ function runQuote(el: HTMLElement, reduce: boolean, fixedSide: "left" | "right" 
       type: 1,
       ease: "none",
       onUpdate: paint,
-      scrollTrigger: { trigger: text, start: "top 96%", end: "top 60%", scrub: SMOOTH },
+      scrollTrigger: { trigger: text, start: "top 96%", end: "top 60%", scrub: f.scrub.flow },
     });
   }
   const onRefresh = () => {
@@ -420,7 +425,7 @@ function runQuote(el: HTMLElement, reduce: boolean, fixedSide: "left" | "right" 
       if (!alive) return;
       read = true;
       grade();
-      gsap.to(gate, { v: 1, duration: reduce ? 0.3 : 0.5, ease: "power2.out", onUpdate: paint });
+      gsap.to(gate, { v: 1, duration: reduce ? 0.3 : timeIn(f, 0.5), ease: "power2.out", onUpdate: paint });
     });
   } else {
     gate.v = 1;
@@ -472,6 +477,8 @@ function runSplit(el: HTMLElement, reduce: boolean) {
     return;
   }
 
+  const f = feel(el);
+  const softY = travelIn(f, SOFT);
   let alive = true;
   const splits: SplitText[] = [];
   let leftLines: HTMLElement[] = [];
@@ -490,7 +497,7 @@ function runSplit(el: HTMLElement, reduce: boolean) {
     if (soft) {
       const e = out2(within(prog.left, 0.45, 1));
       soft.style.opacity = e.toFixed(3);
-      setY(soft, (1 - e) * SOFT);
+      setY(soft, (1 - e) * softY);
     }
     // The pin in segments, one per sentence on the right: each segment opens with its sentence rising into its masks
     // under the one before (which stays), then holds; the last tenth and a half is the whole statement, composed.
@@ -512,13 +519,13 @@ function runSplit(el: HTMLElement, reduce: boolean) {
     left: 1,
     ease: "none",
     onUpdate: paint,
-    scrollTrigger: { trigger: el, start: "top 82%", end: "top 16%", scrub: SMOOTH },
+    scrollTrigger: { trigger: el, start: "top 82%", end: "top 16%", scrub: f.scrub.flow },
   });
   gsap.to(prog, {
     s: 1,
     ease: "none",
     onUpdate: paint,
-    scrollTrigger: { trigger: el, start: "top top", end: () => `+=${Math.round(PIN * window.innerHeight)}`, pin: true, scrub: SMOOTH },
+    scrollTrigger: { trigger: el, start: "top top", end: () => `+=${Math.round(PIN * window.innerHeight)}`, pin: true, scrub: f.scrub.flow },
   });
 
   const cut = (node: HTMLElement, done: (lines: HTMLElement[], heights: number[]) => void) =>

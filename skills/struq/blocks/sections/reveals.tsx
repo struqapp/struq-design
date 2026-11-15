@@ -15,8 +15,8 @@
 // <Reveals variant="lines" statement="Een huis begint bij het licht dat er al is." text="..." image={images.column[0]}
 //   link={{ href: "#studio", label: "Over de studio" }} />
 //
-// Every entrance is scrubbed to the scroll over a short stretch with 0.4 s of smoothing: a fast flick never stacks
-// states, scrolling back runs it backwards, and nothing is a timed tween fired by a toggle. Transforms are written in
+// Every entrance is scrubbed to the scroll over a short stretch with 0.4 s of smoothing (weighted; the feel sets it): a
+// fast flick never stacks states, scrolling back runs it backwards, and nothing is a timed tween fired by a toggle. Transforms are written in
 // whole pixels and every clip from plain numbers. The photograph is decoded before any of it can show; until then its
 // clip stays shut. The statement is cut into lines with the display face it is read in (the cut waits for the fonts,
 // capped, and SplitText cuts again when a face lands or the width changes).
@@ -28,7 +28,9 @@
 import Image from "next/image";
 import { useId, useRef } from "react";
 import { gsap, ScrollTrigger, SplitText, useGSAP } from "../kit/gsap";
+import { feel } from "../kit/feel";
 import type { StruqImage } from "../kit/images";
+import { timeIn, travelIn } from "../kit/tempo";
 
 export const REVEALS_VARIANTS = [
   { id: "lines", title: "Regels" },
@@ -49,8 +51,6 @@ type Props = {
   className?: string;
 };
 
-/** Seconds of smoothing on every scrub: a camera settling, never a delay. */
-const SMOOTH = 0.4;
 /** The longest the line cut waits for the display face, in ms. */
 const FONT_CAP = 1200;
 /** A line travels this share of its own height to its place. */
@@ -76,7 +76,6 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const within = (p: number, from: number, to: number) => clamp01((p - from) / (to - from));
 const out3 = gsap.parseEase("power3.out");
 const inOut2 = gsap.parseEase("power2.inOut");
-const inOut3 = gsap.parseEase("power3.inOut");
 const out2 = gsap.parseEase("power2.out");
 
 /** Resolves once the photograph is loaded and decoded (or failed), never before. */
@@ -130,6 +129,11 @@ export function Reveals({ variant = "lines", statement, text, image, link, class
           el.dataset.ready = "1";
           return;
         }
+        const f = feel(el);
+        // Seconds of smoothing on every scrub: a camera settling, never a delay.
+        const smooth = f.scrub.flow;
+        const soft = travelIn(f, SOFT);
+        const inOut3 = gsap.parseEase(f.ease.swap);
 
         let alive = true;
         let split: SplitText | null = null;
@@ -166,7 +170,7 @@ export function Reveals({ variant = "lines", statement, text, image, link, class
           const spans = windows(softs.length, 0.78);
           softs.forEach((s, i) => {
             const e = out2(within(prog.soft, spans[i][0], spans[i][1]));
-            s.style.transform = `translate3d(0, ${Math.round((1 - e) * SOFT)}px, 0)`;
+            s.style.transform = `translate3d(0, ${Math.round((1 - e) * soft)}px, 0)`;
             s.style.opacity = e.toFixed(3);
           });
         };
@@ -197,7 +201,7 @@ export function Reveals({ variant = "lines", statement, text, image, link, class
           const spans = wide ? windows(settles.length, 0.7) : settles.map(() => [0, 1]);
           settles.forEach((s, i) => {
             const e = out3(within(settle[i].p, spans[i][0], spans[i][1]));
-            s.style.transform = `translate3d(0, ${Math.round((1 - e) * (40 + 20 * i))}px, 0)`;
+            s.style.transform = `translate3d(0, ${Math.round((1 - e) * travelIn(f, 40 + 20 * i))}px, 0)`;
             s.style.opacity = e.toFixed(3);
           });
         };
@@ -216,7 +220,7 @@ export function Reveals({ variant = "lines", statement, text, image, link, class
 
         const scrub = (target: object, vars: gsap.TweenVars, trigger: Element | null, start: string, end: string) => {
           if (!trigger) return;
-          gsap.to(target, { ...vars, ease: "none", onUpdate: paint, scrollTrigger: { trigger, start, end, scrub: SMOOTH } });
+          gsap.to(target, { ...vars, ease: "none", onUpdate: paint, scrollTrigger: { trigger, start, end, scrub: smooth } });
         };
 
         if (kind === "lines") {
@@ -255,7 +259,7 @@ export function Reveals({ variant = "lines", statement, text, image, link, class
           img.loading = "eager";
           decoded(img).then(() => {
             if (!alive) return;
-            gsap.to(gate, { v: 1, duration: 0.45, ease: "power2.out", onUpdate: paint });
+            gsap.to(gate, { v: 1, duration: timeIn(f, 0.45), ease: "power2.out", onUpdate: paint });
           });
         } else {
           gate.v = 1;
@@ -322,7 +326,7 @@ export function Reveals({ variant = "lines", statement, text, image, link, class
   const textLink = (
     <a
       href={link.href}
-      className="inline-block text-body text-ink underline decoration-1 underline-offset-[0.3em] transition-colors duration-200 hover:text-ink-muted"
+      className="inline-block text-body text-ink underline decoration-1 underline-offset-[0.3em] transition-colors duration-[calc(var(--dur-hover-color)*5/7)] hover:text-ink-muted"
     >
       {link.label}
     </a>

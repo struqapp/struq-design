@@ -39,8 +39,10 @@
 //   <PreloaderStack name="Noord" opening="photoless" />
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
+import { timeIn } from "../kit/tempo";
 import { closeCurtain, covered, liftCurtain, whenUncovered } from "./preloader-slices-uncovered";
 
 export { whenUncovered };
@@ -79,9 +81,9 @@ const boxOf = (r: DOMRect): Box => ({ x: r.left, y: r.top, w: r.width, h: r.heig
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 /** Each photo held a little shorter than the last, fitted into `room` seconds; drops photos rather than flicker. */
-function flipPlan(count: number, room: number): number[] {
+function flipPlan(count: number, room: number, first: number): number[] {
   for (let n = count; n > 0; n -= 1) {
-    const holds = Array.from({ length: n }, (_, i) => T.first * T.speedup ** i);
+    const holds = Array.from({ length: n }, (_, i) => first * T.speedup ** i);
     const sum = holds.reduce((a, b) => a + b, 0);
     const fit = Math.min(1, room / sum);
     if (holds[n - 1] * fit >= T.minCut) return holds.map((h) => h * fit);
@@ -157,7 +159,15 @@ export function PreloaderStack({
       };
       const gaveUp = armed && getComputedStyle(el).visibility === "hidden";
       if (!armed || gaveUp || (playedThisDocument && !always)) return quit();
-      if (BUDGET - since() < T.minGrow + 0.1) return quit();
+      // The schedule's parts move with the feel; the 2.4s BUDGET does not (the arm script's hold and the CSS failsafe are
+      // fixed), so a slower feel leaves the flip less room and a quicker one more.
+      const f = feel(el);
+      const first = timeIn(f, T.first);
+      const heroBeat = timeIn(f, T.hero);
+      const growFull = timeIn(f, T.grow, "swap");
+      const minGrow = timeIn(f, T.minGrow, "swap");
+      const lateGrow = timeIn(f, T.lateGrow, "swap");
+      if (BUDGET - since() < minGrow + 0.1) return quit();
 
       // A link to a spot further down: the page opens there, not on the hero, so there is nothing to land on.
       const found = document.querySelector(target);
@@ -204,21 +214,21 @@ export function PreloaderStack({
         if (cancelled) return;
         const now = since();
         // The grow and the hero's beat are fixed; the flip gets what is left, the grow shrinks only when it must.
-        let grow: number = T.grow;
-        let beat: number = T.hero;
+        let grow: number = growFull;
+        let beat: number = heroBeat;
         let room = BUDGET - now - beat - grow - 0.04;
         // A late start still gets a short flip: the grow gives up some of its length first.
         if (room < T.lateFlip) {
-          grow = Math.max(T.lateGrow, T.grow - (T.lateFlip - room));
+          grow = Math.max(lateGrow, growFull - (T.lateFlip - room));
           room = BUDGET - now - beat - grow - 0.04;
         }
         if (room < 0) {
-          grow = Math.min(T.grow, Math.max(T.minGrow, BUDGET - now - 0.12 - 0.04));
+          grow = Math.min(growFull, Math.max(minGrow, BUDGET - now - 0.12 - 0.04));
           beat = Math.max(0.12, BUDGET - now - grow - 0.04);
           if (now + beat + grow > BUDGET + 0.01) return quit();
         }
         const ready = cuts.filter((_, i) => decoded[i]);
-        const holds = room > 0 ? flipPlan(ready.length, room) : [];
+        const holds = room > 0 ? flipPlan(ready.length, room, first) : [];
         const shown = ready.slice(ready.length - holds.length); // drop from the front, keep the last before the hero
 
         // Geometry: the frame where it sits, the hero box where the page shows it.
@@ -324,7 +334,7 @@ export function PreloaderStack({
       // Start once every photo is decoded, or at the latest comfortable moment with those that are. The hero must be
       // ready: it waits for it as long as a short beat and grow still fit, and otherwise lets the page go.
       const latestStart = Math.max(0, T.start - since());
-      const lastChance = BUDGET - T.minGrow - 0.16;
+      const lastChance = BUDGET - minGrow - 0.16;
       const wait = () => {
         if (cancelled) return;
         const all = heroReady && decoded.every(Boolean);

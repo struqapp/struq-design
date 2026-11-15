@@ -13,6 +13,7 @@
 // preloader's film leader (two rings and a crosshair), which with the name makes a slate, the lab's
 // look; `dial="none"` leaves the name alone on the line.
 //
+// (Timings below are weighted; the site's feel sets them, and the 0.9s budget moves with them.)
 // 0.00  click: the bars close (0.38s), the page behind recedes to 0.97
 // 0.30  the line lights from the centre; the arc runs round the dial (0.26s)
 // 0.38  locked: the navigation runs under the frame, which holds at least 0.16s
@@ -47,8 +48,10 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, type ComponentProps, type ReactNode } from "react";
+import { feel, type Feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import { getLenis } from "../kit/SmoothScroll";
+import { timeIn } from "../kit/tempo";
 import { closeCurtain, covered, liftCurtain, whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 export { whenUncovered };
@@ -56,6 +59,7 @@ export { whenUncovered };
 /** Fired on window when the gate starts to open on a new page. */
 export const GATE_REVEAL_EVENT = "struq:gate-reveal";
 
+/** The gate's timings in the weighted feel; timing() carries them into the site's temperament. */
 const CLOSE = 0.38;
 /** The least time the locked frame holds once the new page is in. */
 const SHUT = 0.16;
@@ -64,6 +68,16 @@ const OPEN = 0.36;
 const BUDGET = 0.9;
 /** A route that never arrives still opens the gate. */
 const CEILING = 6;
+
+/** The schedule in a feel: the parts and the budget they must fit move together, so the check stays meaningful. */
+function timing(f: Feel) {
+  return {
+    close: timeIn(f, CLOSE, "swap"),
+    shut: timeIn(f, SHUT, "swap"),
+    open: timeIn(f, OPEN, "swap"),
+    budget: timeIn(f, BUDGET, "swap"),
+  };
+}
 
 type Phase = "idle" | "covering" | "covered" | "revealing";
 type Gate = { cover: (from?: number) => void; reveal: () => void; label: (text: string) => void; reduce: boolean };
@@ -113,6 +127,8 @@ const store = {
   positions: new Map<string, number>(),
   labels: new Map<string, string>(),
   release: null as (() => void) | null,
+  /** The gate's schedule in the site's feel (weighted until the gate mounts). */
+  t: { close: CLOSE, shut: SHUT, open: OPEN, budget: BUDGET },
 };
 
 function nav(): Nav | undefined {
@@ -280,8 +296,8 @@ function arrive() {
   }
   // The locked frame holds for its beat; images in view get what is left of the budget on top of that.
   const elapsed = (performance.now() - store.startedAt) / 1000;
-  const hold = Math.max(0, CLOSE + SHUT - elapsed);
-  const left = Math.max(hold, BUDGET - OPEN - elapsed);
+  const hold = Math.max(0, store.t.close + store.t.shut - elapsed);
+  const left = Math.max(hold, store.t.budget - store.t.open - elapsed);
   const pending = Array.from(document.images).filter((img) => {
     if (img.complete || img.closest("[data-gate]")) return false;
     const box = img.getBoundingClientRect();
@@ -596,6 +612,8 @@ export function PageTransitionGate({
       const arcs = q("[data-arc]");
       const words = q("[data-gate-label]");
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const f = feel(el);
+      const t = (store.t = timing(f));
       /** Scale about the middle of the screen, wherever the page is scrolled to. */
       const origin = () => `50% ${window.scrollY + window.innerHeight / 2}px`;
 
@@ -628,15 +646,20 @@ export function PageTransitionGate({
           const page = stage();
           running = gsap
             .timeline()
-            .fromTo(top, { yPercent: -100 }, { yPercent: 0, duration: CLOSE, ease: "power3.inOut" }, 0)
-            .fromTo(bottom, { yPercent: 100 }, { yPercent: 0, duration: CLOSE, ease: "power3.inOut" }, 0)
-            .fromTo(lights, { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "expo.out" }, CLOSE - 0.08)
-            .fromTo(arcs, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.26, ease: "power2.inOut" }, CLOSE - 0.08)
-            .call(coverDone, [], CLOSE);
+            .fromTo(top, { yPercent: -100 }, { yPercent: 0, duration: t.close, ease: f.ease.swap }, 0)
+            .fromTo(bottom, { yPercent: 100 }, { yPercent: 0, duration: t.close, ease: f.ease.swap }, 0)
+            .fromTo(lights, { scaleX: 0 }, { scaleX: 1, duration: timeIn(f, 0.3, "swap"), ease: f.ease.enter }, t.close - timeIn(f, 0.08, "swap"))
+            .fromTo(
+              arcs,
+              { strokeDashoffset: 1 },
+              { strokeDashoffset: 0, duration: timeIn(f, 0.26, "swap"), ease: "power2.inOut" },
+              t.close - timeIn(f, 0.08, "swap"),
+            )
+            .call(coverDone, [], t.close);
           if (page) {
-            running.fromTo(page, { scale: 1 }, { scale: 0.97, transformOrigin: origin(), duration: CLOSE, ease: "power2.in" }, 0);
+            running.fromTo(page, { scale: 1 }, { scale: 0.97, transformOrigin: origin(), duration: t.close, ease: f.ease.exit }, 0);
           }
-          if (from > 0) running.time(Math.min(from, CLOSE - 0.001), true);
+          if (from > 0) running.time(Math.min(from, t.close - 0.001), true);
         },
         reveal: () => {
           store.phase = "revealing";
@@ -649,16 +672,16 @@ export function PageTransitionGate({
                 finish();
               },
             })
-            .to(top, { yPercent: -100, duration: OPEN, ease: "power4.inOut" }, 0)
-            .to(bottom, { yPercent: 100, duration: OPEN, ease: "power4.inOut" }, 0)
-            .call(revealed, [], 0.04);
+            .to(top, { yPercent: -100, duration: t.open, ease: f.ease.curtain }, 0)
+            .to(bottom, { yPercent: 100, duration: t.open, ease: f.ease.curtain }, 0)
+            .call(revealed, [], timeIn(f, 0.04, "swap"));
           // The page comes forward through the opening gate; its own tween, so the gate is free once open.
           const page = stage();
           if (page) {
             gsap.fromTo(
               page,
               { scale: 1.035, transformOrigin: origin() },
-              { scale: 1, duration: 0.9, ease: "expo.out", clearProps: "transform,transformOrigin" },
+              { scale: 1, duration: f.duration.enter, ease: f.ease.enter, clearProps: "transform,transformOrigin" },
             );
           }
         },

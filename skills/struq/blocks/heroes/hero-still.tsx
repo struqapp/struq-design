@@ -50,9 +50,11 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { accentLines } from "../kit/accent";
+import { feel } from "../kit/feel";
 import { ScrollTrigger, gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances, type PhotoBox } from "../kit/photo-read";
+import { timeIn as feelTime } from "../kit/tempo";
 import { covered, whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 export const HERO_STILL_VARIANTS = [
@@ -216,6 +218,7 @@ function StillBleed({ image, lines, accent, side, className = "", ...caption }: 
       if (!el || !contextSafe) return;
       const q = gsap.utils.selector(el);
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const f = feel(el);
       const frame = q("[data-stack-target]")[0] as HTMLElement;
       const img = frame.querySelector("img") as HTMLImageElement;
       const veil = q("[data-veil]")[0] as HTMLElement;
@@ -297,13 +300,13 @@ function StillBleed({ image, lines, accent, side, className = "", ...caption }: 
         grade();
         const play = contextSafe(() => {
           played = true;
-          veil.style.transition = "opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1)";
+          veil.style.transition = "opacity calc(var(--dur-hover-fill) * 2.4) var(--ease-enter)";
           veil.style.opacity = (graded ?? 0.4).toFixed(3);
           if (reduce) {
             gsap.set(rise, { yPercent: 0 });
             return;
           }
-          if (!shown) gsap.to(rise, { yPercent: 0, duration: 1.15, ease: "expo.out", stagger: 0.09, delay: 0.1 });
+          if (!shown) gsap.to(rise, { yPercent: 0, duration: feelTime(f, 1.15, "line"), ease: f.ease.enter, stagger: f.stagger.line, delay: feelTime(f, 0.1, "line") });
           // The push-in, a moment later, so a preloader landing on the box meets the photo at rest.
           el.dataset.pushing = "";
         });
@@ -335,7 +338,7 @@ function StillBleed({ image, lines, accent, side, className = "", ...caption }: 
       // The hand-over: the photograph drifts down (moves slower than the page), the headline leaves first.
       if (!reduce) {
         gsap
-          .timeline({ scrollTrigger: { trigger: el, start: "top top", end: "bottom top", scrub: 0.4 } })
+          .timeline({ scrollTrigger: { trigger: el, start: "top top", end: "bottom top", scrub: f.scrub.flow } })
           .to(q("[data-drift]"), { yPercent: 22, ease: "none" }, 0)
           .to(head, { yPercent: -60, ease: "none", duration: 0.55 }, 0);
       }
@@ -485,6 +488,7 @@ function entrance(
   opts: { reduce: boolean; before?: () => void; play?: () => void },
 ) {
   const rise = Array.from(el.querySelectorAll<HTMLElement>("[data-rise]"));
+  const f = feel(el);
   const from = (n: Element) => (n.closest("[data-below]") ? -115 : 115);
   // The element's own fallback clock, read once per element (strict mode's second run must not read its first).
   const clock = rise[0]?.getAnimations().find((a) => (a as CSSAnimation).animationName === "struq-hs-rise");
@@ -509,7 +513,7 @@ function entrance(
           gsap.set(rise, { yPercent: 0 });
           return;
         }
-        if (!shown) gsap.to(rise, { yPercent: 0, duration: 1.15, ease: "expo.out", stagger: 0.09, delay: 0.1 });
+        if (!shown) gsap.to(rise, { yPercent: 0, duration: feelTime(f, 1.15, "line"), ease: f.ease.enter, stagger: f.stagger.line, delay: feelTime(f, 0.1, "line") });
         el.dataset.pushing = "";
       });
       // The lines start once a leaving cover no longer hides the first of them, at most 1.6s after it starts to go.
@@ -567,6 +571,7 @@ function StillFrame({ image, lines, accent, className = "", ...caption }: Inner)
       if (!still || !slot || !photo || !head || !img) return;
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const run = entrance(el, img, contextSafe as Safe, { reduce });
+      const f = feel(el);
 
       const mm = gsap.matchMedia();
       mm.add(
@@ -578,7 +583,7 @@ function StillFrame({ image, lines, accent, className = "", ...caption }: Inner)
           if (!ctx.conditions?.wide) {
             // Phones: the still's own hand-over, the photo slower than the page and the headline leaving first.
             gsap
-              .timeline({ scrollTrigger: { trigger: el, start: "top top", end: "bottom top", scrub: 0.4 } })
+              .timeline({ scrollTrigger: { trigger: el, start: "top top", end: "bottom top", scrub: f.scrub.flow } })
               .to(el.querySelector("[data-drift]"), { yPercent: 22, ease: "none" }, 0)
               .to(head, { yPercent: -60, ease: "none", duration: 0.55 }, 0);
             return;
@@ -622,10 +627,10 @@ function StillFrame({ image, lines, accent, className = "", ...caption }: Inner)
             .timeline({
               defaults: { ease: "none" },
               onUpdate: paint,
-              scrollTrigger: { trigger: el, start: "top top", end: "+=100%", pin: true, scrub: 0.4, onRefresh: again },
+              scrollTrigger: { trigger: el, start: "top top", end: "+=100%", pin: true, scrub: f.scrub.flow, onRefresh: again },
             })
             .to({}, { duration: 0.15 })
-            .to(s, { grow: 1, duration: 1, ease: "power3.inOut" }, 0.15)
+            .to(s, { grow: 1, duration: 1, ease: f.ease.swap }, 0.15)
             .to({}, { duration: 0.35 }, 1.15);
           window.addEventListener("resize", again);
           return () => {
@@ -714,6 +719,7 @@ function StillHorizon({ image, lines, accent, side, horizon, className = "", ...
       const bandDown = el.querySelector<HTMLElement>("[data-band='below']");
       if (!still || !frame || !img || !above || !bandUp || !bandDown) return;
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const f = feel(el);
       const bands = [bandUp, bandDown];
       const graded: number[] = [];
       let played = false;
@@ -792,7 +798,7 @@ function StillHorizon({ image, lines, accent, side, horizon, className = "", ...
         play: () => {
           played = true;
           bands.forEach((b, i) => {
-            b.style.transition = "opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1)";
+            b.style.transition = "opacity calc(var(--dur-hover-fill) * 2.4) var(--ease-enter)";
             b.style.opacity = (graded[i] ?? 0.4).toFixed(3);
           });
         },
@@ -801,7 +807,7 @@ function StillHorizon({ image, lines, accent, side, horizon, className = "", ...
       // The hand-over: the photograph moves slower than the page, and the headline rides with it on its horizon.
       if (!reduce) {
         gsap
-          .timeline({ scrollTrigger: { trigger: el, start: "top top", end: "bottom top", scrub: 0.4, invalidateOnRefresh: true } })
+          .timeline({ scrollTrigger: { trigger: el, start: "top top", end: "bottom top", scrub: f.scrub.flow, invalidateOnRefresh: true } })
           .to(el.querySelector("[data-drift]"), { yPercent: 22, ease: "none" }, 0)
           .to(el.querySelector("[data-ride]"), { y: () => Math.round(still.clientHeight * 0.22), ease: "none" }, 0);
       }

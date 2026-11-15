@@ -17,6 +17,7 @@
 // ever cut.
 import Image from "next/image";
 import { useRef, type CSSProperties } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 
@@ -57,17 +58,19 @@ export function ImageToFullbleed({ image, left, right, line, className = "" }: P
         gsap.set(q("[data-photo]"), { scale: 1.35 });
         gsap.set(q("[data-line]"), { yPercent: 100, autoAlpha: 0 });
         gsap.set(q("[data-scrim]"), { autoAlpha: 0 }); // the scrim ends at its class opacity, never solid
+        // The durations below are shares of the pinned scroll (scrub), not seconds; the feel sets the eases and the smoothing.
+        const f = feel(el);
         const tl = gsap.timeline({
           defaults: { ease: "none" },
-          scrollTrigger: { trigger: el, start: "top top", end: "+=220%", pin: true, scrub: 1 },
+          scrollTrigger: { trigger: el, start: "top top", end: "+=220%", pin: true, scrub: f.scrub.pinned },
         });
         tl.to({}, { duration: 0.12 }) // hold on the small frame
           .to(clip, { y: 0, x: 0, duration: 1, ease: "power2.inOut", onUpdate: paint })
           .to(q("[data-photo]"), { scale: 1, duration: 1, ease: "power2.inOut" }, "<")
-          .to(q("[data-left]"), { xPercent: -120, duration: 0.9, ease: "power2.in" }, "<")
-          .to(q("[data-right]"), { xPercent: 120, duration: 0.9, ease: "power2.in" }, "<")
+          .to(q("[data-left]"), { xPercent: -120, duration: 0.9, ease: f.ease.exit }, "<")
+          .to(q("[data-right]"), { xPercent: 120, duration: 0.9, ease: f.ease.exit }, "<")
           .to(q("[data-scrim]"), { autoAlpha: 0.3, duration: 0.4 }, "-=0.3")
-          .to(q("[data-line]"), { yPercent: 0, autoAlpha: 1, duration: 0.45, ease: "expo.out" }, "-=0.2")
+          .to(q("[data-line]"), { yPercent: 0, autoAlpha: 1, duration: 0.45, ease: f.ease.enter }, "-=0.2")
           .to({}, { duration: 0.35 }); // hold on the open frame
         return () => {
           delete el.dataset.motion;

@@ -39,9 +39,11 @@
 // follows on the ground below the pair.
 import Image from "next/image";
 import { useRef } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 import { photoLuminances } from "../kit/photo-read";
+import { travelIn } from "../kit/tempo";
 
 type Place = "top" | "center" | "bottom";
 type Side = "l" | "r";
@@ -384,6 +386,7 @@ export function SplitPair({ images, word, line, captions, place, className = "" 
         const ride = { l: one("[data-col='l'] [data-ride]"), r: one("[data-col='r'] [data-ride]") };
         if (!run.l || !run.r || !push.l || !push.r || !ride.l || !ride.r) return;
         const moving = [run.l, run.r, push.l, push.r, ride.l, ride.r];
+        const f = feel(el);
 
         const g = { W: 1, H: 1, S: 2 };
         const measure = () => {
@@ -421,7 +424,7 @@ export function SplitPair({ images, word, line, captions, place, className = "" 
 
         const riseL = all("[data-col='l'] [data-rise]");
         const riseR = all("[data-col='r'] [data-rise]");
-        gsap.set([...riseL, ...riseR], { yPercent: 118 });
+        gsap.set([...riseL, ...riseR], { yPercent: travelIn(f, 118, "text") });
 
         const tl = gsap.timeline({
           defaults: { ease: "none" },
@@ -431,7 +434,7 @@ export function SplitPair({ images, word, line, captions, place, className = "" 
             start: "top top",
             end: "+=300%",
             pin: true,
-            scrub: 1,
+            scrub: f.scrub.pinned,
             onRefresh: () => {
               measure();
               paint();
@@ -442,14 +445,14 @@ export function SplitPair({ images, word, line, captions, place, className = "" 
         tl.to({}, { duration: 0.8 })
           // The first photo rises in on the left, its half of the word breaking along the edge and locking into
           // register as it lands, the photo settling out of its push-in on the same ease.
-          .to(s, { l: 1, duration: 1.25, ease: "power3.inOut" }, 0.8)
-          .to(s, { pl: 1, duration: 1.5, ease: "power3.inOut" }, 0.8)
+          .to(s, { l: 1, duration: 1.25, ease: f.ease.swap }, 0.8)
+          .to(s, { pl: 1, duration: 1.5, ease: f.ease.swap }, 0.8)
           // Its line and caption stand up out of their masks.
-          .to(riseL, { yPercent: 0, duration: 0.9, stagger: 0.08, ease: "expo.out" }, 1.85)
+          .to(riseL, { yPercent: 0, duration: 0.9, stagger: 0.08, ease: f.ease.enter }, 1.85)
           // Hold on the half-and-half frame. Then the second photo comes down on the right, against the first.
-          .to(s, { r: 1, duration: 1.25, ease: "power3.inOut" }, 3.25)
-          .to(s, { pr: 1, duration: 1.5, ease: "power3.inOut" }, 3.25)
-          .to(riseR, { yPercent: 0, duration: 0.9, ease: "expo.out" }, 4.3)
+          .to(s, { r: 1, duration: 1.25, ease: f.ease.swap }, 3.25)
+          .to(s, { pr: 1, duration: 1.5, ease: f.ease.swap }, 3.25)
+          .to(riseR, { yPercent: 0, duration: 0.9, ease: f.ease.enter }, 4.3)
           // Covered from here on; put away so it never shows when the halves part.
           .set(groundWord, { autoAlpha: 0 }, 4.5)
           // Hold on the pair, the photos running against each other and the halves of the word shearing with
@@ -463,7 +466,7 @@ export function SplitPair({ images, word, line, captions, place, className = "" 
         if (el.getBoundingClientRect().top > window.innerHeight * 0.9) {
           const approach = { trigger: el, start: "top 90%", end: "top 15%", scrub: true };
           gsap.fromTo(seam, { scaleY: 0 }, { scaleY: 1, transformOrigin: "50% 0%", ease: "power2.inOut", scrollTrigger: approach });
-          gsap.fromTo(groundWord, { yPercent: 108 }, { yPercent: 0, ease: "power3.out", scrollTrigger: { ...approach, start: "top 75%" } });
+          gsap.fromTo(groundWord, { yPercent: travelIn(f, 108, "text") }, { yPercent: 0, ease: "power3.out", scrollTrigger: { ...approach, start: "top 75%" } });
         }
 
         // The release is the idea once more: the two halves leave at their own speeds.

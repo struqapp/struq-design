@@ -45,7 +45,9 @@
 // hero on the plain ground (blocks.css, "--- background-facets ---", with the 3 s fallback for the lines).
 import { useEffect, useRef } from "react";
 import { accentFaceReady, accentLines } from "../kit/accent";
+import { feel } from "../kit/feel";
 import { gsap } from "../kit/gsap";
+import { timeIn } from "../kit/tempo";
 import { whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 export type FacetsVariant = "shard" | "relief" | "turn";
@@ -1006,6 +1008,7 @@ export function BackgroundFacets({ variant = "shard", lines, accent, lead, link,
       reduce || (clock ? Number(clock.currentTime ?? 0) >= 2900 : getComputedStyle(rise[0]).transform === "none"),
     );
     const shown = el.dataset.shown === "true";
+    const f = feel(el);
     gsap.set(rise, { y: 0, yPercent: shown ? 0 : 115 });
     el.dataset.ready = "";
     let tween: gsap.core.Tween | null = null;
@@ -1015,7 +1018,7 @@ export function BackgroundFacets({ variant = "shard", lines, accent, lead, link,
       el.dataset.played = "";
       el.dispatchEvent(new Event("bf:play"));
       if (shown) return;
-      tween = gsap.to(rise, { yPercent: 0, duration: 1.15, ease: "expo.out", stagger: 0.09, delay: 0.15 });
+      tween = gsap.to(rise, { yPercent: 0, duration: timeIn(f, 1.15, "line"), ease: f.ease.enter, stagger: f.stagger.line, delay: timeIn(f, 0.15, "line") });
     });
     return () => {
       stop();

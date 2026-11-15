@@ -27,8 +27,10 @@
 // the titles. Desktop cards lift a little on hover and focus.
 import Image from "next/image";
 import { useRef } from "react";
+import { feel } from "../kit/feel";
 import { gsap, SplitText, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
+import { scrubIn, travelIn } from "../kit/tempo";
 
 type Item = {
   image: StruqImage;
@@ -54,8 +56,6 @@ const DEG = Math.PI / 180;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const unit = (v: number) => Math.min(1, Math.max(0, v));
 const move2 = gsap.parseEase("power2.inOut");
-const move3 = gsap.parseEase("power3.inOut");
-const outExpo = gsap.parseEase("expo.out");
 
 /**
  * The spread, in svh from the left gutter: each card's height, top and turn on the table. Each card after
@@ -158,6 +158,11 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
       const mm = gsap.matchMedia();
       mm.add("(min-width: 1024px) and (prefers-reduced-motion: no-preference)", () => {
         el.dataset.motion = "1";
+        const f = feel(el);
+        const move3 = gsap.parseEase(f.ease.swap);
+        const outExpo = gsap.parseEase(f.ease.enter);
+        // How far a masked line starts below its mask, in yPercent.
+        const under = travelIn(f, 112, "text");
 
         // Layout positions, untouched by transforms: offsets walk up to the stage.
         const box = (node: HTMLElement) => {
@@ -258,7 +263,7 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
           const { H } = g;
           // Before the pin: the first line rises, the hand rises into the frame and opens.
           const typeIn = outExpo(unit((s.enter - 0.02) / 0.42));
-          for (const r of rise) r.style.transform = `translate3d(0, ${((1 - typeIn) * 112).toFixed(2)}%, 0)`;
+          for (const r of rise) r.style.transform = `translate3d(0, ${((1 - typeIn) * under).toFixed(2)}%, 0)`;
           const up = outExpo(unit((s.enter - 0.12) / 0.66));
           const open = move3(unit((s.enter - 0.42) / 0.58));
 
@@ -297,7 +302,7 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
             const ls = capLines[i] ?? [];
             for (let j = 0; j < ls.length; j += 1) {
               const lj = move3(unit((land - j * 0.18) / 0.82));
-              ls[j].style.transform = `translate3d(0, ${((1 - lj) * 112).toFixed(2)}%, 0)`;
+              ls[j].style.transform = `translate3d(0, ${((1 - lj) * under).toFixed(2)}%, 0)`;
             }
           }
           // The lead paragraph rises line by line as the last card lands.
@@ -305,7 +310,7 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
           for (let j = 0; j < m; j += 1) {
             const span = m > 1 ? 0.35 / (m - 1) : 0;
             const e = move3(unit((s.deal - 0.66 - j * span * 0.34) / 0.34));
-            leadLines[j].style.transform = `translate3d(0, ${((1 - e) * 112).toFixed(2)}%, 0)`;
+            leadLines[j].style.transform = `translate3d(0, ${((1 - e) * under).toFixed(2)}%, 0)`;
           }
         };
 
@@ -333,7 +338,7 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
           enter: 1,
           ease: "none",
           onUpdate: paint,
-          scrollTrigger: { trigger: el, start: "top bottom", end: "top top", scrub: 1 },
+          scrollTrigger: { trigger: el, start: "top bottom", end: "top top", scrub: f.scrub.pinned },
         });
 
         const tl = gsap.timeline({
@@ -344,7 +349,7 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
             start: "top top",
             end: "+=300%",
             pin: true,
-            scrub: 1,
+            scrub: f.scrub.pinned,
             onRefresh: () => {
               measure();
               paint();
@@ -364,7 +369,7 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
           scrollTrigger: {
             start: () => pinned.end,
             end: () => pinned.end + window.innerHeight,
-            scrub: 0.6,
+            scrub: scrubIn(f, 0.6, "flow"),
           },
         });
 
@@ -464,7 +469,7 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
           const photo = (
             <span
               data-face=""
-              className="relative block h-full w-full overflow-hidden rounded-[0.2rem] bg-surface-2 transition-[translate] duration-[650ms] ease-[cubic-bezier(0.16,1,0.3,1)] lg:group-hover/card:-translate-y-3 lg:group-focus-visible/card:-translate-y-3"
+              className="relative block h-full w-full overflow-hidden rounded-[0.2rem] bg-surface-2 transition-[translate] duration-[calc(var(--dur-hover-fill)*1.3)] ease-[var(--ease-enter)] lg:group-hover/card:-translate-y-3 lg:group-focus-visible/card:-translate-y-3"
               style={{ boxShadow: shadow }}
             >
               <Image
@@ -473,7 +478,7 @@ export function FannedCards({ title, accent, lead, items, className = "" }: Prop
                 fill
                 sizes="(min-width: 1024px) 36vw, 50vw"
                 unoptimized={item.image.unoptimized}
-                className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] lg:group-hover/card:scale-[1.04]"
+                className="object-cover transition-transform duration-[calc(var(--dur-hover-fill)*1.8)] ease-[var(--ease-enter)] lg:group-hover/card:scale-[1.04]"
               />
               <span data-shade="" aria-hidden className="pointer-events-none absolute inset-0 bg-surface-0 opacity-0" />
             </span>

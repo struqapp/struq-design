@@ -317,7 +317,7 @@ export function ContactForm({
       <span
         aria-hidden
         data-cf-draw=""
-        className="absolute inset-x-0 bottom-0 h-[2px] origin-right scale-x-0 bg-current transition-transform duration-[650ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/cf:origin-left group-hover/cf:scale-x-100 group-focus-visible/cf:origin-left group-focus-visible/cf:scale-x-100 motion-reduce:transition-none"
+        className="absolute inset-x-0 bottom-0 h-[2px] origin-right scale-x-0 bg-current transition-transform duration-[calc(var(--dur-hover-fill)*1.3)] ease-[var(--ease-enter)] group-hover/cf:origin-left group-hover/cf:scale-x-100 group-focus-visible/cf:origin-left group-focus-visible/cf:scale-x-100 motion-reduce:transition-none"
       />
     </button>
   );

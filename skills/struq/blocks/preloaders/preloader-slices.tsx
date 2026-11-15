@@ -23,7 +23,9 @@
 // never arrives, a CSS failsafe hides the armed cover at 2.3 seconds and the hold lets go at 2.4.
 // `always` plays it on every load (the lab, a showreel).
 import { useRef, useState, type CSSProperties } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
+import { staggerIn, timeIn } from "../kit/tempo";
 import { closeCurtain, covered, liftCurtain, whenUncovered } from "./preloader-slices-uncovered";
 
 export { whenUncovered };
@@ -109,7 +111,14 @@ export function PreloaderSlices({ name, caption, always = false, onReveal, class
       const armed = el.hasAttribute("data-armed");
       const elapsed = Math.max(0, (performance.now() - Number(el.dataset.t0 ?? performance.now())) / 1000);
       const sheets = gsap.utils.toArray<HTMLElement>("[data-sheet]", el).filter((s) => getComputedStyle(s).display !== "none");
-      const stagger = T.stagger * (sheets.length - 1);
+      // The drop's parts (beat, slice, stagger) move with the feel. The 2.4s BUDGET does not: the arm script's hold and
+      // the CSS failsafe are fixed, so a slower feel gives the count less room instead of running past the budget.
+      const f = feel(el);
+      const hold0 = timeIn(f, T.hold);
+      const exit0 = timeIn(f, T.exit, "swap");
+      const minExit = timeIn(f, T.minExit, "swap");
+      const step = staggerIn(f, T.stagger, "block");
+      const stagger = step * (sheets.length - 1);
       const quit = () => {
         releaseHold();
         if (covered()) liftCurtain();
@@ -120,7 +129,7 @@ export function PreloaderSlices({ name, caption, always = false, onReveal, class
       if (!armed || gaveUp || (playedThisDocument && !always)) return quit();
       // Too late for any drop worth showing: the cover just goes, inside the budget.
       const room = BUDGET - elapsed - stagger - 0.03;
-      if (room < T.minExit) return quit();
+      if (room < minExit) return quit();
 
       playedThisDocument = true;
       el.dataset.live = "";
@@ -142,9 +151,9 @@ export function PreloaderSlices({ name, caption, always = false, onReveal, class
       // The plan from what is left of the budget. On time: the count, the beat, the full drop. Late: straight to a
       // drop that ends on the budget.
       const onTime = elapsed <= T.late;
-      const exit = onTime ? T.exit : Math.min(T.exit, room);
-      const count = onTime ? gsap.utils.clamp(T.minCount, T.count, BUDGET - elapsed - T.hold - T.exit - stagger - 0.03) : 0;
-      const hold = onTime ? T.hold : 0;
+      const exit = onTime ? exit0 : Math.min(exit0, room);
+      const count = onTime ? gsap.utils.clamp(T.minCount, T.count, BUDGET - elapsed - hold0 - exit0 - stagger - 0.03) : 0;
+      const hold = onTime ? hold0 : 0;
       // Fonts and the first screen's photos may stretch the beat at 100, never past the budget.
       const spare = onTime ? Math.max(0, BUDGET - elapsed - count - hold - exit - stagger - 0.03) : 0;
       const firstScreen = Array.from(document.images).filter((img) => {
@@ -189,8 +198,8 @@ export function PreloaderSlices({ name, caption, always = false, onReveal, class
         }, "exit")
         // The face holds still against the falling slice, so the top edge wipes it and nothing of the cover's type
         // ever travels into the page's title.
-        .to(sheets, { yPercent: PARK, duration: exit, ease: "power3.inOut", stagger: T.stagger }, "exit")
-        .to(faces, { yPercent: -PARK, duration: exit, ease: "power3.inOut", stagger: T.stagger }, "exit")
+        .to(sheets, { yPercent: PARK, duration: exit, ease: f.ease.swap, stagger: step }, "exit")
+        .to(faces, { yPercent: -PARK, duration: exit, ease: f.ease.swap, stagger: step }, "exit")
         .add(() => {
           // Persist last: the next load's arm script reads it.
           finished = true;

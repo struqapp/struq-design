@@ -15,6 +15,7 @@
 // when the pair is too long for one).
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 import type { StruqImage } from "../kit/images";
 
@@ -103,20 +104,22 @@ export function PanelWipe({ image, left, right, caption, close = true, className
       mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
         gsap.set(q("[data-photo]"), { scale: 1.25 });
         gsap.set(q("[data-caption]"), { autoAlpha: 0, yPercent: 60 });
+        // The durations below are shares of the pinned scroll (scrub), not seconds; the feel sets the eases and the smoothing.
+        const f = feel(el);
         const tl = gsap.timeline({
           defaults: { ease: "none" },
-          scrollTrigger: { trigger: el, start: "top top", end: close ? "+=260%" : "+=170%", pin: true, scrub: 1 },
+          scrollTrigger: { trigger: el, start: "top top", end: close ? "+=260%" : "+=170%", pin: true, scrub: f.scrub.pinned },
         });
         tl.to({}, { duration: 0.15 })
-          .to(q("[data-panel-left]"), { xPercent: -100, duration: 1, ease: "power3.inOut" })
-          .to(q("[data-panel-right]"), { xPercent: 100, duration: 1, ease: "power3.inOut" }, "<")
+          .to(q("[data-panel-left]"), { xPercent: -100, duration: 1, ease: f.ease.swap })
+          .to(q("[data-panel-right]"), { xPercent: 100, duration: 1, ease: f.ease.swap }, "<")
           .to(q("[data-photo]"), { scale: 1, duration: 1.2, ease: "power2.out" }, "<")
-          .to(q("[data-caption]"), { autoAlpha: 1, yPercent: 0, duration: 0.4, ease: "expo.out" }, "-=0.3")
+          .to(q("[data-caption]"), { autoAlpha: 1, yPercent: 0, duration: 0.4, ease: f.ease.enter }, "-=0.3")
           .to({}, { duration: 0.5 });
         if (close) {
           tl.to(q("[data-caption]"), { autoAlpha: 0, duration: 0.2 })
-            .to(q("[data-panel-left]"), { xPercent: 0, duration: 1, ease: "power3.inOut" }, "<")
-            .to(q("[data-panel-right]"), { xPercent: 0, duration: 1, ease: "power3.inOut" }, "<")
+            .to(q("[data-panel-left]"), { xPercent: 0, duration: 1, ease: f.ease.swap }, "<")
+            .to(q("[data-panel-right]"), { xPercent: 0, duration: 1, ease: f.ease.swap }, "<")
             .to({}, { duration: 0.15 });
         }
       });

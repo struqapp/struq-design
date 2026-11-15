@@ -15,6 +15,7 @@
 //
 // Reduced motion and phones: the composed still, the whole paragraph in full ink.
 import { useRef } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 
 type Props = { text: string; className?: string };
@@ -74,7 +75,7 @@ export function ManifestoScrub({ text, className = "" }: Props) {
         gsap.set(words, { opacity: wait });
         const tl = gsap.timeline({
           defaults: { ease: "none" },
-          scrollTrigger: { trigger: el, start: "top top", end: "+=200%", pin: true, scrub: 1 },
+          scrollTrigger: { trigger: el, start: "top top", end: "+=200%", pin: true, scrub: feel(el).scrub.pinned },
         });
         words.forEach((node: Element, i: number) => {
           tl.to(node, { opacity: 1, duration: 0.3 }, i * 0.12);

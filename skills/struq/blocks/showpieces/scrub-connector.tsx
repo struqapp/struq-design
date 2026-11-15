@@ -15,6 +15,7 @@
 // Reduced motion: the joined pair, the accent bar rising between the words. Phones: the words
 // stacked, joined by an upright accent bar with the two lines of copy beside it.
 import { useRef } from "react";
+import { feel } from "../kit/feel";
 import { gsap, useGSAP } from "../kit/gsap";
 
 type Props = {
@@ -190,6 +191,8 @@ export function ScrubConnector({ left, right, leftText, rightText, className = "
         measure();
         paint();
 
+        // The durations below are shares of the pinned scroll (scrub), not seconds; the feel sets the eases and the smoothing.
+        const f = feel(el);
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           onUpdate: paint,
@@ -198,7 +201,7 @@ export function ScrubConnector({ left, right, leftText, rightText, className = "
             start: "top top",
             end: "+=300%",
             pin: true,
-            scrub: 1,
+            scrub: f.scrub.pinned,
             onRefreshInit: () => {
               for (const n of [...sidesL, ...sidesR]) n.style.transform = "";
             },
@@ -217,8 +220,8 @@ export function ScrubConnector({ left, right, leftText, rightText, className = "
           .to({}, { duration: 0.9 })
           // The join: the bar draws back to the words' inner ends and carries them in to their places, turning
           // to the accent and thinning as it goes, and seats long and rising between them.
-          .to(s, { pull: 1, duration: 1.3, ease: "power3.inOut" })
-          .to(s, { anchor: 1, reach: 1, duration: 0.7, ease: "power3.inOut" }, "<")
+          .to(s, { pull: 1, duration: 1.3, ease: f.ease.swap })
+          .to(s, { anchor: 1, reach: 1, duration: 0.7, ease: f.ease.swap }, "<")
           .to(s, { thin: 1, duration: 1.3, ease: "power2.inOut" }, "<")
           .to(s, { fill: 1, duration: 1.1, ease: "power2.inOut" }, "<0.1")
           // Hold on the joined pair; the pin then lets the whole picture scroll away.

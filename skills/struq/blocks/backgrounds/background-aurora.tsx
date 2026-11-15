@@ -39,8 +39,10 @@
 // (blocks.css, "--- background-aurora ---").
 import { useEffect, useRef } from "react";
 import { accentFaceReady, accentLines } from "../kit/accent";
+import { feel } from "../kit/feel";
 import { ScrollTrigger, gsap, useGSAP } from "../kit/gsap";
 import { whenUncovered } from "../preloaders/preloader-slices-uncovered";
+import { timeIn } from "../kit/tempo";
 
 export type AuroraVariant = "veil" | "horizon" | "drift";
 
@@ -765,10 +767,11 @@ export function BackgroundAurora({ variant = "veil", lines, accent, lead, link, 
       gsap.set(rise, { y: 0, yPercent: shown ? 0 : 115 });
       el.dataset.ready = "";
       if (shown) return;
+      const f = feel(el);
       let gone = false;
       const play = contextSafe(() => {
         if (gone) return;
-        gsap.to(rise, { yPercent: 0, duration: 1.2, ease: "expo.out", stagger: 0.09, delay: 0.15 });
+        gsap.to(rise, { yPercent: 0, duration: timeIn(f, 1.2, "line"), ease: f.ease.enter, stagger: f.stagger.line, delay: timeIn(f, 0.15, "line") });
       });
       // Once the face is in, and once nothing covers the page (a preloader or page transition starting to leave).
       let stop = () => {};

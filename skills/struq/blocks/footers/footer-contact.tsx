@@ -24,7 +24,7 @@
 // Add `clock timeZone="Europe/Amsterdam"` for the live time and the open marker.
 //
 // The entrance is scrubbed to the scroll over the footer's own arrival (from its top meeting the bottom of the screen
-// to its bottom meeting it), with 0.4 s of smoothing, so scrolling back runs it backwards and a flick never stacks
+// to its bottom meeting it), with 0.4 s of smoothing (weighted; the feel sets it), so scrolling back runs it backwards and a flick never stacks
 // states. In the address and clock variants every part starts its move at the scroll position where it comes into
 // view (its own offset in the footer), so nothing plays out below the fold. Each variant enters its own way: the
 // address's characters roll into their slots; the clock's hours and minutes slide out from the colon; the closing
@@ -37,6 +37,7 @@
 // an empty marker) and the real time arrives after mount, so there is nothing to mismatch. It ticks on the minute.
 // Reduced motion: the composed footer, no travel; the colon holds and the digits cut; hovers show a plain underline.
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from "react";
+import { feel } from "../kit/feel";
 import { gsap, ScrollTrigger, SplitText, useGSAP } from "../kit/gsap";
 // The hours as words, the wall clock and the open marker's logic: one copy, shared with kit/middle/PlaceHours.
 import { hoursText as rowText, openStatus, useNow, wallClock } from "../kit/middle/hours";
@@ -74,11 +75,9 @@ type Props = {
   className?: string;
 };
 
-/** Seconds of smoothing on the scrub: a camera settling, never a delay. */
 /** The address on one line, with a Dutch postcode (1234 AB) kept together so it never breaks across lines. */
 const oneLine = (parts: string[]) => parts.map((l) => l.replace(/(\d{4}) ([A-Z]{2})/, "$1\u00A0$2")).join(", ");
 
-const SMOOTH = 0.4;
 /** The longest the fit and the line cut wait for the display face, in ms. */
 const FONT_CAP = 1200;
 /** Below this fitted size (px) the address breaks at the @ and fits its longer half instead. */
@@ -88,8 +87,8 @@ const ADDRESS_CAP = 0.3;
 /** The clock fills this share of the width, and never more than this share of the height. */
 const CLOCK_WIDTH = 0.82;
 const CLOCK_CAP = 0.4;
-/** The whole hover roll, first character to last, in seconds. */
-const ROLL_SPAN = 0.36;
+/** The whole hover roll, first character to last: the feel's hover line time (360 ms weighted), as a share of it per character. */
+const rollDelay = (share: number) => `calc(var(--dur-hover-line) * ${share.toFixed(3)})`;
 /** The soft rise of the details, in px. */
 const SOFT = 24;
 
@@ -230,7 +229,7 @@ function RollAddress({ email, parts, className = "", enter = false }: { email: s
     a.querySelectorAll<HTMLElement>("[data-fc-ch]").forEach((c) => {
       const b = c.getBoundingClientRect();
       const x = (b.left + b.width / 2 - r.left) / (r.width || 1);
-      c.style.setProperty("--d", `${((fromLeft ? x : 1 - x) * ROLL_SPAN).toFixed(3)}s`);
+      c.style.setProperty("--d", rollDelay(fromLeft ? x : 1 - x));
     });
   };
   return (
@@ -248,7 +247,7 @@ function RollAddress({ email, parts, className = "", enter = false }: { email: s
                 </span>
               );
               return (
-                <span key={i} data-fc-ch="" className="struq-char-mask" style={{ "--d": `${((i / Math.max(1, total - 1)) * ROLL_SPAN).toFixed(3)}s` } as CSSProperties}>
+                <span key={i} data-fc-ch="" className="struq-char-mask" style={{ "--d": rollDelay(i / Math.max(1, total - 1)) } as CSSProperties}>
                   {enter ? <span data-fc-enter="">{roll}</span> : roll}
                 </span>
               );
@@ -405,6 +404,7 @@ export function FooterContact({
         el.dataset.ready = "1";
       });
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const f = feel(el);
         let alive = true;
         let split: SplitText | null = null;
         let lines: HTMLElement[] = [];
@@ -518,7 +518,7 @@ export function FooterContact({
           p: 1,
           ease: "none",
           onUpdate: paint,
-          scrollTrigger: { trigger: el, start: "top bottom", end: "bottom bottom", scrub: SMOOTH },
+          scrollTrigger: { trigger: el, start: "top bottom", end: "bottom bottom", scrub: f.scrub.flow },
         });
         const remeasure = () => {
           measure();

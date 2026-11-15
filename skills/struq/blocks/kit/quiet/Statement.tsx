@@ -24,8 +24,9 @@
 // data-energy="1", so the film check counts it as a quiet scene.
 //
 // Motion: it enters once. The lines rise through their masks as the sentence scrolls in (SplitHeadline), the label
-// follows (Reveal), the photo opens from its foot (MediaFrame, no parallax). No pin, no scrub, no hover motion. Reduced
-// motion: a short fade, nothing travels. Without scripts: the composed scene, the photo in its place on the grid.
+// follows (Reveal), the photo opens from its foot (MediaFrame, no parallax), all on the site's temperament (../feel).
+// No pin, no scrub, no hover motion. Reduced motion: the composed scene at once, the sentence in full ink. Without
+// scripts: the composed scene, the photo in its place on the grid.
 //
 // The hang: once the faces are in (document.fonts.ready) the end of the last line is measured, in whole pixels, from
 // the line's mask (which never moves, so a line still rising reads where it will stand). If the photo fits between that
