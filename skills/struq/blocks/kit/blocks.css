@@ -2319,7 +2319,7 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-time] {
 
 /* --- motion --- */
 /* The feel tokens (kit/feel.ts) as custom properties, and the CSS of the motion primitives (kit/motion: RevealText,
-   MaskWipe, ImageCurtain, HoverLink, Pressable, ScrubLine). A site sets data-temperament="crisp|weighted|slow" on
+   Rise, MaskWipe, ImageCurtain, HoverLink, Pressable, ScrubLine). A site sets data-temperament="crisp|weighted|slow" on
    <body>; weighted holds without it. These values are feelVars() in kit/feel.ts, and a unit test keeps them equal.
    The locked values live elsewhere and once: the mask room on .struq-line-mask, the focus ring on :focus-visible. */
 :root,
@@ -2541,6 +2541,10 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-time] {
     visibility: hidden;
     animation: struq-show 0s 3s forwards;
   }
+  :is(.js, .sq-js) [data-blocks] [data-rise]:not([data-ready]) {
+    opacity: 0;
+    animation: struq-fade 0s 3s forwards;
+  }
 }
 
 /* Reduced motion: the same states, cut in, nothing travels. */
@@ -2554,5 +2558,112 @@ html:not(.sq-js) [data-blocks] [data-header-bar] [data-hb-time] {
   }
   [data-blocks] [data-pressable] {
     translate: none !important;
+  }
+}
+
+/* --- middle --- */
+/* The middle scenes (kit/middle: ServicesList, ProcessStrip, PlaceHours). Their hover and state changes move on the
+   feel's custom properties above, so a temperament changes their character and nothing else. With scripts on and
+   motion allowed, each scene's parts wait in their start state until its one timeline is built (data-ready on the
+   data-middle root), and stand composed after 3s if that never comes. */
+
+/* ServicesList rows: the accent floods up from the row's foot on hover and on focus; the name turns to the accent's
+   ink and nudges in; the sentence, always shown, turns a quarter of the fill later. */
+[data-blocks] [data-flood] {
+  transform: scaleY(0);
+  transition: transform var(--dur-hover-fill) var(--ease-enter);
+}
+[data-blocks] [data-flood-name] {
+  transition:
+    color var(--dur-hover-fill) var(--ease-enter),
+    translate var(--dur-hover-fill) var(--ease-enter);
+}
+[data-blocks] [data-flood-text] {
+  transition:
+    color var(--dur-hover-fill) var(--ease-enter) calc(var(--dur-hover-fill) / 4),
+    opacity var(--dur-hover-fill) var(--ease-enter) calc(var(--dur-hover-fill) / 4),
+    translate var(--dur-hover-fill) var(--ease-enter) calc(var(--dur-hover-fill) / 4);
+}
+[data-blocks] [data-flood-row]:is(:hover, :focus-visible) [data-flood] {
+  transform: scaleY(1);
+}
+[data-blocks] [data-flood-row]:is(:hover, :focus-visible) :is([data-flood-name], [data-flood-text]) {
+  color: var(--accent-ink);
+}
+[data-blocks] [data-flood-row]:is(:hover, :focus-visible) [data-flood-name] {
+  translate: 1.5vw 0;
+}
+/* The sentence always shows: a services list that hides what each service is until hover reads as names alone
+   (lab check, 2026-11-15). On wide screens hover only lifts it a little as the flood arrives. */
+@media (min-width: 768px) {
+  [data-blocks] [data-flood-row]:is(:hover, :focus-visible) [data-flood-text] {
+    translate: 0 -0.25rem;
+  }
+}
+
+/* ProcessStrip chapters: the stages not in front step back. */
+[data-blocks] [data-chapter] [data-chapter-text] {
+  transition:
+    opacity var(--dur-enter) var(--ease-enter),
+    translate var(--dur-enter) var(--ease-enter);
+}
+[data-blocks] [data-chapter][data-back] [data-chapter-text] {
+  opacity: 0.24;
+  translate: -0.8vw 0;
+}
+
+/* PlaceHours: the open marker, a small ring filled while open. */
+[data-blocks] [data-open-dot] {
+  display: inline-block;
+  flex: none;
+  width: 0.5em;
+  height: 0.5em;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+[data-blocks] [data-open-dot][data-open] {
+  background: currentColor;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :is(.js, .sq-js) [data-blocks] [data-middle]:not([data-ready]) [data-part="heading"] {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-middle]:not([data-ready]) [data-part="detail"] {
+    opacity: 0;
+    animation: struq-fade 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-middle]:not([data-ready]) [data-part="media"] {
+    clip-path: inset(100% 0 0 0);
+    animation: struq-open 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-middle]:not([data-ready]) [data-part="media"][data-open="margins"] {
+    clip-path: inset(0 6% 0 6%);
+  }
+  :is(.js, .sq-js) [data-blocks] [data-scene="services"][data-variant="panels"]:not([data-motion]) [data-panel] {
+    clip-path: inset(100% 0 0 0);
+    animation: struq-open 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-scene="process"] [data-stage]:not([data-ready]) [data-tick] {
+    clip-path: inset(0 100% 0 0);
+    animation: struq-open 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-scene="process"] [data-stage]:not([data-ready]) [data-term] {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
+  :is(.js, .sq-js) [data-blocks] [data-scene="process"] [data-stage]:not([data-ready]) [data-text] {
+    opacity: 0;
+    animation: struq-fade 0s 3s forwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-blocks] :is([data-flood], [data-flood-name], [data-flood-text], [data-chapter-text]) {
+    transition: none;
+  }
+  [data-blocks] [data-flood-row]:is(:hover, :focus-visible) [data-flood-name] {
+    translate: none;
   }
 }

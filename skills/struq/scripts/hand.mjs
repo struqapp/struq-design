@@ -4,7 +4,7 @@
 // why it exists. With a pre-filled storyboard 11 of 12 sites opened the same way; naming the reflex only moved it to
 // the next one. Dealing each site a random hand and holding its plan to it gave real variety while the agent still
 // chooses. A hand is two of the three motion languages, two type pairings, two palettes (one light, one dark), three
-// openings, three centerpieces and three lenses. A lens is where the idea starts looking: the round of 2026-11-15
+// openings, one centerpiece and three lenses. A lens is where the idea starts looking: the round of 2026-11-15
 // showed that asking for three ideas still gave each brief the same idea on every run, so the starting points are
 // dealt too, and the plan's Idea line names the lens it came from.
 //
@@ -12,6 +12,10 @@
 // (frontier-marrow-bone-blood-orange, dealt four times, picked four times), the same pairing (geometric-modern, three
 // of three) and the same opener and centerpiece whenever they are dealt, so dealing fewer makes the deal itself the
 // variety.
+//
+// The centerpiece is dealt alone. The release proof of 2026-11-15 gave three of eight sites (saas, conference,
+// plumber) the same scrub-connector, picked from three dealt each time it was among them, so one card is the deal
+// and the variety comes from the deal. An own scene stays allowed.
 //
 // A hand has a short id, and the id is the whole state: the same id deals the same hand from the same pools, so the
 // MCP (which keeps nothing between calls) and a check running on the client's machine both rebuild it from the
@@ -51,7 +55,7 @@ export const HAND_LENSES = [
 ];
 
 /** How many of each a hand holds. */
-export const HAND_SIZE = { languages: 2, lightPalettes: 1, darkPalettes: 1, pairings: 2, openings: 3, centerpieces: 3, lenses: 3 };
+export const HAND_SIZE = { languages: 2, lightPalettes: 1, darkPalettes: 1, pairings: 2, openings: 3, centerpieces: 1, lenses: 3 };
 
 const ID_LENGTH = 6;
 const ID_ALPHABET = 'abcdefghijkmnpqrstuvwxyz23456789';

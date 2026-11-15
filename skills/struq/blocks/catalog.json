@@ -2,7 +2,7 @@
   "source": {
     "repo": "Struq blocks/",
     "ref": "staging",
-    "commit": "4f05b9d5"
+    "commit": "502c8d55"
   },
   "blocks": [
     {
@@ -2008,6 +2008,7 @@
         }
       },
       "packages": [
+        ",\n  },\n  nl: {\n    days: [",
         "@gsap/react",
         "gsap"
       ],
@@ -2019,7 +2020,8 @@
         "footers/footer-contact.tsx",
         "kit/blocks.css",
         "kit/feel.ts",
-        "kit/gsap.ts"
+        "kit/gsap.ts",
+        "kit/middle/hours.ts"
       ]
     }
   ]

@@ -101,7 +101,7 @@ const commands = {
     console.log(`\nSnapshot: Struq ${CANON.source.ref} ${CANON.source.commit}.`);
   },
   // The hand this site chooses from (draw.mjs, dealt by Struq's hand.mjs): two languages, one light and one dark
-  // palette, two pairings, three openings and three centerpieces, saved to .struq/draw.json so the plan check holds
+  // palette, two pairings, three openings and one centerpiece, saved to .struq/draw.json so the plan check holds
   // the plan to it. Dealt once: drawing again shows the same hand.
   draw() {
     const { hand: draw, fresh } = projectHand(root);
