@@ -15,14 +15,19 @@
 //
 // The bar turns its ink with what is under it, exactly at the edge: it is drawn three times (ink for the page ground,
 // on-photo, on-inverse), each copy clipped to the stretch of the bar its own sections cover. Sections opt in with
-// data-bar-tone="photo" or data-bar-tone="inverse"; anything else is ground. The curtain carries its own copy of the
+// data-bar-tone="photo" or data-bar-tone="inverse"; anything else is ground. Mark a section "photo" only where a photo
+// really runs under the bar's band (a full-bleed hero); a poster or a framed photo with ground above it is ground. The
+// start tone is read from the page too, never passed: before the script, the first section's data-bar-tone (the
+// element right after the bar, or that element's first child) picks the ink. The curtain carries its own copy of the
 // bar, so while it travels the bar's ink splits along its edge. The real bar (the link and the button) sits on top
-// with transparent text: one focusable bar, never three.
+// with transparent text: one focusable bar, never three. On the first screen the bar has no ground; once the page
+// scrolls each copy takes a solid ground in its own tone and a hairline (no blur, no tint), so body text passing under
+// the bar never prints through the name or the button.
 //
-// Mount it once at the top of the page; it is fixed and needs no wrapper:
-//   <MenuCurtain variant="gate" name="Noord" items={[{ label: "Werk", href: "/werk", image }]} startTone="photo"
+// Mount it once at the top of the page, right before the first section; it is fixed and needs no wrapper:
+//   <MenuCurtain variant="gate" name="Noord" items={[{ label: "Werk", href: "/werk", image }]}
 //     contact={{ label: "hallo@noord.studio", href: "mailto:hallo@noord.studio" }} place="Rotterdam" />
-// Keep the hero's type out of the top var(--menu-bar-h) of the screen; the bar never gets a ground of its own.
+// Keep the hero's type out of the top var(--menu-bar-h) of the screen (set on the nearest [data-blocks]).
 //
 // While open, the page under it does not move (Lenis stopped, or the root's overflow held without Lenis) and is
 // inert; Tab cycles the bar and the menu, Escape closes and gives focus back to where it was. A link to a spot on the
@@ -48,6 +53,13 @@ export type BarTone = "ground" | "photo" | "inverse";
 
 const TONES: BarTone[] = ["ground", "photo", "inverse"];
 const TONE_INK: Record<BarTone, string> = { ground: "text-ink", photo: "text-on-photo", inverse: "text-on-inverse" };
+// Once the page scrolls the bar stands on a solid ground in the tone under it, so body text never prints through its
+// ink: the page's surface, the inverse, and over a photo the palette's dark for bands over photos (the header bar's).
+const TONE_GROUND: Record<BarTone, string> = {
+  ground: "bg-surface-0",
+  photo: "bg-[var(--photo-ground,var(--inverse))]",
+  inverse: "bg-inverse",
+};
 const EMPTY = "inset(0px 0px 100% 0px)";
 const SLICES = [0, 1, 2, 3];
 const PANELS = [
@@ -91,6 +103,7 @@ function inertOutside(el: HTMLElement) {
  */
 function BarFace({
   real = false,
+  tone,
   name,
   homeHref,
   items,
@@ -100,6 +113,8 @@ function BarFace({
   onToggle,
 }: {
   real?: boolean;
+  /** The ink copies over the page: their ground and hairline, shown once the page scrolls. */
+  tone?: BarTone;
   name: string;
   homeHref: string;
   items: MenuItem[];
@@ -125,15 +140,21 @@ function BarFace({
     </>
   );
   return (
-    <div className="flex h-[var(--menu-bar-h)] items-center justify-between gap-6 px-sheet-margin">
+    <div className="relative flex h-[var(--menu-bar-h)] items-center justify-between gap-6 px-sheet-margin">
+      {tone ? (
+        <>
+          <div data-mc-ground="" aria-hidden="true" className={`absolute inset-0 ${TONE_GROUND[tone]}`} />
+          <div data-mc-line="" aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-current" />
+        </>
+      ) : null}
       {real ? (
-        <a href={homeHref} className={word}>
+        <a href={homeHref} className={`relative ${word}`}>
           {name}
         </a>
       ) : (
-        <span className={word}>{name}</span>
+        <span className={`relative ${word}`}>{name}</span>
       )}
-      <div className="grid justify-items-end">
+      <div className="relative grid justify-items-end">
         <ul data-menu-fallback="" className="m-0 flex list-none flex-wrap justify-end gap-x-4 gap-y-1 p-0 text-small [grid-area:1/1]">
           {items.map((item) => (
             <li key={item.label}>{real ? <a href={item.href}>{item.label}</a> : <span>{item.label}</span>}</li>
@@ -171,7 +192,6 @@ export function MenuCurtain({
   place = "Rotterdam",
   clock = false,
   timeZone = "Europe/Amsterdam",
-  startTone = "ground",
 }: {
   variant?: MenuCurtainVariant;
   /** The wordmark. */
@@ -187,8 +207,6 @@ export function MenuCurtain({
   clock?: boolean;
   /** IANA zone for the clock. */
   timeZone?: string;
-  /** The ground under the bar on the first paint, before the script measures it (the hero's, usually "photo"). */
-  startTone?: BarTone;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -342,6 +360,10 @@ export function MenuCurtain({
           const s = spans[TONES[i]];
           face.style.clipPath = s ? `inset(${s[0]}px 0px ${barH - s[1]}px 0px)` : EMPTY;
         });
+        // The ground (and its hairline) arrives over the bar's own height of scroll; under reduced motion it cuts in.
+        const sy = Math.max(0, window.scrollY);
+        const k = reduce ? (sy > 2 ? 1 : 0) : Math.min(1, sy / Math.max(1, barH));
+        el.style.setProperty("--mc-k", k.toFixed(3));
       };
       // On Lenis this runs inside its scroll (ScrollTrigger.update), so the split never trails the page by a frame.
       const watch = ScrollTrigger.create({ start: 0, end: "max", onUpdate: ink, onRefresh: ink });
@@ -660,13 +682,8 @@ export function MenuCurtain({
       {/* The bar's ink over the page: one copy per ground, each clipped to the stretch it covers. */}
       <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 top-0 z-[79]">
         {TONES.map((tone) => (
-          <div
-            key={tone}
-            data-tone-face={tone}
-            className={`absolute inset-x-0 top-0 ${TONE_INK[tone]}`}
-            style={{ clipPath: tone === startTone ? "none" : EMPTY }}
-          >
-            <BarFace {...face} />
+          <div key={tone} data-tone-face={tone} className={`absolute inset-x-0 top-0 ${TONE_INK[tone]}`}>
+            <BarFace {...face} tone={tone} />
           </div>
         ))}
       </div>

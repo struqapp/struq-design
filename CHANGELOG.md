@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.5.3 (2026-11-15)
+
+Proven against the same model building the same brief without the skill: eight one-line briefs, both on Haiku, and
+every site built with the skill was clearly better. Blocks and canon come from Struq main f98bd198.
+
+### Direction
+- The hand is smaller, so the deal is the variety: two languages, one light and one dark palette, two type pairings,
+  three openings, one centerpiece and three lenses the idea starts from.
+- An own scene can be the centerpiece when the dealt one does not fit the brief.
+- Every site sets a temperament on `<body>` (crisp, weighted or slow), and each language has a default.
+
+### Parts
+- Motion primitives in `kit/motion`: RevealText, Rise, MaskWipe, ImageCurtain, HoverLink, Pressable and ScrubLine,
+  timed by the temperament, with reduced motion and descender-safe masks built in. Close in three shapes.
+- Subject pieces in `kit/subject`: Document, AppScreen, Ticket, PatternPaper (with notes that never overprint) and
+  SectionDrawing.
+- Middle scenes in `kit/middle`: ServicesList, ProcessStrip and PlaceHours, three variants each, with fallbacks so a
+  thin brief never shows an empty slot or an invented fact.
+- WebGL heroes and backgrounds never go black on resize.
+
+### Checks
+- The approval gate reads every approval entry: a "Reply: pending" line logged before the stop no longer hides the
+  client's answer.
+- An invitation needs a door, a stand-in name fails unless the brief gives the name, and every art-direction ask is
+  answered Built or Refused; a Built answer that says a quoted text was removed is checked against the site.
+- Motion written outside the kit is flagged, and an own header passes without a wordmark.
+
 ## 0.5.2 (2026-11-14)
 
 The README is rebuilt as a landing page in the struq.app look. Nothing in the skill's behaviour changes.

@@ -19,6 +19,18 @@ export const FILM_RULES = [
     fix: 'Write the treatment head in STRUQ.md: Idea, Language, Motif, Lexicon, Centerpiece, Tone arc and a numbered Storyboard with one line per scene.',
   },
   {
+    id: 'uncast-slot',
+    severity: 'fail',
+    title: 'Every scene is cast',
+    fix: 'Replace every <cast: ...> and <loud|quiet> the arc printed (blocks.mjs arc, or the treatment struq_richting returns) with one pick and its reason after "because", chosen from the Idea and the Motif, and delete the options list.',
+  },
+  {
+    id: 'no-unlike',
+    severity: 'warn',
+    title: 'The plan says what it is unlike',
+    fix: 'Add an Unlike: line under the Idea: the likeliest site for this brief, and Struq\'s own reflex (a framed photo with the name beside it, growing to full screen), then what this site does instead. Cast the Opening and the Centerpiece against it.',
+  },
+  {
     id: 'one-centerpiece',
     severity: 'fail',
     title: 'Exactly one centerpiece',
@@ -639,7 +651,10 @@ function holdBudgets(add, { used, scenes, extraOwn, treatment, planned, routes, 
   // FAIL
 
   const centerpieces = used.filter((block) => block.role === 'centerpiece');
-  if (centerpieces.length === 0) add('one-centerpiece', 1, `No centerpiece on the ${where}.`);
+  // The plan's Centerpiece line may name an own scene ("Centerpiece: own scene ..."). The storyboard shows it in its
+  // slot; the built page cannot tell an own scene's role, so there a plan that names own needs no centerpiece block.
+  const ownCenter = planned && treatment.centerpiece === 'own';
+  if (centerpieces.length === 0 && !(ownCenter && where === 'page')) add('one-centerpiece', 1, `No centerpiece on the ${where}.`);
   else if (centerpieces.length > 1) {
     add('one-centerpiece', centerpieces.length, `${plural(centerpieces.length, 'centerpiece')}: ${list(centerpieces)}.`);
   }
@@ -691,7 +706,7 @@ function holdBudgets(add, { used, scenes, extraOwn, treatment, planned, routes, 
   if (planned) {
     const named = treatment.centerpiece;
     if (!named) add('centerpiece-is-planned', 1, 'The plan has no Centerpiece line.');
-    else if (!centerpieces.some((block) => block.slug === named)) {
+    else if (ownCenter ? centerpieces.some((block) => !block.own) : !centerpieces.some((block) => block.slug === named)) {
       const onPage = centerpieces.length ? `the ${where} has ${list(centerpieces)}` : `it is not on the ${where}`;
       add('centerpiece-is-planned', 1, `The plan names ${named}; ${onPage}.`);
     }
@@ -903,6 +918,12 @@ export function planCheck({ plan, catalog, routes = 1 } = {}) {
   }
   const planned = treatment.hasLanguage;
   if (!planned) add('no-treatment', 1, missingTreatment(treatment));
+  // The arc is printed with no picks on purpose (2026-11-14); a slot left as printed was never cast.
+  const uncast = treatment.storyboard
+    .map((text, at) => (/<cast\b|<loud\|quiet>/i.test(text) ? at + 1 : 0))
+    .filter(Boolean);
+  if (uncast.length) add('uncast-slot', uncast.length, `Scene ${uncast.join(', ')} still ${uncast.length === 1 ? 'reads' : 'read'} as the arc printed ${uncast.length === 1 ? 'it' : 'them'}.`);
+  if (!/^Unlike:\s*\S/m.test(String(plan ?? ''))) add('no-unlike', 1, 'The plan has no Unlike: line.');
 
   const count = treatment.storyboard.length;
   if (count < SCENE_MIN || count > SCENE_MAX) {
@@ -958,6 +979,9 @@ export function planCheck({ plan, catalog, routes = 1 } = {}) {
       });
     }
     if (line.own) {
+      // An own scene in the Centerpiece slot is the centerpiece: the hand deals one centerpiece since 2026-11-15, and
+      // when it does not fit the brief the agent builds its own (release proof saas: film-strip for an invoicing app).
+      const center = /^centerpiece$/i.test((line.name || '').trim());
       used.push({
         scene,
         tone: line.tone,
@@ -966,11 +990,11 @@ export function planCheck({ plan, catalog, routes = 1 } = {}) {
         slug: null,
         variant: null,
         kind: 'own-scene',
-        role: 'scene',
+        role: center ? 'centerpiece' : 'scene',
         home: null,
         motif: null,
         metaphor: null,
-        energy: 1,
+        energy: center ? 3 : 1,
         pins: false,
         scroll: 0,
         fullBleed: false,

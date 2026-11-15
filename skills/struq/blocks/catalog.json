@@ -2,7 +2,7 @@
   "source": {
     "repo": "Struq blocks/",
     "ref": "origin/main",
-    "commit": "a538491"
+    "commit": "f98bd198"
   },
   "blocks": [
     {
@@ -56,6 +56,7 @@
       "file": "preloaders/preloader-wordmark.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "preloaders/preloader-slices-uncovered.ts",
         "preloaders/preloader-wordmark.tsx"
@@ -65,7 +66,7 @@
       "slug": "preloader-stack",
       "kind": "preloader",
       "title": "Preloader: the stack",
-      "does": "The first paint is the page's ground with the client's name, a quiet count and the first print in a small portrait frame; five or six prints cut inside that frame, each held shorter than the last, ending on the hero's own photo, and the frame then grows to the hero image's exact place and crop (the page marks it data-stack-target) so the cover becomes the hero with no seam, within 2.4 seconds of the first paint, once per session.",
+      "does": "The first paint is the page's ground with the client's name, a quiet count and the first print in a small portrait frame; five or six prints cut inside that frame, each held shorter than the last, ending on the hero's own photo, and the frame then grows to the hero image's exact place and crop (the page marks it data-stack-target) so the cover becomes the hero with no seam, within 2.4 seconds of the first paint, once per session. Before an opening with no photo (opening=\"photoless\", or no hero) it flips palette panels with the name's first letter instead and lands on the opening's own ground.",
       "reference": "Kinetic Studio and Lowlight for pacing and the counter (v4vision/projects/kinetic-studio/index.html, Opus55/build/template.html); the grow follows image-to-fullbleed's numeric clip.",
       "variants": [],
       "role": "frame",
@@ -91,6 +92,7 @@
       "file": "preloaders/preloader-stack.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "preloaders/preloader-slices-uncovered.ts",
@@ -127,6 +129,7 @@
       "file": "preloaders/preloader-slices.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "preloaders/preloader-slices-uncovered.ts",
         "preloaders/preloader-slices.tsx"
@@ -162,6 +165,7 @@
       "file": "preloaders/preloader-gate.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "preloaders/preloader-gate.tsx",
         "preloaders/preloader-slices-uncovered.ts"
@@ -197,6 +201,7 @@
       "files": [
         "kit/SmoothScroll.tsx",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "page-transitions/page-transition-stack.tsx",
         "preloaders/preloader-slices-uncovered.ts"
@@ -232,6 +237,7 @@
       "files": [
         "kit/SmoothScroll.tsx",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "page-transitions/page-transition-slices.tsx",
         "preloaders/preloader-slices-uncovered.ts"
@@ -269,6 +275,7 @@
       "files": [
         "kit/SmoothScroll.tsx",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "page-transitions/page-transition-gate.tsx",
         "preloaders/preloader-slices-uncovered.ts"
@@ -333,7 +340,9 @@
       "files": [
         "headers/header-bar.tsx",
         "kit/blocks.css",
-        "kit/gsap.ts"
+        "kit/feel.ts",
+        "kit/gsap.ts",
+        "kit/photo-read.ts"
       ]
     },
     {
@@ -395,6 +404,7 @@
         "headers/menu-curtain.tsx",
         "kit/SmoothScroll.tsx",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts"
       ]
@@ -449,6 +459,7 @@
         "heroes/hero-framed.tsx",
         "kit/accent.ts",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
@@ -507,6 +518,7 @@
         "heroes/hero-split.tsx",
         "kit/accent.ts",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
@@ -568,6 +580,7 @@
         "heroes/hero-index.tsx",
         "kit/accent.ts",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
@@ -633,6 +646,7 @@
         "heroes/hero-still.tsx",
         "kit/accent.ts",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
@@ -686,6 +700,7 @@
         "heroes/hero-still.tsx",
         "kit/accent.ts",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
@@ -744,6 +759,7 @@
         "backgrounds/background-aurora.tsx",
         "kit/accent.ts",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "preloaders/preloader-slices-uncovered.ts"
       ]
@@ -800,6 +816,7 @@
         "backgrounds/background-silk.tsx",
         "kit/accent.ts",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "preloaders/preloader-slices-uncovered.ts"
       ]
@@ -856,6 +873,7 @@
         "backgrounds/background-facets.tsx",
         "kit/accent.ts",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "preloaders/preloader-slices-uncovered.ts"
       ]
@@ -864,7 +882,7 @@
       "slug": "hero-opener",
       "kind": "showpiece",
       "title": "Hero opener",
-      "does": "A full-bleed photo (or the WebGL scene over it) with the display line at 14 to 20vw across it; on scroll it pins, scales down and darkens while the next section slides over.",
+      "does": "A full-bleed photo (or the WebGL scene over it) with the display line at 14 to 20vw across it; on scroll it pins, scales down and darkens while the next section slides over. Without a photo it is type on the inverse ground over the builder's own motif (`backdrop`, an SVG or small canvas from the site's world) or a stock field (`scene`: \"dots\", \"contours\" or \"none\"); the dots default is a fallback, not a choice.",
       "reference": null,
       "variants": [],
       "role": "opening",
@@ -895,6 +913,7 @@
         "kit/MagneticButton.tsx",
         "kit/accent.ts",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/scenes/contours.ts",
@@ -933,6 +952,7 @@
       "file": "showpieces/image-to-fullbleed.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "showpieces/image-to-fullbleed.tsx"
@@ -966,6 +986,7 @@
       "file": "showpieces/panel-wipe.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "showpieces/panel-wipe.tsx"
@@ -999,6 +1020,7 @@
       "file": "showpieces/scrub-connector.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "showpieces/scrub-connector.tsx"
       ]
@@ -1031,6 +1053,7 @@
       "file": "showpieces/project-stack.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "showpieces/project-stack.tsx"
@@ -1064,6 +1087,7 @@
       "file": "showpieces/manifesto-scrub.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "showpieces/manifesto-scrub.tsx"
       ]
@@ -1098,6 +1122,7 @@
       "file": "showpieces/fill-rows.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "showpieces/fill-rows.tsx"
       ]
@@ -1164,6 +1189,7 @@
       "file": "showpieces/wordmark-finale.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "showpieces/wordmark-finale.tsx"
       ]
@@ -1196,6 +1222,7 @@
       "file": "transitions/zoom-through.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
@@ -1258,6 +1285,7 @@
       "file": "sections/about-studio.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "sections/about-studio.tsx"
@@ -1320,6 +1348,7 @@
       "file": "sections/approach.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "sections/approach.tsx"
@@ -1382,6 +1411,7 @@
       "file": "sections/manifesto.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
@@ -1500,6 +1530,7 @@
       "file": "sections/cta-closing.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
@@ -1554,6 +1585,7 @@
       "file": "sections/reveals.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "sections/reveals.tsx"
@@ -1590,6 +1622,7 @@
       "file": "sections/image-trail.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "sections/image-trail.tsx"
@@ -1625,6 +1658,7 @@
       "file": "sections/panel-accordion.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "sections/panel-accordion.tsx"
@@ -1658,6 +1692,7 @@
       "file": "sections/grid-assembly.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
@@ -1694,6 +1729,7 @@
       "file": "sections/velocity-type.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "sections/velocity-type.tsx"
@@ -1727,6 +1763,7 @@
       "file": "sections/sticky-chapters.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "sections/sticky-chapters.tsx"
@@ -1760,6 +1797,7 @@
       "file": "sections/film-strip.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "sections/film-strip.tsx"
@@ -1796,6 +1834,7 @@
       "file": "sections/hover-list.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "sections/hover-list.tsx"
@@ -1829,6 +1868,7 @@
       "file": "sections/split-pair.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "kit/photo-read.ts",
@@ -1865,6 +1905,7 @@
       "file": "sections/fanned-cards.tsx",
       "files": [
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
         "sections/fanned-cards.tsx"
@@ -1921,6 +1962,7 @@
         "footers/footer-reveal.tsx",
         "kit/SmoothScroll.tsx",
         "kit/blocks.css",
+        "kit/feel.ts",
         "kit/gsap.ts"
       ]
     },
@@ -1966,6 +2008,7 @@
         }
       },
       "packages": [
+        ",\n  },\n  nl: {\n    days: [",
         "@gsap/react",
         "gsap"
       ],
@@ -1976,7 +2019,9 @@
       "files": [
         "footers/footer-contact.tsx",
         "kit/blocks.css",
-        "kit/gsap.ts"
+        "kit/feel.ts",
+        "kit/gsap.ts",
+        "kit/middle/hours.ts"
       ]
     }
   ]

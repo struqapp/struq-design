@@ -14,7 +14,8 @@
 // on when it cuts (and cuts again on a resize), and it sits inside the line's mask (.struq-line-mask), whose room
 // above and below the line holds the accent face's tallest and deepest glyph. Its size and leading are the line's
 // own; only the face and the slant change. A block that fits its type to a width measures with the mark in place, and
-// waits for the accent face with accentFaceReady before it trusts a measure.
+// waits for the accent face with accentFaceReady before it trusts a measure. Punctuation that touches the word ("it.",
+// "(licht)") is set with the mark inside one no-wrap span, so it never wraps onto a line of its own.
 import { createElement, Fragment, type ReactNode } from "react";
 
 /** The accent's classes: the pairing's accent face (blocks.css --font-accent), italic. Nothing else changes. */
@@ -41,8 +42,33 @@ export function findAccent(text: string, accent?: string): AccentParts | null {
   };
 }
 
-function marked({ before, word, after }: AccentParts): ReactNode {
-  return createElement(Fragment, null, before, createElement("em", { className: ACCENT_CLASS, "data-accent": "" }, word), after);
+export type GluedParts = { before: string; open: string; word: string; close: string; after: string };
+
+/**
+ * The parts with the punctuation that touches the word on either side (an opening quote or bracket before it, a full
+ * stop, comma or closing quote after it) taken out of the text around it, to be set with the word as one unit.
+ */
+export function glueParts({ before, word, after }: AccentParts): GluedParts {
+  const open = /\S*$/.exec(before)?.[0] ?? "";
+  const close = /^\S*/.exec(after)?.[0] ?? "";
+  return {
+    before: before.slice(0, before.length - open.length),
+    open,
+    word,
+    close,
+    after: after.slice(close.length),
+  };
+}
+
+// The punctuation that touches the word is set inside one no-wrap span with the mark. Without it the full stop after
+// the mark is a text node of its own, and SplitText's line cut wraps each run in an inline block, so on a narrow screen
+// "it." could break into "it" and a "." alone on the next line. The span keeps them on one line in the browser's own
+// wrap and in every cut; a word without touching punctuation gets no span.
+function marked(parts: AccentParts): ReactNode {
+  const { before, open, word, close, after } = glueParts(parts);
+  const em = createElement("em", { className: ACCENT_CLASS, "data-accent": "" }, word);
+  const unit = open || close ? createElement("span", { "data-accent-glue": "", style: { whiteSpace: "nowrap" } }, open, em, close) : em;
+  return createElement(Fragment, null, before, unit, after);
 }
 
 /** The text with its accent word (the first time it occurs) in the accent face; the text itself when it is absent. */

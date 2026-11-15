@@ -7,7 +7,8 @@
 //   Vis en groente, van het seizoen.
 // </SplitHeadline>
 //
-// Pass plain text (or text with <em>): SplitText needs text nodes, not components.
+// Pass plain text (or text with <em>): SplitText needs text nodes, not components. The accent helper's no-wrap unit
+// (the mark with the punctuation touching it, ./accent) is cut as one piece, so it always lands whole on one line.
 import { useRef } from "react";
 import { gsap, SplitText, useGSAP } from "./gsap";
 

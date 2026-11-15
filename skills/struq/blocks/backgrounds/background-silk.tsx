@@ -357,8 +357,10 @@ function silkField(
   scratch.height = 1;
   const ctx2d = scratch.getContext("2d", { willReadFrequently: true });
 
+  // alpha: a cleared or discarded buffer (a resize, a restored context) is transparent, so the hero's own ground
+  // shows through, never an opaque black slab. Every pixel the shader writes has alpha 1, so a drawn frame is unchanged.
   const attrs: WebGLContextAttributes = {
-    alpha: false,
+    alpha: true,
     antialias: false,
     depth: false,
     stencil: false,
@@ -721,9 +723,11 @@ function silkField(
   const resizeObserver = new ResizeObserver(() => {
     resize();
     remeasure();
+    // A resize clears the canvas: draw at once, in this task, so a paused loop never leaves it blank.
     if (reduce) still();
+    else if (drawn) draw();
   });
-  const io = new IntersectionObserver(
+  const io =new IntersectionObserver(
     (entries) => {
       onScreen = entries.some((en) => en.isIntersecting);
       kick();

@@ -16,10 +16,20 @@ const BY_SLUG = new Map(CATALOG.map((b) => [b.slug, b]));
 const CHECK_CMD = `node "${join(here, "check.mjs")}" --plan`;
 const LOG_CMD = `node "${join(here, "log.mjs")}"`;
 
-/** The approval entry check.mjs asks for too: a Step 2 Approval heading with the user's words on a Reply: line. */
+/** The approval entry check.mjs asks for too: a Step 2 Approval heading with the user's words on a Reply: line.
+ *  Every such entry counts, not only the first: the log is append-only, and agents log a "Reply: pending" line before
+ *  the stop, which used to hide the real reply logged after it and block the build (release-proof restaurant, fashion
+ *  and bakery, 2026-11-15). A quoted placeholder ("pending", "waiting", "TBD") is no reply. */
+const PLACEHOLDER_REPLY = /^\s*(?:pending|waiting|awaiting\b.*|to come|tbd|tbc|n\/a|none|nog niet|wacht\w*|in afwachting\b.*)\s*\.?\s*$/i;
 export function hasApproval(log) {
-  const entry = String(log ?? "").match(/^## Step 2 Approval[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m);
-  return Boolean(entry && /^Reply:\s*["“‘'].+["”’']\s*$/m.test(entry[1]));
+  const entries = String(log ?? "").matchAll(/^## Step 2 Approval[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/gm);
+  for (const [, body] of entries) {
+    for (const line of body.split(/\r?\n/)) {
+      const reply = line.match(/^Reply:\s*["“‘'](.+)["”’']\s*$/);
+      if (reply && !PLACEHOLDER_REPLY.test(reply[1])) return true;
+    }
+  }
+  return false;
 }
 
 /** The page files under app/ (or src/app/): one per route. */

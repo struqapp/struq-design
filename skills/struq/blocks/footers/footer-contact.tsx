@@ -38,6 +38,8 @@
 // Reduced motion: the composed footer, no travel; the colon holds and the digits cut; hovers show a plain underline.
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import { gsap, ScrollTrigger, SplitText, useGSAP } from "../kit/gsap";
+// The hours as words, the wall clock and the open marker's logic: one copy, shared with kit/middle/PlaceHours.
+import { hoursText as rowText, openStatus, useNow, wallClock } from "../kit/middle/hours";
 
 export const FOOTER_CONTACT_VARIANTS = [
   { id: "address", title: "Adres" },
@@ -91,13 +93,7 @@ const ROLL_SPAN = 0.36;
 /** The soft rise of the details, in px. */
 const SOFT = 24;
 
-const DAYS = ["maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "zondag"];
-const WEEKDAY: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-const toMinutes = (s: string) => {
-  const [h, m] = s.split(":").map(Number);
-  return (h || 0) * 60 + (m || 0);
-};
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const within = (p: number, from: number, to: number) => clamp01((p - from) / (to - from));
@@ -152,87 +148,21 @@ function faceReady() {
   return Promise.race([fonts ?? Promise.resolve(), new Promise((res) => window.setTimeout(res, FONT_CAP))]);
 }
 
-/** The time now, only when `on` and only after mount (null on the server and the first paint), ticking on the minute. */
-function useNow(on: boolean) {
-  const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => {
-    if (!on) return;
-    let timer = 0;
-    const tick = () => {
-      const d = new Date();
-      setNow(d);
-      window.clearTimeout(timer);
-      timer = window.setTimeout(tick, 60_000 - (d.getSeconds() * 1000 + d.getMilliseconds()) + 30);
-    };
-    tick();
-    // A background tab's timers are held back; on return the clock catches up at once.
-    const onShow = () => {
-      if (document.visibilityState === "visible") tick();
-    };
-    document.addEventListener("visibilitychange", onShow);
-    return () => {
-      window.clearTimeout(timer);
-      document.removeEventListener("visibilitychange", onShow);
-    };
-  }, [on]);
-  return on ? now : null;
-}
-
 type Wall = { dow: number; h: number; m: number; hh: string; mm: string; date: string };
 
-/** The studio's wall clock and whether it is open, from the real time and the given hours. */
+/** The studio's wall clock and whether it is open, from the real time and the given hours (../kit/middle/hours). */
 function useWall(now: Date | null, timeZone: string, hours: Props["hours"]) {
-  const fmt = useMemo(
-    () => ({
-      parts: new Intl.DateTimeFormat("en-GB", { timeZone, weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
-      date: new Intl.DateTimeFormat("nl-NL", { timeZone, weekday: "long", day: "numeric", month: "long" }),
-    }),
-    [timeZone],
-  );
+  const date = useMemo(() => new Intl.DateTimeFormat("nl-NL", { timeZone, weekday: "long", day: "numeric", month: "long" }), [timeZone]);
   return useMemo(() => {
     if (!now) return { wall: null, status: null };
-    const parts = fmt.parts.formatToParts(now);
-    const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
-    const h = Number(get("hour")) % 24;
-    const m = Number(get("minute"));
-    const wall: Wall = {
-      dow: WEEKDAY[get("weekday")] ?? 1,
-      h,
-      m,
-      hh: String(h).padStart(2, "0"),
-      mm: String(m).padStart(2, "0"),
-      date: fmt.date.format(now),
-    };
-    const mins = h * 60 + m;
-    const from = toMinutes(hours.from);
-    const to = toMinutes(hours.to);
-    const openDay = (d: number) => hours.days.includes(d);
-    let status: { open: boolean; text: string };
-    if (openDay(wall.dow) && mins >= from && mins < to) status = { open: true, text: `Nu open, tot ${hours.to}` };
-    else if (openDay(wall.dow) && mins < from) status = { open: false, text: `Vandaag vanaf ${hours.from}` };
-    else {
-      let text = "";
-      for (let k = 1; k <= 7; k += 1) {
-        const d = ((wall.dow - 1 + k) % 7) + 1;
-        if (openDay(d)) {
-          text = k === 1 ? `Morgen vanaf ${hours.from}` : `${cap(DAYS[d - 1])} vanaf ${hours.from}`;
-          break;
-        }
-      }
-      status = { open: false, text };
-    }
-    return { wall, status };
-  }, [now, fmt, hours]);
+    const wall: Wall = { ...wallClock(now, timeZone), date: date.format(now) };
+    return { wall, status: openStatus([hours], wall, "nl") };
+  }, [now, date, timeZone, hours]);
 }
 
 /** "Maandag tot en met vrijdag, 9:00 tot 18:00" from the hours. */
 function hoursText(hours: Props["hours"]) {
-  const days = [...hours.days].sort((a, b) => a - b);
-  if (!days.length) return "";
-  const first = DAYS[days[0] - 1];
-  const last = DAYS[days[days.length - 1] - 1];
-  const run = days.length === 1 ? cap(first) : `${cap(first)} tot en met ${last}`;
-  return `${run}, ${hours.from} tot ${hours.to}`;
+  return rowText(hours, "nl");
 }
 
 /** The open marker: a small ring, filled while the studio is open, and the words. Empty until the time is known. */

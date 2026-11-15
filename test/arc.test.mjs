@@ -1,6 +1,7 @@
 // why: the arcs used to live only in SKILL.md prose, so an agent copied a storyboard by hand and small models dropped
-// the quiet scenes or doubled a loud one. blocks.mjs arc prints the arc from film.json, the product's own data, and the
-// printed default must pass the plan check as it stands. The kit's quiet scenes (Statement, PhotoText, Rows, Close)
+// the quiet scenes or doubled a loud one. blocks.mjs arc prints the arc from film.json, the product's own data. Since
+// 2026-11-14 it prints no picks: a pre-filled default made every site open the same way, so the printed arc fails the
+// plan check until the agent casts it, and a cast arc must pass. The kit's quiet scenes (Statement, PhotoText, Rows, Close)
 // stand where a block would on that storyboard, so add, the gate and init must all treat them as known kit parts.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -28,7 +29,8 @@ function nextProject() {
 
 /** The printed Tone arc and numbered Storyboard lines, as they would be pasted into STRUQ.md. */
 function printedBoard(language) {
-  const r = blocks('arc', language);
+  // A fresh project each time: arc deals the opening and centerpiece hands into <project>/.struq/draw.json.
+  const r = blocks('arc', language, '--dir', tmp('board'));
   assert.equal(r.status, 0, r.stderr);
   const lines = r.stdout.split('\n');
   const tone = lines.find((l) => l.startsWith('Tone arc: '));
@@ -36,14 +38,33 @@ function printedBoard(language) {
   return { out: r.stdout, tone, board };
 }
 
-/** A minimal treatment head above the printed lines; the centerpiece is the arc's default centerpiece pick. */
+/**
+ * The printed lines as an agent casts them: each `<cast: ...>` replaced by the arc's own suggestion for that scene with
+ * its tag and a reason, the options list deleted, the footer picked. The printed lines carry no pick of their own.
+ */
+function castBoard(language) {
+  const { board } = printedBoard(language);
+  const arc = film.FILM_ARCS.find((a) => a.language === language);
+  return board.map((line, at) => {
+    const scene = arc.scenes[at];
+    const pick = scene.own && scene.kit ? scene.kit : scene.blocks[0] ?? scene.kit ?? 'own scene';
+    return line
+      .replace(/\(<loud\|quiet>\) <cast: [^>]*>/, `(${scene.tag}) ${pick} because the fixture says so`)
+      .replace(/ \| options: [^|]*/, '')
+      .replace(/footer: <([^|>]+)[^>]*>/, (_, first) => `footer: ${first.trim()}`);
+  });
+}
+
+/** A minimal treatment head above a cast storyboard; the centerpiece is the arc's own centerpiece suggestion. */
 function planFor(language) {
-  const { tone, board } = printedBoard(language);
+  const { tone } = printedBoard(language);
+  const board = castBoard(language);
   const spec = film.FILM_LANGUAGES.find((l) => l.id === language);
   const centerpiece = film.FILM_ARCS.find((a) => a.language === language).scenes.find((s) => s.name === 'Centerpiece').blocks[0];
   return `# STRUQ.md: arc fixture
 Brief: a client in the ${spec.for[0]} sector
 Idea: The work is the proof.
+Unlike: the sector's template -> one shape that returns
 Language: ${language}
 Motif: ${spec.motifs[0]}: one shape that returns down the page
 Lexicon: werk, plaats, maat
@@ -121,7 +142,8 @@ function arcProblems(language, lines) {
   return problems;
 }
 
-test('every block and kit scene a SKILL.md arc names is in that language\'s arc in film.json, in its order', () => {
+// exp/b-compact: the compact SKILL.md drops the hand-written arcs on purpose; blocks.mjs arc prints them.
+test.skip('every block and kit scene a SKILL.md arc names is in that language\'s arc in film.json, in its order', () => {
   for (const language of LANGUAGES) {
     const lines = skillArc(language);
     assert.ok(lines.length, `SKILL.md has no **${language}.** arc`);
@@ -129,7 +151,7 @@ test('every block and kit scene a SKILL.md arc names is in that language\'s arc 
   }
 });
 
-test('the arc comparison fails a block the language\'s arc does not hold, a swapped default and a dropped scene', () => {
+test.skip('the arc comparison fails a block the language\'s arc does not hold, a swapped default and a dropped scene', () => {
   const weight = skillArc('weight');
   const foreign = weight.map((l, i) => (i === 0 ? l.replace('`preloader-stack`', '`preloader-gate`') : l));
   assert.match(arcProblems('weight', foreign).join('\n'), /preloader-gate is not in film\.json's weight arc/);
@@ -153,23 +175,58 @@ test('arc prints one storyboard line per scene, the frames and how to use it', (
     assert.equal(board.length, arc.scenes.length, language);
     assert.equal(tone, `Tone arc: ${arc.scenes.map((s) => s.tone[0]).join(', ')}`);
     arc.scenes.forEach((s, at) => {
-      assert.match(board[at], new RegExp(`^${at + 1}\\.\\s+${s.name}\\s+\\(${s.tag}\\)\\s+\\S`), board[at]);
-      if (s.footer) assert.match(board[at], new RegExp(`\\| footer: ${s.footer[0]}$`));
+      // why: with a pick pre-filled, 11 of 12 proof sites on two unrelated briefs opened the same way (2026-11-14).
+      // Only the arrival, a frame of the language, comes filled; every other scene is left to the agent to cast.
+      // why: middle names like Statement and Release read as a script and gave every site the same middle
+      // (2026-11-15), so the middle scenes print as a plain Scene the agent names, offering an own scene first.
+      const middle = s.tag !== 'frame' && at !== arc.scenes.length - 1 && !['Opening', 'Centerpiece'].includes(s.name);
+      const name = middle ? 'Scene' : s.name;
+      if (s.tag === 'frame') assert.match(board[at], new RegExp(`^${at + 1}\\.\\s+${name}\\s+\\(frame\\)\\s+\\S`), board[at]);
+      else assert.match(board[at], new RegExp(`^${at + 1}\\.\\s+${name}\\s+\\(<loud\\|quiet>\\) <cast: `), board[at]);
+      if (middle) assert.match(board[at], /\| options: own scene\b/, board[at]);
+      if (s.footer) assert.match(board[at], new RegExp(`\\| footer: <[^>]*${s.footer[0]}`));
     });
-    // An arrival with a second preloader (curtain: the gate, or the wordmark) lists it after the landing.
-    assert.match(board[0], /\| lands on: <what>( \| or: \S.*)?$/);
-    assert.match(board.at(-1), /\| echoes the opening: <how>/);
+    assert.match(board[0], /\| lands on: <what>$/);
+    assert.match(board.at(-1), /\| ends on: </);
     const frames = film.FILM_LANGUAGES.find((l) => l.id === language).frames;
     assert.ok(out.includes(`preloader ${frames.preloader}`) && out.includes(frames.pageTransition) && out.includes(frames.menu), out);
     assert.match(out, /^Use: .*check\.mjs --plan\.$/m);
   }
-  // The weight arc fills its own scenes with the kit's quiet scenes, and lists the blocks that also fit.
-  const { board } = printedBoard('weight');
-  assert.match(board[2], /\(quiet\)\s+Statement \|/);
-  assert.match(board[1], /\(loud\)\s+hero-framed:wand \|.*\| or: hero-framed:portret, hero-still:frame, hero-still:still$/);
+  // why: listing the whole catalogue, even shuffled, still drew most sites to two or three openings (2026-11-14). The
+  // Opening and the Centerpiece offer a hand of three blocks of their role, from any language, dealt per project
+  // (five until round 6 of 2026-11-15 showed the model taking the same favourite whenever it was dealt). The
+  // Centerpiece is dealt alone since the release proof of the same day: three sites took one centerpiece from three.
+  const catalog = JSON.parse(readFileSync(join(BLOCKS_DIR, 'catalog.json'), 'utf8'));
+  const list = Array.isArray(catalog) ? catalog : catalog.blocks;
+  for (const language of LANGUAGES) {
+    const { board } = printedBoard(language);
+    const at = (name) => board.find((l) => new RegExp(`^\\d+\\.\\s+${name}\\s`).test(l));
+    for (const [name, role] of [['Opening', 'opening'], ['Centerpiece', 'centerpiece']]) {
+      const options = at(name).match(/options: ([^|]*)/)[1].split(', ').map((o) => o.split(/[: ]/)[0]);
+      const slugs = new Set(options);
+      assert.equal(slugs.size, name === 'Centerpiece' ? 1 : 3, `${language} ${name}: ${[...slugs].join(', ')}`);
+      for (const slug of slugs) assert.equal(list.find((b) => b.slug === slug)?.role, role, `${slug} is not an ${role}`);
+    }
+  }
 });
 
-test('the printed default storyboard of every language passes check.mjs --plan without a quiet or loud warning', () => {
+test('the printed storyboard fails the plan check until every scene is cast', () => {
+  const dir = tmp('arc-uncast');
+  const { tone, board } = printedBoard('weight');
+  writeFileSync(join(dir, 'STRUQ.md'), planFor('weight').replace(/Storyboard:\n[\s\S]*?\nAssumptions/, `Storyboard:\n${board.join('\n')}\nAssumptions`).replace(/Tone arc: .*/, tone));
+  const r = spawnSync(process.execPath, [CHECK, '--plan'], { cwd: dir, encoding: 'utf8' });
+  assert.equal(r.status, 1, r.stdout);
+  assert.match(r.stdout, /^FAIL uncast-slot: /m);
+});
+
+test('a plan without an Unlike line warns', () => {
+  const dir = tmp('arc-unlike');
+  writeFileSync(join(dir, 'STRUQ.md'), planFor('cut').replace(/^Unlike: .*\n/m, ''));
+  const r = spawnSync(process.execPath, [CHECK, '--plan'], { cwd: dir, encoding: 'utf8' });
+  assert.match(r.stdout, /^WARN no-unlike: /m);
+});
+
+test('a cast storyboard of every language passes check.mjs --plan without a quiet or loud warning', () => {
   for (const language of LANGUAGES) {
     const dir = tmp('arc-plan');
     writeFileSync(join(dir, 'STRUQ.md'), planFor(language));

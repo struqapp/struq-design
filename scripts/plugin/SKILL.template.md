@@ -24,7 +24,7 @@ blocks feel high end is [references/craft.md](references/craft.md); the tell lis
 
 For a dashboard or product UI keep the tokens, faces and tells; drop the preloader, Lenis and the pinned pieces.
 
-<!-- section: Three rules that never bend -->
+<!-- section: Rules that never bend -->
 
 ## The four tools
 

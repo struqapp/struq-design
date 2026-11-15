@@ -1145,7 +1145,8 @@ export function BackgroundFacets({ variant = "shard", lines, accent, lead, link,
     };
 
     const start = () => {
-      const gl = canvas.getContext("webgl2", { antialias: false, alpha: false, premultipliedAlpha: false, powerPreference: "low-power" });
+      // alpha: a cleared or discarded buffer is transparent, so the section's ground shows, never opaque black.
+      const gl = canvas.getContext("webgl2", { antialias: false, alpha: true, premultipliedAlpha: false, powerPreference: "low-power" });
       if (gl) g = buildGL(gl);
       if (!g && !gl) ctx2d = canvas.getContext("2d");
       else if (!g) {
@@ -1192,7 +1193,8 @@ export function BackgroundFacets({ variant = "shard", lines, accent, lead, link,
 
     const ro = new ResizeObserver(() => {
       measure();
-      if (!raf) render();
+      // A resize clears the canvas, and a frame already queued would show it blank first: draw now, in this task.
+      render();
     });
     ro.observe(el);
     if (copy) ro.observe(copy);
@@ -1228,7 +1230,7 @@ export function BackgroundFacets({ variant = "shard", lines, accent, lead, link,
     document.fonts?.ready.then(() => accentFaceReady(el)).then(() => {
       if (gone) return;
       measure();
-      if (!raf) render();
+      render();
     });
 
     start();

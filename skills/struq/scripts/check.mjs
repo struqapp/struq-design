@@ -7,15 +7,20 @@
 //
 // It needs no browser and no dependencies. It reads the source and the public folder and prints
 // PASS, WARN or FAIL per check, in groups: images, AI tells, the motion floor, the hero, the film
-// (film-check.mjs, the budgets Struq's MCP holds too), typography, plus the plan in STRUQ.md. Every
+// (film-check.mjs, the budgets Struq's MCP holds too), typography, plus the plan in STRUQ.md, the
+// look look.mjs took of the rendered page (.struq/look.json, which must pass and be newer than the source), and the
+// art director's asks (.struq/art-direction.md: each answered Built: or Refused:, never on the storyboard). Every
 // FAIL names the file and line and the fix. Exit code 1 while any FAIL remains. Fix, run again, and
 // only report done on "RESULT: PASS".
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import { appendLog } from "./log.mjs";
 import { altFitsBrief, packSignalForBrief } from "./packs.mjs";
+import { savedHand } from "./draw.mjs";
 import { filmCheck, planCheck } from "./film-check.mjs";
+import { checkHand } from "./hand.mjs";
 import { hasApproval } from "./gate.mjs";
+import { sourceStamp } from "./stamp.mjs";
 
 const CANON = JSON.parse(readFileSync(new URL("../canon/canon.json", import.meta.url), "utf8"));
 const CATALOG = JSON.parse(readFileSync(new URL("../blocks/catalog.json", import.meta.url), "utf8")).blocks;
@@ -64,6 +69,12 @@ if (args.includes("--plan")) {
   const appDir = ["app", "src/app"].map((d) => join(root, d)).find((d) => existsSync(d));
   const routes = Math.max(1, appDir ? walk(appDir).filter((p) => /(^|[\\/])page\.(tsx|jsx|js)$/.test(p)).length : 0);
   const { findings } = planCheck({ plan: planText, catalog: CATALOG, routes });
+  // The plan holds to the site's hand (canon.mjs draw), checked by Struq's hand.mjs, the same rule the MCP runs.
+  const hand = savedHand(root);
+  if (hand) findings.push(...checkHand(planText, hand));
+  else {
+    findings.push({ severity: "warn", id: "no-draw", detail: "No hand dealt for this site", fix: "run canon.mjs draw and choose the Palette and Type from it" });
+  }
   for (const f of findings) console.log(`${f.severity === "fail" ? "FAIL" : "WARN"} ${f.id}: ${f.detail.replace(/\.$/, "")}. Fix: ${f.fix}`);
   const failed = findings.some((f) => f.severity === "fail");
   console.log(`PLAN: ${failed ? "FAIL" : "PASS"}`);
@@ -128,6 +139,36 @@ const pkg = JSON.parse(read("package.json"));
 const deps = { ...pkg.dependencies, ...pkg.devDependencies };
 const plan = read("STRUQ.md");
 
+/** "file:line" for an index into a file's text. */
+const lineOf = (f, index) => `${f.rel}:${f.text.slice(0, index).split("\n").length}`;
+
+/**
+ * The names a site shows: the wordmark props of its header, preloader, hero and footer blocks, a data-wordmark element,
+ * the name and title in lib/site.ts or a file like it, and the page title. Each with where it stands.
+ */
+const SHOWN_NAMES = (() => {
+  const shown = [];
+  const seen = (name, where) => name.trim() && shown.push({ name: name.trim(), where });
+  for (const f of own.filter((x) => !x.rel.endsWith(".css"))) {
+    for (const m of f.text.matchAll(/<(?:Header|MenuCurtain|Preloader|Footer|Wordmark|Hero|PageTransition|SiteHeader)\w*\b[^>]*?\bname=\{?\s*["'`]([^"'`]+)["'`]/g)) seen(m[1], lineOf(f, m.index));
+    for (const m of f.text.matchAll(/<\w+\b[^>]*\bdata-wordmark\b[^>]*>([^<{]+)</g)) seen(m[1], lineOf(f, m.index));
+    if (/(?:^|\/)(?:lib|src\/lib|config|src\/config|data|app)\/(?:site|brand|identity|config|constants|metadata)\.(?:ts|tsx|js|mjs)$/.test(f.rel)) {
+      for (const m of f.text.matchAll(/\b(?:name|siteName|brandName|title)\s*:\s*["'`]([^"'`]+)["'`]/g)) seen(m[1], lineOf(f, m.index));
+    }
+    if (/(?:^|\/)app\/layout\.(?:tsx|jsx|ts|js)$/.test(f.rel)) {
+      for (const m of f.text.matchAll(/\b(?:title|default)\s*:\s*["'`]([^"'`]+)["'`]/g)) seen(m[1], lineOf(f, m.index));
+    }
+  }
+  return shown;
+})();
+
+/** The plan's Brief line. A name it gives stands in it capitalised, never as its first word. */
+const BRIEF = plan.match(/^Brief:\s*(.+)$/m)?.[1] ?? "";
+function namedInBrief(name) {
+  const re = new RegExp(`(?<![\\p{L}\\p{N}])${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`, "gu");
+  return [...BRIEF.matchAll(re)].some((m) => m.index > 0);
+}
+
 /* ------------------------------------------------------------------ IMAGES */
 {
   const G = "IMAGES";
@@ -163,9 +204,11 @@ const plan = read("STRUQ.md");
     else if (plates.length) add(G, "WARN", `${plates.length} fallback plate(s) among the pack images. Run images.mjs ${pack} again when online.`, plates);
     else add(G, "PASS", `${srcs.length} beeldbank images from pack "${pack}", each a verified image file`);
     // An off-topic photo is worse than no photo: a pack the brief does not point at must show
-    // something the brief is about in at least one alt.
+    // something the brief is about in at least one alt. A module images.mjs --brief already fitted is trusted: its
+    // Dutch alts never match an English brief word for word, which made this a false fail (proof run 2026-11-14).
     const brief = plan.match(/^Brief:\s*(.+)$/m)?.[1];
-    if (brief && srcs.length && packSignalForBrief(brief) !== pack) {
+    const fitted = /Fitted to the brief/.test(mod);
+    if (brief && srcs.length && !fitted && packSignalForBrief(brief) !== pack) {
       const alts = [...mod.matchAll(/alt: "([^"]*)"/g)].map((m) => m[1]);
       if (!alts.some((alt) => altFitsBrief(alt, brief))) {
         add(G, "FAIL", `Off-topic photos: none of the "${pack}" photos shows anything the brief is about. Run images.mjs --brief "<the brief>" (it leaves them out) and let the opener carry the first screen.`, alts.slice(0, 4));
@@ -242,7 +285,7 @@ const plan = read("STRUQ.md");
   if (hotlinks.length) add(G, "FAIL", "Hotlinked Struq images: download them with images.mjs and use the local /images/ path.", hotlinks);
 
   const credit = uses(/imageCredit|struq\.app\/photos|struq\.nl\/beeldbank/);
-  if (libFile && !credit) add(G, "WARN", "No image credit. Put imageCredit (\"Beeld: Struq\") in the footer as one quiet text-small link.");
+  if (libFile && !credit) add(G, "WARN", "No image credit. Put imageCredit ('Photos: Struq', 'Beeld: Struq' on a Dutch site) in the footer as one quiet text-small link.");
 }
 
 /* ------------------------------------------------------------------- TELLS */
@@ -261,8 +304,125 @@ const plan = read("STRUQ.md");
 
   // Copy
   tell("Notes to the client on the page",
-    /volg(?:t|en) zodra|zodra (?:de studio|de klant|je|jullie|we)\b[^"'<>]{0,40}(?:aanlever|doorgeef|doorgeven|binnen)|nog aan te leveren|wordt nog aangevuld|lorem ipsum|\bcoming soon\b|to be confirmed|\bTBC\b|\[(?:naam|adres|telefoon|e-?mail|name|phone|address)\]/i,
-    "a line written to the client or the developer is not copy. Leave a missing fact out of the page and list it under Assumptions: in STRUQ.md.");
+    /volg(?:t|en) zodra|zodra (?:de studio|de klant|je|jullie|we)\b[^"'<>]{0,40}(?:aanlever|doorgeef|doorgeven|binnen)|nog aan te leveren|wordt nog aangevuld|(?:telefoon|e-?mail|adres|reserveren|gegevens|openingstijden|data|datum|prijzen)[^.<>"'{}]{0,30}\bvolg(?:t|en)\b|\bvolg(?:t|en) (?:nog|later|binnenkort)\b|lorem ipsum|\bcoming soon\b|to be (?:confirmed|announced)|will be announced|details to (?:follow|come)|\bto follow\)|\bTB[AC]\b|\byour (?:name|company|logo|photo|text) here\b|\bYour Name\b|\bexample\.(?:com|org|net)\b|\b(?:John|Jane) Doe\b|\[(?:naam|adres|telefoon|e-?mail|name|phone|address)\]/i,
+    "a line written to the client or the developer, or a stand-in (Your Name, example.com, to be announced), is not copy. A missing fact leaves no line on the page: drop the sentence, the field or the button, and list it under Assumptions: in STRUQ.md.");
+
+  // The visible copy of your own files: string literals and JSX text, line by line, comments left out. Class lists,
+  // paths and identifiers hold no sentences, so the honesty phrases below match the words a reader sees.
+  const copy = [];
+  for (const f of own.filter((x) => !x.rel.endsWith(".css"))) {
+    f.text.split(/\r?\n/).forEach((line, i) => {
+      const t = line.trim();
+      if (!t || t.startsWith("//") || t.startsWith("/*") || t.startsWith("*") || t.startsWith("{/*")) return;
+      const segs = [];
+      for (const m of line.matchAll(/(["'`])((?:\\.|(?!\1)[^\\])*)\1/g)) segs.push(m[2]);
+      for (const m of line.matchAll(/>([^<>{}]+)(?=<|$)/g)) segs.push(m[1]);
+      // A line of JSX text between an opening and a closing tag on lines of their own.
+      if (/^[^<>{}=;()[\]]+$/.test(t)) segs.push(t);
+      const words = segs.map((s) => s.trim()).filter((s) => /[\p{L}\p{N}]/u.test(s));
+      if (words.length) copy.push({ where: `${f.rel}:${i + 1}`, line: t, segs: words });
+    });
+  }
+  const copyHits = (re) => copy.filter((c) => c.segs.some((s) => re.test(s))).map((c) => `${c.where}  ${c.line.slice(0, 120)}`);
+
+  // Copy that promises what is not there yet. Bare "not yet" and "nog niet" are common in a factual sentence, so they
+  // count only with an availability word after them, or closing the line.
+  const soon = copyHits(
+    /\bcoming soon\b|\b(?:is|are|we're|we are|now|soon) launching\b|\blaunching (?:soon|in|on|this|next|later|early|late|spring|summer|autumn|fall|winter|\d)|\blaunching[.!]?$|\bon (?:its|their) way\b|\bsoon available\b|\bavailable soon\b|\bnot yet (?:available|live|open|ready|online|launched|released|public|bookable|for sale|on sale|in stock)\b|\bnot yet[.!]?$|\bbinnenkort\b|\bvolg(?:t|en) snel\b|\bnog niet (?:beschikbaar|live|open|online|klaar|te koop|verkrijgbaar|bekend|te boeken|te reserveren|gepubliceerd|af)\b|\bnog niet[.!]?$|\bin de maak\b/i,
+  );
+  if (soon.length) add(G, "FAIL", "Coming-soon copy: a line that promises what is not there yet (coming soon, launching, on its way, binnenkort, volgt snel, nog niet beschikbaar, in de maak) is not copy. The site shows what exists today: drop the line, and list what is missing under Assumptions: in STRUQ.md.", soon);
+  else add(G, "PASS", "No coming-soon copy");
+
+  // An invitation needs a door: an address, a phone number, an email, a mailto or tel link, or an external booking or
+  // shop link somewhere on the page. Two kinds are held to it: the "come by" wording (tonight, see you, kom langs), and
+  // the imperative call in the trade's own words (Schuif aan, Pick up a mug, Book a class, Reserveer, Shop the collection)
+  // in a heading, a button, a link or a closing line. A statement that merely mentions the trade is no call: the verb
+  // opens a short line, and the line is the call.
+  const COME_BY = /\btonight\b|\bsee you\b|\bcome by\b|\bdrop in\b|\bcall us\b|\bvanavond\b|\btot straks\b|\bkom langs\b|\bloop (?:even )?binnen\b|\bbel ons\b|\bwaarvoor u ons belt\b/i;
+  const END = "(?:\\s|[.!,]|$)";
+  const CALL = new RegExp(
+    `^[\\s"'(\\[\\u2018\\u201C]*(?:${[
+      // English
+      `visit${END}`, "come\\s+(?:and|in|eat|taste|try|see|join|sit|visit|hungry|by|over|along)\\b", "(?:eat|dine|taste)\\s+(?:with|at|here|in|the|our|your|something|a|some)\\b",
+      "book\\s+(?:a|an|your|the|now|online|tickets?|ahead|with|today)\\b", `buy${END}`, "order\\s+(?:a|an|your|the|now|online|ahead|here|today|one|it)\\b",
+      "shop\\s+(?:the|our|all|now|online|this|new|with)\\b", `join${END}`, "try\\s+(?:a|an|one|it|the|our|us|this|some|your)\\b", "sit\\s+(?:down|with|at|in)\\b",
+      "pick\\s+up\\b", "roll\\s+out\\b", "grab\\s+(?:a|an|your|the|some|one)\\b", "reserve\\s+(?:a|an|your|the|now|online|seats?|tickets?|today)\\b",
+      "save\\s+(?:the\\s+date|your\\s+(?:seat|spot|place))\\b", "take\\s+a\\s+(?:seat|class|lesson)\\b", "pull\\s+up\\s+a\\s+chair\\b", "step\\s+(?:in|inside|up)\\b",
+      "stop\\s+by\\b", "walk\\s+in\\b", "get\\s+(?:your\\s+|a\\s+|an\\s+)?(?:tickets?|quote|table|seat|spot)\\b", "enrol{1,2}\\s+(?:now|today|in|for)\\b", "find\\s+us\\b",
+      // Dutch
+      "kom\\s+(?:proeven|eten|binnen|langs|kijken|naar|bij|eens|gerust|erbij|meedoen|kennismaken|mee|zitten)\\b", "schuif\\s+(?:even\\s+|gerust\\s+|gezellig\\s+)?aan\\b",
+      `bestel${END}`, `reserveer${END}`, "boek\\s+(?:een|je|jouw|uw|nu|online|tickets?|alvast|plek|plaats)\\b", `koop${END}`,
+      "neem\\s+(?:een\\s+)?(?:plaats|zitplaats|stoel)\\b", "ga\\s+zitten\\b", "proef\\s+(?:het|de|een|ons|onze|wat|zelf|mee)\\b", "probeer\\s+(?:een|het|de|ons|onze|eens|zelf|wat)\\b",
+      "doe\\s+mee\\b", "sluit\\s+(?:je|u)\\s+aan\\b", "meld\\s+(?:je|u)\\s+aan\\b", "schrijf\\s+(?:je|u)\\s+in\\b", "stap\\s+(?:gerust\\s+)?binnen\\b",
+      "loop\\s+(?:gerust\\s+|even\\s+)?(?:naar\\s+)?binnen\\b", "pak\\s+(?:een|je|uw)\\b", "bezoek\\s+(?:ons|onze|de)\\b", "vind\\s+ons\\b", "eet\\s+(?:mee|met|bij)\\b",
+    ].join("|")})`,
+    "i",
+  );
+  const isCall = (s) => {
+    const words = s.trim().split(/\s+/);
+    if (words.length > 8 || s.length > 80 || !CALL.test(s)) return false;
+    // A lone lowercase word is a class name or an identifier, not a button.
+    return words.length > 1 || /^[^\p{L}]*\p{Lu}/u.test(s);
+  };
+  const calls = copy.filter((c) => {
+    // A class list is no copy: the strings of className and class attributes are left out.
+    const classes = new Set([...c.line.matchAll(/\b(?:className|class)\s*=\s*\{?\s*(["'`])((?:\\.|(?!\1)[^\\])*)\1/g)].map((m) => m[2].trim()));
+    const segs = c.segs.filter((s) => !classes.has(s));
+    const wholeLine = segs.length > 1 && segs.length <= 4 && segs.every((s) => s.split(/\s+/).length <= 5) ? [segs.join(" ")] : [];
+    return [...segs, ...wholeLine].some(isCall);
+  }).map((c) => `${c.where}  ${c.line.slice(0, 120)}`);
+  const invites = [...new Set([...copyHits(COME_BY), ...calls])];
+  if (invites.length) {
+    const DOORS = [
+      /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/,
+      /(?:\+|\b00)\d{1,3}[\s.-]?\(?\d[\d\s.()-]{6,}\d|\b0\d{1,3}[\s.-]?\d{3}[\s.-]?\d{2,4}(?:[\s.-]?\d{2,4})?\b/,
+      /\b\p{Lu}[\p{L}'-]*(?:straat|weg|laan|plein|gracht|kade|dijk|singel|markt|steeg|dreef|hof|pad|haven|wal|baan|burgwal|straße|strasse|gasse|platz)\s+\d+[a-z]?\b/u,
+      /\b[1-9]\d{3}\s?[A-Z]{2}\b/,
+      /\b\d{1,5}\s+(?:\p{Lu}[\p{L}'-]+\s+){1,3}(?:Street|St|Road|Rd|Avenue|Ave|Lane|Way|Square|Place|Boulevard|Drive|Court|Row|Terrace)\b/u,
+      /\b[A-Z]{1,2}\d[A-Z\d]?\s\d[A-Z]{2}\b/,
+    ];
+    // An external link is a door only to a booking or shop: not Struq's own credit, a font host, or a social profile.
+    const EXTERNAL = /\b(?:href|action)\s*[:=]\s*\{?\s*["'`]https?:\/\/(?!(?:www\.)?(?:struq\.(?:app|nl)|localhost|schema\.org|w3\.org|fonts\.(?:googleapis|gstatic)\.com|api\.fontshare\.com|(?:instagram|facebook|twitter|x|linkedin|tiktok|youtube|pinterest|github|behance|dribbble)\.com)\b)[^"'`\s]+/i;
+    const door = copy.some((c) => c.segs.some((s) => DOORS.some((re) => re.test(s)))) || own.some((f) => /\b(?:tel|mailto):[^"'`\s{}]{4,}/.test(f.text) || EXTERNAL.test(f.text));
+    if (door) add(G, "PASS", "The invitations on the page have a door: an address, a phone number, an email or a booking or shop link is on it");
+    else add(G, "FAIL", "Invitation without a door: the copy asks the reader to act (come by, call, eat, book, buy, order, join, sit down, pick up: tonight, kom langs, Schuif aan, Pick up a mug, Reserveer, Shop the collection), but the page shows no address, phone number, mailto or tel link, or external booking or shop link. With no door the site ends on the idea, never on an invitation: drop the line, the button or the link, and list the door the client must add under Assumptions: in STRUQ.md.", invites);
+  } else add(G, "PASS", "No invitation without a door");
+
+  // A stand-in name: the trade word shown as the business's name (a yoga studio called "Yoga"). The names a site shows are
+  // the wordmark props of its header, preloader, hero and footer blocks, a data-wordmark element, the name and title in
+  // lib/site.ts or a file like it, and the page title. A name that is only the trade or a generic word for the business
+  // is a stand-in, unless the Brief line itself gives that name (capitalised, and not as the first word of the line).
+  {
+    const GENERIC = new Set(
+      "yoga pilates bakery bakkerij bakker studio restaurant resto cafe café koffiebar bar pub brasserie plumbing plumber loodgieter loodgieters loodgietersbedrijf ceramics ceramic pottery keramiek aardewerk conference conferentie congres fashion label atelier salon kapper barbershop gym fitness dentist tandarts clinic praktijk shop store winkel webshop boutique gallery galerie agency bureau consultancy workshop hotel hostel guesthouse garden tuin hovenier cleaning schoonmaak electrician elektricien painter schilder builder aannemer lawyer advocaat accountant photography fotografie photographer fotograaf design ontwerp school academy academie club app software invoicing florist bloemist butcher slager".split(" "),
+    );
+    const STOP = new Set("the a an de het een my mijn our onze your jouw and en of van voor for by in at".split(" "));
+    const tokens = (name) => name.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    const isStandIn = (name) => {
+      const t = tokens(name);
+      return t.length > 0 && t.every((w) => GENERIC.has(w) || STOP.has(w)) && t.some((w) => GENERIC.has(w));
+    };
+    const shown = SHOWN_NAMES;
+    const named = namedInBrief;
+    const standIns = shown.filter((s) => isStandIn(s.name) && !named(s.name));
+    if (standIns.length) {
+      const names = [...new Set(standIns.map((s) => `"${s.name}"`))].join(", ");
+      add(G, "FAIL", `Stand-in name: the site is called ${names}, which is the trade or a generic word, not the client's name, and the Brief line does not give it. With no name in the brief the header shows no wordmark and the opener and the close carry no name; ask for the name at the one stop, and list it under Assumptions: in STRUQ.md.`, standIns.map((s) => `${s.where}  "${s.name}"`));
+    } else add(G, "PASS", "No stand-in name: the name the site shows is not a bare trade word");
+  }
+
+  // A link to an anchor nothing on the page carries: a button that goes nowhere.
+  {
+    const ids = new Set(files.flatMap((f) => [...f.text.matchAll(/\bid=\{?\s*["'`]([\w-]+)["'`]/g)].map((m) => m[1])));
+    const dead = [];
+    for (const f of own) {
+      for (const m of f.text.matchAll(/\b(?:href|menuHref)\s*[:=]\s*\{?\s*["'`]#([\w-]+)["'`]/g)) {
+        if (!ids.has(m[1])) dead.push(`${f.rel}  #${m[1]}`);
+      }
+    }
+    if (dead.length) add(G, "FAIL", "Links to an anchor nothing on the page carries: give the section that id, or drop the link.", [...new Set(dead)]);
+    else add(G, "PASS", "Every in-page link lands on an id");
+  }
 
   // Type and labels
   tell("Eyebrows and uppercase labels", /\buppercase\b|text-transform:\s*uppercase|\b(eyebrow|kicker|overline)\b/i,
@@ -438,6 +598,127 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
 
   if (/prefers-reduced-motion/.test(all)) add(G, "PASS", "prefers-reduced-motion respected");
   else add(G, "FAIL", "Nothing reads prefers-reduced-motion.");
+
+  // The primitives (components/struq/kit/motion) and the feel (kit/feel.ts) carry the house moves and their timing.
+  // Your own scenes under app/ and components/ (not components/struq/) compose them before writing GSAP by hand.
+  const site = files.filter((f) => /^(?:src\/)?(?:app|components)\//.test(f.rel) && !/(?:^|\/)components\/struq\//.test(f.rel) && !f.rel.endsWith(".css"));
+  const gsapFiles = site.filter((f) => /from\s*["'](?:gsap(?:\/[\w/]+)?|@gsap\/react|[^"']*components\/struq\/kit\/gsap)["']|\bgsap\./.test(f.text));
+
+  const split = hits(/\bSplitText\b/, { scope: site });
+  if (split.length) add(G, "FAIL", "SplitText outside the kit: use RevealText (@/components/struq/kit/motion) for a line or word reveal; it keeps the masks descender-safe and reads the temperament.", split);
+  else add(G, "PASS", "No hand-rolled SplitText: text reveals go through the kit");
+
+  const inlineStyle = /style=\{\{/;
+  const clip = hits(/\bclipPath\s*:|["']clip-path["']\s*:|\binset\(/, { scope: gsapFiles, exclude: inlineStyle });
+  if (clip.length) add(G, "WARN", "A clip-path tween of your own: MaskWipe wipes an element or photo in, ImageCurtain uncovers a photo, both on the feel's curtain ease.", clip);
+  const draw = hits(/\bstrokeDashoffset\s*:|\bdrawSVG\s*:/, { scope: gsapFiles, exclude: inlineStyle });
+  if (draw.length) add(G, "WARN", "A stroke drawn by hand: ScrubLine draws a rule or a path with the scroll at an even pace.", draw);
+  // A literal ease or duration in a GSAP call. ease "none" passes, and so does a duration beside it: a scrub is linear
+  // in every temperament, and a scrubbed timeline's durations only set proportions.
+  const timing = hits(/\bease\s*:\s*["'`](?!none["'`])|\bduration\s*:\s*\d/, { scope: gsapFiles, exclude: /style=\{\{|\bease\s*:\s*["'`]none["'`]/ });
+  if (timing.length) add(G, "WARN", "Ease or duration written into a GSAP call: take them from feel() (@/components/struq/kit/feel), so the scene moves in the site's temperament.", timing);
+  if (!clip.length && !draw.length && !timing.length) add(G, "PASS", "Own GSAP takes its timing from the feel and leaves wipes and drawn lines to the kit");
+
+  // The temperament: one on <body>, from the language's default or its neighbour.
+  const bodies = files
+    .filter((f) => /(?:^|\/)app\/layout\.(?:tsx|jsx)$/.test(f.rel))
+    .flatMap((f) =>
+      [...f.text.matchAll(/<body\b[^>]*>/g)]
+        .filter((m) => !/^\s*(?:\/\/|\/?\*|\{\/\*)/.test(f.text.slice(f.text.lastIndexOf("\n", m.index) + 1, m.index + 1)))
+        .map((m) => ({ tag: m[0], where: lineOf(f, m.index) })),
+    );
+  const TEMPERAMENTS = ["crisp", "weighted", "slow"];
+  const badBody = bodies.filter(({ tag }) => {
+    const value = tag.match(/\bdata-temperament=(?:["']([^"']*)["']|\{\s*["'`]([^"'`]*)["'`]\s*\})/);
+    return !value || !TEMPERAMENTS.includes(value[1] ?? value[2]);
+  });
+  if (!bodies.length) add(G, "FAIL", "No <body> in app/layout: set <body data-blocks=\"\" data-temperament=\"weighted\"> (crisp, weighted or slow, the language's default).");
+  else if (badBody.length) add(G, "FAIL", "<body> without a temperament: set data-temperament to crisp, weighted or slow, the language's default (cut crisp, weight weighted, curtain slow) or its neighbour with the reason on the Language line.", badBody.map((b) => `${b.where}  ${b.tag.slice(0, 100)}`));
+  else add(G, "PASS", `The temperament is set on <body>: ${bodies.map((b) => b.tag.match(/data-temperament=\{?\s*["'`]([^"'`]*)/)[1]).join(", ")}`);
+
+  // The close is never the site's name at full width. What this reads: each page file's footer (a footer element, a
+  // Footer* block or WordmarkFinale), the scene just before it (or the last section passed into the footer as its
+  // children), followed one step into a local component. It fails when that scene's display-size text (text-display,
+  // text-sheet-moment, text-6xl to 9xl, text-[Nvw] at 8vw or more, text-[Nrem] at 6rem or more) is only a name the
+  // site shows or the Brief gives, and when wordmark-finale follows a block or loud scene directly, so the name at
+  // full width is the page's last scene. What it cannot read: a name passed as an expression ({site.name}), a size set
+  // in CSS or inline style, and a close built in a component more than one import away.
+  {
+    const DISPLAY = /\btext-(?:display|sheet-moment|poster|[6-9]xl)\b|\btext-\[(?:[^\]]*?[\s,(])?(\d+(?:\.\d+)?)(vw|rem)\b[^\]]*\]/;
+    const isDisplay = (cls) => {
+      const m = cls.match(DISPLAY);
+      if (!m) return false;
+      if (!m[1]) return true;
+      return m[2] === "vw" ? Number(m[1]) >= 8 : Number(m[1]) >= 6;
+    };
+    const norm = (s) => s.toLowerCase().replace(/&apos;|&amp;/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+    const names = new Set(SHOWN_NAMES.map((s) => norm(s.name)).filter(Boolean));
+    const isName = (text) => {
+      const t = norm(text);
+      if (!t) return false;
+      if (names.has(t)) return true;
+      return t.split(" ").length <= 3 && /^\p{Lu}/u.test(text.trim()) && namedInBrief(text.trim());
+    };
+    /** Display-size elements whose whole text is a name: `<tag class="...">Name</tag>`. */
+    const nameAtDisplay = (markup) =>
+      [...markup.matchAll(/<([\w.]+)\b([^>]*)>([^<{}]+)<\/\1>/g)]
+        .filter((m) => isDisplay(m[2].match(/className=(?:["'`]([^"'`]*)["'`]|\{\s*["'`]([^"'`]*)["'`]\s*\})/)?.slice(1).find(Boolean) ?? "") && isName(m[3]))
+        .map((m) => m[3].trim());
+    const importOf = (text, tag) => text.match(new RegExp(`import\\s*(?:\\{[^}]*\\b${tag}\\b[^}]*\\}|${tag})\\s*from\\s*["']([^"']+)["']`))?.[1] ?? "";
+    const localFile = (from, spec) => {
+      if (!spec || !(spec.startsWith(".") || spec.startsWith("@/"))) return null;
+      const base = spec.startsWith("@/") ? spec.slice(2) : join(from.rel, "..", spec).split(sep).join("/");
+      return files.find((f) => [".tsx", ".jsx", ".ts", ".js", "/index.tsx", "/index.ts"].some((ext) => f.rel === `${base}${ext}` || f.rel === `src/${base}${ext}`)) ?? null;
+    };
+    const FOOTER = /<(WordmarkFinale|Footer\w*|footer)\b/;
+    const fullWidth = [];
+    for (const page of files.filter((f) => /(?:^|\/)app\/(?:.*\/)?page\.(?:tsx|jsx)$/.test(f.rel))) {
+      const body = page.text.slice(Math.max(0, page.text.search(/\breturn\s*\(/)));
+      const offset = page.text.length - body.length;
+      const foot = body.match(FOOTER);
+      if (!foot) continue;
+      const before = body.slice(0, foot.index);
+      const end = body.indexOf(`</${foot[1]}>`, foot.index);
+      const inside = end > 0 ? body.slice(foot.index, end) : "";
+      // The candidate close: the last section passed into the footer, else the last section or component before it.
+      let markup = "";
+      let kind = "";
+      const innerSection = inside.lastIndexOf("<section");
+      if (innerSection >= 0) {
+        markup = inside.slice(innerSection, inside.indexOf("</section>", innerSection) + 10 || undefined);
+        kind = "own";
+      } else {
+        const tags = [...before.matchAll(/<(section\b|[A-Z][\w.]*)/g)].filter((m) => !/^(?:Header\w*|SiteHeader|MenuCurtain\w*|Fragment|SmoothScroll|Reveal|main)$/.test(m[1]));
+        const last = tags.at(-1);
+        if (!last) continue;
+        if (last[1].startsWith("section")) {
+          markup = before.slice(last.index, before.indexOf("</section>", last.index) + 10 || undefined);
+          kind = /data-energy=["']?[2-9]/.test(markup.slice(0, 300)) ? "loud" : "own";
+        } else {
+          const spec = importOf(page.text, last[1]);
+          if (/components\/struq\/kit\/quiet(?:\/Close)?$/.test(spec)) kind = "kit";
+          else if (/components\/struq\//.test(spec)) kind = "block";
+          else {
+            const file = localFile(page, spec);
+            markup = file?.text ?? before.slice(last.index);
+            kind = "own";
+          }
+        }
+      }
+      // One step into the local components the close renders.
+      for (const m of [...markup.matchAll(/<([A-Z]\w*)/g)]) {
+        const file = localFile(page, importOf(page.text, m[1]));
+        if (file) markup += `\n${file.text}`;
+      }
+      const hit = nameAtDisplay(markup);
+      if (hit.length) fullWidth.push(`${lineOf(page, offset + foot.index)}  the scene before the footer sets "${hit[0]}" at display size`);
+      else if (foot[1] === "WordmarkFinale" && (kind === "block" || kind === "loud")) {
+        fullWidth.push(`${lineOf(page, offset + foot.index)}  wordmark-finale follows a block directly, so the name at full width is the page's last scene`);
+      }
+    }
+    if (fullWidth.length) add(G, "FAIL", "The close is the site's name at full width: end on the idea, an echo of the opening or the real doors instead, with the kit's Close (shape idea, echo or door), and keep a wordmark there at text size.", fullWidth);
+    else add(G, "PASS", "The close is not the name at full width");
+  }
 }
 
 /* -------------------------------------------------------------------- TYPE */
@@ -512,12 +793,16 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
 /* -------------------------------------------------------------------- HERO */
 {
   const G = "HERO";
-  const heroBlock = usesKind("heroes") || usedBlocks.has("showpieces/hero-opener");
-  const noFit = /imageFit[^=]*=\s*"none"/.test(read("lib/struq-images.ts") + read("src/lib/struq-images.ts"));
+  // A WebGL background opener (background-silk, -aurora, -facets) is a hero too: the catalogue casts it as an opening.
+  const heroBlock = usesKind("heroes") || usesKind("backgrounds") || usedBlocks.has("showpieces/hero-opener");
+  // No fitting photo (imageFit none), or no hero photo on purpose (images.mjs --no-hero): a type-led first screen.
+  const imageModule = read("lib/struq-images.ts") + read("src/lib/struq-images.ts");
+  const noFit = /imageFit[^=]*=\s*"none"/.test(imageModule) || /\bhero:\s*\[\s*\]/.test(imageModule);
   if (heroBlock) {
     add(G, "PASS", "A hero block opens the page");
     const heroUse = own.flatMap((f) => [...f.text.matchAll(/<(Hero[A-Z]\w*)\b[^>]*?\/?>/gs)].map((m) => ({ f, tag: m[0] })));
-    const bare = noFit ? [] : heroUse.filter(({ tag }) => /<Hero(Framed|Split|Index|Still|Poster)\b/.test(tag) && !/\bimages?=\{|\bimage=\{/.test(tag));
+    // Comments never count: a prop written inside /* */ is not a prop. HeroSplit takes its photos through items.
+    const bare = noFit ? [] : heroUse.filter(({ tag }) => { const t = tag.replace(/\/\*[\s\S]*?\*\//g, ""); return /<Hero(Framed|Split|Index|Still|Poster)\b/.test(t) && !/\b(?:images?|items)=\{/.test(t); });
     if (bare.length) add(G, "FAIL", "A photo hero without its photo: pass image={images.hero[0]} (or the client's photo).", bare.map(({ f }) => f.rel));
   } else {
     // A hand-built hero: a photo in it and a display line at poster size.
@@ -532,8 +817,10 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
       else add(G, "PASS", "The hand-built hero line runs at poster size");
     }
   }
+  // A brief with no name gets a header with no wordmark (the stand-in rule), so an own <header> passes on its own.
   if (usesKind("headers") || own.some((f) => /data-wordmark/.test(f.text))) add(G, "PASS", "A header with the wordmark");
-  else add(G, "FAIL", "No header: use header-bar or menu-curtain, or mark your own header's name data-wordmark.");
+  else if (own.some((f) => /<header\b/.test(f.text))) add(G, "PASS", "An own header (no wordmark: the brief gives no name, or mark it data-wordmark)");
+  else add(G, "FAIL", "No header: use header-bar or menu-curtain, or build your own <header> (its name marked data-wordmark when the brief gives one).");
   if (usesKind("footers") || usedBlocks.has("showpieces/wordmark-finale")) add(G, "PASS", "A designed footer block closes the page");
   else add(G, "WARN", "No footer block: close with footer-reveal, footer-contact or wordmark-finale, or design your own as hard as the hero.");
 
@@ -566,6 +853,125 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   }
 }
 
+/* -------------------------------------------------------------------- LOOK */
+// look.mjs renders the built page and writes .struq/look.json with what it measured and a stamp of the source. The
+// check holds to it: no look, a failing look, or a look of an older page than the source on disk all fail.
+{
+  const G = "LOOK";
+  const again = "Serve the build (npx next build && npx next start -p 4321) and run node <skill-dir>/scripts/look.mjs.";
+  let look = null;
+  try {
+    look = JSON.parse(readFileSync(join(root, ".struq", "look.json"), "utf8"));
+  } catch {
+    look = null;
+  }
+  if (!look) add(G, "FAIL", `No look at the rendered page (.struq/look.json missing). ${again}`);
+  else {
+    const now = sourceStamp(root);
+    const fails = (look.findings ?? []).filter((f) => f.severity === "FAIL");
+    const stale = look.source?.hash ? look.source.hash !== now.hash : !(now.newest.mtime <= Date.parse(look.at));
+    if (stale) add(G, "FAIL", `The look is older than the source: ${now.newest.file ?? "a file under app/ or components/"} changed after it. Rebuild, restart the server and run look.mjs again.`);
+    else if (look.result !== "PASS" || fails.length) {
+      add(G, "FAIL", `look.mjs found ${fails.length} fail(s) on the rendered page. Open the screenshots it names, fix, rebuild and run it again.`, fails.map((f) => `${f.kind} ${f.viewport ?? ""}: ${f.text ? `"${f.text.slice(0, 50)}" ` : ""}${f.detail}${f.shot ? `  ${f.shot}` : ""}`));
+    } else {
+      const warns = (look.findings ?? []).length;
+      add(G, "PASS", `look.mjs passed on the current source${warns ? ` (${warns} warn in .struq/look.json: open their screenshots)` : ""}`);
+    }
+  }
+}
+
+/* --------------------------------------------------------------------- ART */
+// The art director's asks are binding. .struq/art-direction.md lists each ask as a numbered item, and the builder writes
+// an answer line under it: "Built: <what changed>" or "Refused: <reason>". An ask with no answer fails. A refusal whose
+// reason only cites the storyboard, the plan, a budget or a block fails too: the storyboard is rewritten for a good ask,
+// a budget is kept by dropping something else, a block is swapped or restyled. A refusal stands on a rule that never
+// bends (SKILL.md, Rules that never bend) or on a fact the brief did not give, and says which.
+{
+  const G = "ART";
+  const file = join(root, ".struq", "art-direction.md");
+  const text = existsSync(file) ? readFileSync(file, "utf8") : "";
+  if (!text) add(G, "FAIL", "No .struq/art-direction.md: hand the stills to a fresh subagent (SKILL.md, Art direction), save its asks there as numbered items, and answer each with Built: or Refused:.");
+  else {
+    const asks = [];
+    let cur = null;
+    for (const line of text.split(/\r?\n/)) {
+      if (/^\s*#/.test(line)) {
+        cur = null;
+        continue;
+      }
+      const ask = line.match(/^\s{0,3}\d+[.)]\s+(\S.*)$/);
+      if (ask) {
+        cur = { ask: ask[1], answer: null, reason: "" };
+        asks.push(cur);
+        continue;
+      }
+      if (!cur) continue;
+      const ans = line.match(/^\s*(?:[-*]\s+)?\*{0,2}(Built|Refused)\*{0,2}:\*{0,2}\s*(.*)$/i);
+      if (ans) {
+        cur.answer = ans[1].toLowerCase();
+        cur.reason = ans[2];
+        // An ask can be partly built and partly refused; keep the Built line for the leftover check below.
+        if (cur.answer === "built") cur.built = ans[2];
+      } else if (cur.answer === "refused" && line.trim()) cur.reason += ` ${line.trim()}`;
+    }
+    const shortAsk = (a) => `${a.ask.slice(0, 90)}${a.ask.length > 90 ? "..." : ""}`;
+    const unanswered = asks.filter((a) => !a.answer);
+    const EMPTY = /^[\s.:;,…-]*$/;
+    // What a refusal may stand on: a rule that never bends, or a fact the brief did not give.
+    const GROUND = /\b(?:invent\w*|made[- ]up|fabricat\w*|never bends|rule\s*[1-4]|honesty|stand-in|empty frame|eyebrow\w*|tells?|dash(?:es)?|the brief\s+(?:gave|gives|did not|does not|never|has no|names no|says nothing)|brief gave|not (?:given|in the brief)|no (?:photo|pack photo|address|phone|number|name|programme|program|dates?|price|prices|shop|booking|testimonial|product)\b|reduced.motion|copyright|licen[cs]e)/i;
+    // What is not a ground: the plan, the storyboard, a budget, or a block.
+    const NOT_GROUND = /\b(?:story-?board|(?:the |our |approved |agreed )?plan\b|budgets?|quiet share|pin(?:s| budget)?\b|one centerpiece|centerpiece|blocks?\b|block-owned|owns? (?:its|the)|fixed (?:layout|crop|composition)|the film|loud scene)/i;
+    const weak = asks.filter((a) => a.answer === "refused" && (EMPTY.test(a.reason) || (NOT_GROUND.test(a.reason) && !GROUND.test(a.reason))));
+    const bare = asks.filter((a) => a.answer === "built" && EMPTY.test(a.reason));
+    // A Built answer that says a quoted text was removed is checked against the files: trial-prim fashion logged
+    // 'the "Photos: Struq" credit is removed' and the credit was still on the page (2026-11-15).
+    const leftovers = [];
+    const isComment = (line) => /^(\/\/|\/?\*|\{\/\*)/.test(line.trim());
+    for (const a of asks.filter((x) => x.built)) {
+      for (const m of a.built.matchAll(/["“]([^"”]{3,160})["”]/g)) {
+        const after = a.built.slice(m.index + m[0].length, m.index + m[0].length + 50);
+        const before = a.built.slice(Math.max(0, m.index - 40), m.index);
+        const gone = /^\s*(?:[\w-]+\s+){0,2}(?:is|are|was|were|has been|have been|now)?\s*(?:removed|gone|deleted|dropped|cut)\b/i.test(after) || /\b(?:removed|deleted|dropped)\s+(?:the\s+)?(?:[\w-]+\s+)?$/i.test(before);
+        if (!gone) continue;
+        const words = m[1].trim().replace(/[.,;:!?]+$/, "");
+        if (words.length < 3) continue;
+        // Found in a shipped file (lib/struq-images.ts holds the credit as a constant), it counts only when the site's
+        // own files still use that export; found in an own file, it counts as it stands.
+        const hitIn = (f) => f.text.split(/\r?\n/).findIndex((line) => !isComment(line) && line.includes(words));
+        let where = null;
+        for (const f of files) {
+          if (f.rel.startsWith(".struq/") || /\.md$/i.test(f.rel)) continue;
+          const i = hitIn(f);
+          if (i < 0) continue;
+          if (!f.recipe) {
+            where = `${f.rel}:${i + 1}`;
+            break;
+          }
+          const name = f.text.split(/\r?\n/)[i].match(/export\s+const\s+(\w+)/)?.[1];
+          const user = name && own.find((o) => !/\.md$/i.test(o.rel) && new RegExp(`\\b${name}\\b`).test(o.text));
+          if (user) {
+            where = `${f.rel}:${i + 1}, used by ${user.rel}`;
+            break;
+          }
+        }
+        if (where) leftovers.push(`${shortAsk(a)}  "${words}" is still in ${where}`);
+      }
+    }
+    if (leftovers.length) add(G, "FAIL", `${leftovers.length} art-direction answer(s) say a text was removed that is still in the site. Remove it, or correct the Built line.`, leftovers);
+    if (!asks.length && /ship it/i.test(text)) add(G, "PASS", "The art director said ship it: no asks to answer");
+    else if (!asks.length) add(G, "FAIL", ".struq/art-direction.md holds no numbered asks. Write each ask as a numbered item (1. 2. 3.) with the still it names, and answer each with Built: or Refused:.");
+    else {
+      if (unanswered.length) add(G, "FAIL", `${unanswered.length} art-direction ask(s) with no answer. Under each ask write "Built: <what changed>" or "Refused: <reason>"; every ask is built unless it breaks a rule that never bends or a fact of the brief.`, unanswered.map(shortAsk));
+      if (weak.length) add(G, "FAIL", `${weak.length} art-direction ask(s) refused with no ground. The storyboard, the plan, a budget or a block is never a reason: rewrite the storyboard for a good ask, keep a budget by dropping something else, swap or restyle the block. Refuse only an ask that breaks a rule that never bends (SKILL.md) or a fact the brief did not give, and say which.`, weak.map((a) => `${shortAsk(a)}  Refused: ${a.reason.slice(0, 100)}`));
+      if (bare.length) add(G, "FAIL", `${bare.length} art-direction ask(s) marked Built with nothing said. Write what changed.`, bare.map(shortAsk));
+      if (!unanswered.length && !weak.length && !bare.length && !leftovers.length) {
+        const built = asks.filter((a) => a.answer === "built").length;
+        add(G, "PASS", `Every art-direction ask is answered: ${built} built, ${asks.length - built} refused on a rule or a fact of the brief`);
+      }
+    }
+  }
+}
+
 /* --------------------------------------------------------------------- LOG */
 // Every site keeps STRUQ-LOG.md: an entry for each completed checklist step. Step 8 (this check) writes its own entry
 // when this run ends, so it is not required beforehand.
@@ -587,7 +993,7 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
 }
 
 /* ------------------------------------------------------------------ REPORT */
-const order = ["IMAGES", "TELLS", "MOTION", "HERO", "FILM", "TYPE", "PLAN", "LOG"];
+const order = ["IMAGES", "TELLS", "MOTION", "HERO", "FILM", "TYPE", "PLAN", "LOOK", "ART", "LOG"];
 console.log(`Struq check: ${root}\n`);
 for (const g of order) {
   const rows = results.filter((r) => r.group === g);

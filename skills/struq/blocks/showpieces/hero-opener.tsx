@@ -10,6 +10,17 @@
 // <HeroOpener image={images.hero[0]} split={["Vuur", "Noord"]} lead="..." cta={...} />
 //
 // <HeroOpener image={images.hero[0]} title="Koken op vuur." accent="vuur" lead="..." cta={...} />
+// <HeroOpener title="Getijden" backdrop={<TideLines />} lead="..." cta={...} />
+//
+// Without a photo the opener is type on the inverse ground, over the site's own motif. `backdrop` takes the builder's
+// own drawing (an SVG or a small canvas from the site's world), set behind the display line; it wins over `scene`.
+// `scene` picks a stock WebGL field instead ("dots", "contours") or nothing at all ("none": the ground and the type).
+// The dots are the default only so earlier pages keep working: a fallback, not a choice. Every photoless site that
+// leaves it on opens on the same dot wave, so give it a backdrop of its own or pick a scene that fits.
+//
+// The section says its ground to the header bar (data-bar-tone): "photo" over a photo, "inverse" without one, and
+// "ground" when a className sets a page surface (bg-surface-*). Any other ground a className brings needs `barTone`.
+// The scrim and the handover's dim are data-veil, so the bar reads the photo under it as the page shows it.
 //
 // The line is the display face at poster size, with at most one italic accent word: the site's one accent word, marked
 // in place when the title holds it (the same mark as the Statement and the Close, kept whole by SplitText's line cut),
@@ -20,7 +31,7 @@
 // The entrance (the line rising through its masks, the split words, the lead and the CTA) waits for
 // any preloader or page transition to start leaving (whenUncovered, from the helper the frames share),
 // and plays at once when nothing covers the page.
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { findAccent, withAccent } from "../kit/accent";
 import { HeroCanvas } from "../kit/HeroCanvas";
 import { MagneticButton } from "../kit/MagneticButton";
@@ -29,7 +40,7 @@ import type { StruqImage } from "../kit/images";
 import { whenUncovered } from "../preloaders/preloader-slices-uncovered";
 
 type Props = {
-  /** The beeldbank or client photo. Without one (imageFit "none"), the opener is typographic on the inverse ground over the dots scene. */
+  /** The beeldbank or client photo. Without one, the opener is typographic on the inverse ground, over `backdrop` or `scene`. */
   image?: StruqImage;
   /** The poster line ("across"). */
   title?: string;
@@ -52,10 +63,34 @@ type Props = {
    * beeldbank. With no calm left or right side, the lead gets a fixed backing and a step up in size.
    */
   calm?: "left" | "right" | "none";
+  /**
+   * Without a photo: the stock WebGL field behind the type, or "none" for the ground alone. "dots" by default, kept
+   * only so earlier pages keep working; a backdrop wins over it.
+   */
+  scene?: "dots" | "contours" | "none";
+  /** Without a photo: the builder's own motif (an SVG or a small canvas), drawn behind the display line. Wins over scene. */
+  backdrop?: ReactNode;
+  /** The ground the header bar reads here, when a className turns it to one the block cannot tell from its classes. */
+  barTone?: "ground" | "photo" | "inverse";
   className?: string;
 };
 
-export function HeroOpener({ image, title, accent, split, lead, cta, header, scrim = 0.34, calm, className = "" }: Props) {
+export function HeroOpener({
+  image,
+  title,
+  accent,
+  split,
+  lead,
+  cta,
+  header,
+  scrim = 0.34,
+  calm,
+  scene = "dots",
+  backdrop,
+  barTone,
+  className = "",
+}: Props) {
+  const tone = barTone ?? (image ? "photo" : /(^|\s)bg-surface-\d(\s|$)/.test(className) ? "ground" : "inverse");
   // The lead goes on the photo's calm side; the CTA takes the other. Over a busy frame (no calm
   // side known) the lead gets a flat backing at a fixed opacity and is set a step larger.
   const side = calm ?? (image?.negativeSpace === "left" || image?.negativeSpace === "right" ? image.negativeSpace : image ? "none" : "left");
@@ -129,11 +164,24 @@ export function HeroOpener({ image, title, accent, split, lead, cta, header, scr
   const size = "text-[19vw] md:text-[16vw]";
   const poster = `font-display block ${size} leading-[0.92] tracking-[-0.045em] [word-spacing:0.09em]`;
   return (
-    <section ref={stage} data-showpiece="hero-opener" className={`relative h-svh overflow-hidden ${image ? "bg-black text-on-photo" : "scene-inverse"} ${className}`}>
+    <section
+      ref={stage}
+      data-showpiece="hero-opener"
+      data-bar-tone={tone}
+      className={`relative h-svh overflow-hidden ${image ? "bg-black text-on-photo" : "scene-inverse"} ${className}`}
+    >
       <div data-opener-inner="" className="absolute inset-0 origin-top">
-        {image ? <HeroCanvas scene="ripple" image={image} grade={0.15} priority /> : <HeroCanvas scene="dots" />}
-        {image ? <div aria-hidden className="absolute inset-0 bg-black" style={{ opacity: scrim }} /> : null}
-        <div data-opener-dim="" aria-hidden className="absolute inset-0 bg-black opacity-0" />
+        {image ? (
+          <HeroCanvas scene="ripple" image={image} grade={0.15} priority />
+        ) : backdrop ? (
+          <div data-opener-backdrop="" aria-hidden className="absolute inset-0 overflow-hidden">
+            {backdrop}
+          </div>
+        ) : scene !== "none" ? (
+          <HeroCanvas scene={scene} />
+        ) : null}
+        {image ? <div data-veil="" aria-hidden className="absolute inset-0 bg-black" style={{ opacity: scrim }} /> : null}
+        <div data-opener-dim="" data-veil="" aria-hidden className="absolute inset-0 bg-black opacity-0" />
         {header ? <div className="absolute inset-x-0 top-0 z-20">{header}</div> : null}
         {split ? (
           <h1 aria-label={split.join(" ")} className="absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 justify-between px-sheet-margin">

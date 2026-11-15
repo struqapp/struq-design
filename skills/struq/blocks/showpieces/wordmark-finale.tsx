@@ -2,8 +2,8 @@
 // toonstuk-wordmark-finale (Struq showpiece recipe)
 // The footer as a finale: the brand name set edge to edge at the full width of the page, its
 // letters rising out of a mask as the footer arrives, with one closing line and a live local clock
-// (or just the line) above it. The name is measured and fitted to the width, so it never wraps or
-// falls short, whatever the face.
+// (or just the line) above it. The name is measured and fitted to the width on one line, so it never
+// wraps or falls short, whatever the face, and its foot gets the room its own descenders need.
 // Every site can close with it; it pairs with any lead showpiece.
 //
 // <WordmarkFinale name="Zout" line="Tot vanavond." place="Amsterdam" timeZone="Europe/Amsterdam" />
@@ -41,23 +41,47 @@ export function WordmarkFinale({ name, line, place, timeZone, children, classNam
   const mark = useRef<HTMLParagraphElement>(null);
   const now = useClock(timeZone);
 
-  // Fit the name to the full width: measure once at 100px, then scale.
+  // Fit the name to the full width on one line: measure once at 100px, then scale. Then give the line box the room
+  // its own descenders need (g, j, y hang far below a 0.8 line), measured on this name in this face, so the footer's
+  // clip never cuts them; a name without descenders keeps its tight foot.
   useEffect(() => {
     const el = mark.current;
     const box = root.current;
     if (!el || !box) return;
+    const canvas = document.createElement("canvas").getContext("2d");
+    const foot = () => {
+      const cs = getComputedStyle(el);
+      const size = parseFloat(cs.fontSize) || 0;
+      let below = 0.35 * size;
+      if (canvas) {
+        canvas.font = `${cs.fontStyle} ${cs.fontWeight} ${size}px ${cs.fontFamily}`;
+        const m = canvas.measureText(name);
+        if (m.fontBoundingBoxAscent !== undefined && m.fontBoundingBoxDescent !== undefined) {
+          const lineH = parseFloat(cs.lineHeight) || 0.8 * size;
+          // From the baseline down to the line box's bottom edge, then how far the name's ink hangs past it.
+          const toEdge = (lineH - (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent)) / 2 + m.fontBoundingBoxDescent;
+          below = m.actualBoundingBoxDescent - toEdge;
+        }
+      }
+      el.style.paddingBottom = `${Math.max(0, Math.ceil(below + 0.03 * size))}px`;
+    };
     const fit = () => {
       el.style.fontSize = "100px";
       const width = el.scrollWidth || 1;
       const style = getComputedStyle(box);
       const avail = box.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
       el.style.fontSize = `${Math.floor((100 * avail) / width)}px`;
+      foot();
     };
     fit();
     document.fonts?.ready.then(fit);
+    document.fonts?.addEventListener?.("loadingdone", fit);
     const ro = new ResizeObserver(fit);
     ro.observe(box);
-    return () => ro.disconnect();
+    return () => {
+      ro.disconnect();
+      document.fonts?.removeEventListener?.("loadingdone", fit);
+    };
   }, [name]);
 
   useGSAP(
@@ -99,7 +123,16 @@ export function WordmarkFinale({ name, line, place, timeZone, children, classNam
           </p>
         ) : null}
       </div>
-      <p ref={mark} data-wordmark="" aria-label={name} className="font-display mt-10 inline-block whitespace-nowrap leading-[0.8] tracking-[-0.04em]">
+      {/* One line, always: inline, because the kit balances display type (text-wrap), which would let a two-word name
+          wrap at the 100px measure and then collide at a 0.8 leading. The foot's room (0.35em) holds until the
+          script measures this name's own descenders. */}
+      <p
+        ref={mark}
+        data-wordmark=""
+        aria-label={name}
+        className="font-display mt-10 block w-fit pb-[0.35em] leading-[0.8] tracking-[-0.04em]"
+        style={{ whiteSpace: "nowrap", textWrap: "nowrap" } as React.CSSProperties}
+      >
         {name}
       </p>
     </footer>

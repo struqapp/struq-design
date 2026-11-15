@@ -20,7 +20,7 @@ agent and model, what came out, and where it went wrong. That is what moves the 
 | `skills/struq/` | The skill itself, and the only folder the installers copy. `SKILL.md` is the entry point. |
 | `skills/struq/blocks/` | The admitted blocks and the kit they stand on. A copy of Struq's catalogue, refreshed at every release. |
 | `skills/struq/canon/` | Palettes, type pairings and the photo packs. Also refreshed from Struq at every release. |
-| `skills/struq/scripts/` | The Node scripts your agent runs: `blocks.mjs`, `canon.mjs`, `images.mjs`, `check.mjs`, `log.mjs` and their helpers. |
+| `skills/struq/scripts/` | The Node scripts your agent runs: `blocks.mjs`, `canon.mjs`, `images.mjs`, `check.mjs`, `look.mjs`, `log.mjs` and their helpers. |
 | `skills/struq/references/` | The craft, the film grammar, the tells and the stack notes the skill reads while it works. |
 | `cli/struq.mjs` | The zero-dependency installer behind `npx @struq/skill@latest`. |
 | `plugin/`, `.claude-plugin/`, `.cursor-plugin/` | The Claude Code and Cursor plugin packaging, built by `npm run release:plugin`. |

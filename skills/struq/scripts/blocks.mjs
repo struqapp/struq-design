@@ -16,9 +16,10 @@
 // Everything lands under components/struq/ in the layout of Struq's blocks/ (kit/, heroes/, sections/ ...), so the
 // relative imports between them hold. A layout or stylesheet you wrote yourself is never overwritten.
 import { spawnSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { projectHand } from "./draw.mjs";
 import { addRefusal, refuse } from "./gate.mjs";
 import { appendLog } from "./log.mjs";
 
@@ -96,31 +97,65 @@ function report(step, what) {
   appendLog(root, step, [what, ...(notes.length ? [`Notes: ${notes.join(" ")}`] : [])]);
 }
 
+/** A copy of a list in random order: the printed options carry no ranking, so their order must not suggest one. */
+function shuffled(list) {
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 /**
- * A language's arc as STRUQ.md lines: the Tone arc, then one numbered Storyboard line per scene in the treatment's
- * format, the default pick filled in (the own scene first where the arc prefers it, as its kit quiet scene when it has
- * one, else the first block) and what else fits after `or:`. The defaults pass check.mjs --plan as they stand.
+ * This site's five openings or centerpieces, from the project's hand (draw.mjs: dealt once by Struq's hand.mjs and kept
+ * in .struq/draw.json), so printing the arc again shows the same hand. Every opening hand holds one that needs no photo.
  */
-function arcLines(arc) {
-  const pick = (scene) => {
-    const own = scene.kit ?? "own scene";
-    const ownFirst = scene.own && (scene.ownFirst || !scene.blocks.length);
-    const options = ownFirst ? [own, ...scene.blocks] : [...scene.blocks, ...(scene.own ? [own] : [])];
-    if (scene.kit && scene.own && !options.includes("own scene")) options.push("own scene");
-    return options;
-  };
-  const width = Math.max(...arc.scenes.map((s) => s.name.length));
+function hand(role) {
+  const { hand: dealt } = projectHand(root);
+  return new Set(role === "opening" ? dealt.openings : dealt.centerpieces);
+}
+
+/** The blocks of a role in this site's hand, each with its variants and that variant's energy, e.g. `hero-poster:window E3`. */
+function pool(role) {
+  const dealt = hand(role);
+  return shuffled(CATALOG.filter((b) => b.role === role && !b.home && dealt.has(b.slug))).flatMap((b) => {
+    const variants = b.variants?.length ? b.variants.map((v) => v.id) : [null];
+    return variants.map((v) => {
+      const energy = (v && b.byVariant?.[v]?.energy) ?? b.energy ?? 0;
+      return `${b.slug}${v ? `:${v}` : ""} E${energy}`;
+    });
+  });
+}
+
+/**
+ * A language's arc as STRUQ.md lines: the Tone arc, then one numbered Storyboard line per scene with no pick filled in.
+ * There is no default on purpose (proof runs of 2026-11-14: with the first option pre-filled, 11 of 12 sites on two
+ * unrelated briefs opened with the same hero and all 12 had the same centerpiece). Every slot says `<cast: ...>`, which
+ * the plan check refuses until it is replaced. The Opening and the Centerpiece list the whole catalogue of their role,
+ * since no opening or centerpiece belongs to one language; the middle scenes list what suits the language, plus an own
+ * scene. The arc's own suggestions are not ranked above the rest.
+ */
+function arcLines(arc, footers = []) {
   const last = arc.scenes.length - 1;
+  // The middle scenes carry no name of their own: names like Statement and Release read as a script, and every site
+  // that followed them came out with the same middle (Roy, 2026-11-15: the middle is composed per client).
+  const nameOf = (scene, at) => (scene.tag === "frame" || at === last || ["Opening", "Centerpiece"].includes(scene.name) ? scene.name : "Scene");
+  const width = Math.max(...arc.scenes.map((s, at) => nameOf(s, at).length));
   const lines = [`Tone arc: ${arc.scenes.map((s) => s.tone[0]).join(", ")}`, "Storyboard:"];
   arc.scenes.forEach((scene, at) => {
-    const [first, ...others] = pick(scene);
-    const head = `${`${at + 1}.`.padEnd(at + 1 >= 10 ? 4 : 3)}${scene.name.padEnd(width)} ${`(${scene.tag})`.padEnd(8)} ${first}`;
+    const role = scene.name === "Opening" ? "opening" : scene.name === "Centerpiece" ? "centerpiece" : null;
+    // An own scene first, then the language's blocks. The kit's quiet scenes are no longer offered.
+    const options = scene.tag === "frame" ? scene.blocks : role ? pool(role) : ["own scene", ...shuffled(scene.blocks)];
+    const tag = scene.tag === "frame" ? "frame" : "<loud|quiet>";
+    const cast = scene.tag === "frame" ? options[0] : at === last ? "<cast: how this site ends, and why>" : role ? "<cast: what this idea needs here, and why>" : "<cast: name this scene, what it shows of this client, and why>";
+    const head = `${`${at + 1}.`.padEnd(at + 1 >= 10 ? 4 : 3)}${nameOf(scene, at).padEnd(width)} (${tag}) ${cast}`;
     const parts = [head];
     if (scene.tag === "frame") parts.push("lands on: <what>");
-    else if (at === last) parts.push("echoes the opening: <how>");
+    else if (at === last) parts.push("ends on: <what the visitor is left with>");
     else parts.push("on screen: <...>", "enters: <...>", "hands over: <...>");
-    if (others.length) parts.push(`or: ${others.join(", ")}`);
-    if (scene.footer?.length) parts.push(`footer: ${scene.footer[0]}`);
+    if (scene.tag !== "frame" && options.length) parts.push(`options: ${options.join(", ")}`);
+    if (scene.footer?.length) parts.push(`footer: <${shuffled([...new Set([...scene.footer, ...footers])]).join(" | ")}>`);
     lines.push(parts.join(" | "));
   });
   return lines;
@@ -178,10 +213,11 @@ const commands = {
     const language = languages.find((l) => l.id === id);
     const arc = film.FILM_ARCS.find((a) => a.language === id);
     if (!language || !arc) throw new Error(`No language "${id}". The languages: ${languages.map((l) => l.id).join(", ")}.`);
-    for (const line of arcLines(arc)) console.log(line);
+    for (const line of arcLines(arc, film.FILM_ARCS.flatMap((a) => a.scenes.flatMap((s) => s.footer ?? [])))) console.log(line);
     const f = language.frames;
     console.log(`\nFrames of ${id}: preloader ${f.preloader}, page transition ${f.pageTransition} (only with a second route), menu ${f.menu}. Header: ${film.FILM_HEADER.join(" or ")}.`);
-    console.log(`Use: paste the Tone arc and the Storyboard into STRUQ.md under your treatment head, fill every <...>, keep one pick per line (or: lists what else fits), then run check.mjs --plan.`);
+    console.log(`The Opening and the Centerpiece options are this site's hand, dealt once (.struq/draw.json): cast from it; a block the client named goes outside it, marked (named) on its line.`);
+    console.log(`Use: paste the Tone arc and the Storyboard into STRUQ.md under your treatment head. Cast every <cast: ...> from the Idea, the Motif and the Unlike line, not from the order of the options: each option is a different first screen or moment (blocks/CATALOG.md says what each does). Write one pick per line with its reason after "because", delete the options list, set (loud) for E2 or more and (quiet) for E1 or less, and change, add or drop middle scenes as the idea needs (7 to 9 scenes, the budgets in SKILL.md hold). Then run check.mjs --plan.`);
   },
 
   add() {

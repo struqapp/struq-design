@@ -29,6 +29,14 @@
 // (one number, --stack-n), which the script takes over when it hydrates. If the bundle never arrives, that CSS hides
 // the armed cover at 2.3 seconds and the hold lets go at 2.4; once the script runs, its own ceiling does the same.
 // `always` plays it on every load (the lab).
+//
+// An opening without a photo (hero-opener without an image, a background-* block): pass opening="photoless", or no
+// hero at all. The stack then never shows a photo the page does not have. The frame flips through panels in the
+// palette's own grounds (a raised surface, the field, the inverse), each with the name's first letter in the display
+// face, held and counted the same way, and the last panel is the opening's own ground, read from the page at the
+// target (or, without one, from what stands at the middle of the screen). The frame grows on that ground to the
+// target's box (the full screen without one), so the cover lands on the opening's first frame and simply goes.
+//   <PreloaderStack name="Noord" opening="photoless" />
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { gsap, useGSAP } from "../kit/gsap";
@@ -56,8 +64,8 @@ const T = {
 /** Runs while the browser parses the cover, before the first paint. Never throws. */
 const ARM = `(function(){try{var e=document.currentScript.parentElement;if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;if(!e.hasAttribute("data-always")&&sessionStorage.getItem("${SEEN_KEY}")==="1")return;e.setAttribute("data-t0",String(performance.now()));e.setAttribute("data-armed","");document.documentElement.setAttribute("data-curtain","closed");if(!location.hash){history.scrollRestoration="manual";scrollTo(0,0)}var k={" ":1,PageDown:1,PageUp:1,ArrowDown:1,ArrowUp:1,Home:1,End:1},o={capture:true,passive:false},s=function(v){v.preventDefault();v.stopImmediatePropagation()},d=function(v){if(k[v.key])v.preventDefault()},r=function(){removeEventListener("wheel",s,o);removeEventListener("touchmove",s,o);removeEventListener("keydown",d,true);window.__preloaderStackHold=null};addEventListener("wheel",s,o);addEventListener("touchmove",s,o);addEventListener("keydown",d,true);window.__preloaderStackHold=r;setTimeout(r,${BUDGET * 1000})}catch(x){}})()`;
 
-/** Runs after the frame is parsed: marks the cover data-first once the first print is loaded and decoded. */
-const FIRST = `(function(){try{var r=document.currentScript.closest("[data-preloader]"),i=r&&r.querySelector("[data-cut] img");if(!i)return;var s=function(){r.setAttribute("data-first","")},g=function(){i.decode?i.decode().then(s,function(){}):s()};i.complete?g():i.addEventListener("load",g,{once:true})}catch(x){}})()`;
+/** Runs after the frame is parsed: marks the cover data-first once the first print is loaded and decoded (a panel at once). */
+const FIRST = `(function(){try{var r=document.currentScript.closest("[data-preloader]"),c=r&&r.querySelector("[data-cut]"),i=c&&c.querySelector("img");if(!c)return;var s=function(){r.setAttribute("data-first","")};if(!i)return s();var g=function(){i.decode?i.decode().then(s,function(){}):s()};i.complete?g():i.addEventListener("load",g,{once:true})}catch(x){}})()`;
 
 /** Runs after the caption is parsed: marks the cover data-fonts once the caption's own faces are loaded. */
 const FONTS = `(function(){var r;try{r=document.currentScript.closest("[data-preloader]");var f=document.fonts,d=function(){r.setAttribute("data-fonts","")};if(!f)return d();Promise.all([].map.call(r.querySelectorAll("[data-caption] p"),function(p){var c=getComputedStyle(p);return f.load(c.fontStyle+" "+c.fontWeight+" 16px "+c.fontFamily)})).then(d,d)}catch(x){r&&r.setAttribute("data-fonts","")}})()`;
@@ -81,16 +89,33 @@ function flipPlan(count: number, room: number): number[] {
   return [];
 }
 
+/** The photoless panels, in order: the palette's own grounds, each in its own ink. */
+const PANELS = ["bg-surface-2 text-ink", "scene-field", "bg-surface-1 text-ink", "scene-inverse"] as const;
+
+/** The first colour behind a point that is not see-through, walking up from an element; null when there is none. */
+function groundOf(start: Element | null): string | null {
+  for (let n = start; n; n = n.parentElement) {
+    const c = getComputedStyle(n).backgroundColor;
+    if (c && c !== "transparent" && !/^rgba\([^)]*,\s*0\)$/.test(c)) return c;
+  }
+  return null;
+}
+
 /** Set once the cover has played in this document, so a remount never replays it. */
 let playedThisDocument = false;
 /** A teardown's lift, held back one task so a remount in the same commit (strict mode) can take it back. */
 let pendingTeardown = 0;
 
 type Props = {
-  /** The flip-through, in order: four to six photos of the client's work. */
-  photos: StruqImage[];
-  /** The hero's own photo, the one the page shows in its [data-stack-target] box. */
-  hero: StruqImage;
+  /** The flip-through, in order: four to six photos of the client's work. Not used when the opening is photoless. */
+  photos?: StruqImage[];
+  /** The hero's own photo, the one the page shows in its [data-stack-target] box. Left out, the opening is photoless. */
+  hero?: StruqImage;
+  /**
+   * "photoless" when the opening shows no photo (hero-opener without an image, a background-* block): the frame flips
+   * through palette panels and lands on the opening's own ground. "photo" (the default) needs `hero`.
+   */
+  opening?: "photo" | "photoless";
   /** The hero image's box on the page; the frame lands on it. Without one it lands on the full screen. */
   target?: string;
   /** The client's name, under the frame. */
@@ -102,8 +127,19 @@ type Props = {
   className?: string;
 };
 
-export function PreloaderStack({ photos, hero, target = "[data-stack-target]", name, always = false, onReveal, className = "" }: Props) {
+export function PreloaderStack({
+  photos = [],
+  hero,
+  opening = "photo",
+  target = "[data-stack-target]",
+  name,
+  always = false,
+  onReveal,
+  className = "",
+}: Props) {
   const root = useRef<HTMLDivElement>(null);
+  const photoless = opening === "photoless" || !hero;
+  const mono = name ? (Array.from(name.trim())[0] ?? "") : "";
   const [done, setDone] = useState(false);
 
   useGSAP(
@@ -150,18 +186,19 @@ export function PreloaderStack({ photos, hero, target = "[data-stack-target]", n
       const frame = q("[data-frame]")[0] as HTMLElement;
       const cuts = q("[data-cut]") as HTMLElement[];
       const layer = q("[data-hero-layer]")[0] as HTMLElement;
-      const box = q("[data-hero-box]")[0] as HTMLElement;
-      const heroImg = box.querySelector("img") as HTMLImageElement;
+      const box = q("[data-hero-box]")[0] as HTMLElement | undefined;
+      const fill = q("[data-hero-fill]")[0] as HTMLElement | undefined;
+      const heroImg = box?.querySelector("img") ?? null;
       const caption = q("[data-caption]")[0] as HTMLElement | undefined;
 
-      // Decode everything up front: a cut never shows a half-drawn photo.
-      const decoded = cuts.map(() => false);
-      let heroReady = false;
+      // Decode everything up front: a cut never shows a half-drawn photo. A panel has nothing to decode.
+      const decoded = cuts.map((c) => !c.querySelector("img"));
+      let heroReady = !heroImg;
       cuts.forEach((c, i) => {
         const img = c.querySelector("img");
         img?.decode().then(() => (decoded[i] = true), () => undefined);
       });
-      heroImg.decode().then(() => (heroReady = true), () => undefined);
+      heroImg?.decode().then(() => (heroReady = true), () => undefined);
 
       const begin = () => {
         if (cancelled) return;
@@ -189,8 +226,13 @@ export function PreloaderStack({ photos, hero, target = "[data-stack-target]", n
         const vh = el.clientHeight;
         const S = boxOf(frame.getBoundingClientRect());
         const R = found ? boxOf(found.getBoundingClientRect()) : { x: 0, y: 0, w: vw, h: vh };
-        const iw = heroImg.naturalWidth || hero.width;
-        const ih = heroImg.naturalHeight || hero.height;
+        // Photoless: the landing panel is the opening's own ground, at the target or at the middle of the screen.
+        if (fill) {
+          const under = found ?? document.elementsFromPoint(vw / 2, vh / 2).find((n) => !el.contains(n)) ?? null;
+          fill.style.backgroundColor = groundOf(under) ?? getComputedStyle(ground).backgroundColor;
+        }
+        const iw = heroImg?.naturalWidth || hero?.width || 1;
+        const ih = heroImg?.naturalHeight || hero?.height || 1;
         // A hero whose window shows a larger registered photo marks that photo's box (data-stack-photo, inside the
         // target): the print is then laid as object-cover of that box, while the frame still lands on the target.
         const photoEl = found?.querySelector<HTMLElement>("[data-stack-photo]");
@@ -198,7 +240,7 @@ export function PreloaderStack({ photos, hero, target = "[data-stack-target]", n
         // The photo at its own aspect, scaled and centred exactly as object-cover shows it in P. Seen through R it
         // is the page's hero, pixel for pixel; seen through a smaller frame, scaled to cover that frame.
         const s1 = Math.max(P.w / iw, P.h / ih);
-        Object.assign(box.style, {
+        if (box) Object.assign(box.style, {
           left: `${P.x + P.w / 2 - (iw * s1) / 2}px`,
           top: `${P.y + P.h / 2 - (ih * s1) / 2}px`,
           width: `${iw * s1}px`,
@@ -231,7 +273,7 @@ export function PreloaderStack({ photos, hero, target = "[data-stack-target]", n
             dx = lerp(S.x + S.w / 2, P.x + P.w / 2, grown.p) - (P.x + P.w / 2);
             dy = lerp(S.y + S.h / 2, P.y + P.h / 2, grown.p) - (P.y + P.h / 2);
           }
-          box.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`;
+          if (box) box.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`;
           layer.style.clipPath = `inset(${F.y}px ${vw - F.x - F.w}px ${vh - F.y - F.h}px ${F.x}px)`;
         };
         paint();
@@ -326,7 +368,13 @@ export function PreloaderStack({ photos, hero, target = "[data-stack-target]", n
       <div data-ground="" className="absolute inset-0 bg-surface-0 text-ink">
         <div className="absolute left-1/2 top-[45%] w-[44vw] -translate-x-1/2 -translate-y-1/2 md:w-[19vw]">
           <div data-frame="" className="relative aspect-[3/4] w-full overflow-hidden">
-            {photos.map((photo, i) => (
+            {photoless
+              ? PANELS.map((panel) => (
+                  <div key={panel} data-cut="" className={`invisible absolute inset-0 grid place-items-center ${panel}`}>
+                    {mono ? <span className="font-display text-[24vw] leading-none md:text-[10vw]">{mono}</span> : null}
+                  </div>
+                ))
+              : photos.map((photo, i) => (
               <div key={photo.src} data-cut="" className="invisible absolute inset-0">
                 {/* The first print shows from the first paint (blocks.css), so it is fetched first. */}
                 <Image
@@ -339,7 +387,7 @@ export function PreloaderStack({ photos, hero, target = "[data-stack-target]", n
                   className="object-cover"
                 />
               </div>
-            ))}
+                ))}
           </div>
           {/* Parsed right after the frame: the first print shows (blocks.css) only once it is loaded and decoded. */}
           <script dangerouslySetInnerHTML={{ __html: FIRST }} />
@@ -361,9 +409,14 @@ export function PreloaderStack({ photos, hero, target = "[data-stack-target]", n
       </div>
       {/* The hero's photo over everything, seen through the growing frame. Same file and sizes as the page's hero. */}
       <div data-hero-layer="" className="invisible absolute inset-0">
-        <div data-hero-box="" className="absolute origin-center">
-          <Image src={hero.src} alt="" fill sizes="100vw" priority unoptimized={hero.unoptimized} className="object-cover" />
-        </div>
+        {hero && !photoless ? (
+          <div data-hero-box="" className="absolute origin-center">
+            <Image src={hero.src} alt="" fill sizes="100vw" priority unoptimized={hero.unoptimized} className="object-cover" />
+          </div>
+        ) : (
+          // Photoless: the opening's own ground, set from the page as the flip begins.
+          <div data-hero-fill="" className="absolute inset-0 bg-surface-0" />
+        )}
       </div>
     </div>
   );

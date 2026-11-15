@@ -30,6 +30,10 @@
 // Phones: one word per line, the window between at the height that is left, showing the photo's own crop; the
 // entrance only (no pin, no open).
 //
+// The top line keeps clear of the site's bar on every width: the sheet's top room is the bar's height (header-bar's
+// --hb-top or menu-curtain's --menu-bar-h) plus a breath (blocks.css, --hp-pt), and the fit reads that room. The
+// poster stands on the page ground, so the section around it is ground for the bar: never mark it data-bar-tone="photo".
+//
 // Three variants of the same poster, picked with `variant`:
 // - window (the default, above): one letterbox window between the two lines.
 // - column: the two lines centred, fitted edge to edge, and a tall narrow slit to one side that cuts through them from
@@ -86,6 +90,21 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const sideOf = (el: HTMLElement) => {
   const pad = el.querySelector<HTMLElement>("[data-hp-sheet]");
   return pad ? parseFloat(getComputedStyle(pad).paddingLeft) || 0 : 0;
+};
+/** The sheet's top and bottom room as laid out, in px: the top keeps the site's bar clear (blocks.css, --hp-pt). */
+const padsOf = (el: HTMLElement) => {
+  const pad = el.querySelector<HTMLElement>("[data-hp-sheet]");
+  if (!pad) return 0;
+  const cs = getComputedStyle(pad);
+  return (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+};
+/** Refits when the sheet's room changes without a resize: the site's bar measuring itself after the first fit. */
+const watchRoom = (el: HTMLElement, refit: () => void) => {
+  const sheet = el.querySelector<HTMLElement>("[data-hp-sheet]");
+  if (!sheet || typeof ResizeObserver === "undefined") return () => {};
+  const ro = new ResizeObserver(() => refit());
+  ro.observe(sheet);
+  return () => ro.disconnect();
 };
 /** The width the script-free estimates fit into: the screen inside the sheet margin on both sides. */
 const INSIDE = "(100vw - 2 * var(--spacing-sheet-margin))";
@@ -147,7 +166,7 @@ function PosterWindow({ image, lines, accent, place, link, className = "" }: Inn
         });
         const rows = wide ? [1, 1] : words.map((ws) => ws.length);
         const foot = el.querySelector<HTMLElement>("[data-hp-foot]")?.offsetHeight ?? 0;
-        const free = H - foot - (wide ? H * 0.1 : 64) - H * 0.12;
+        const free = H - foot - padsOf(el) - (wide ? H * 0.03 : 8) - H * 0.12;
         const k = Math.min(1, free / (LEADING * (sizes[0] * rows[0] + sizes[1] * rows[1])));
         return [Math.floor(sizes[0] * k), Math.floor(sizes[1] * k)];
       };
@@ -224,6 +243,7 @@ function PosterWindow({ image, lines, accent, place, link, className = "" }: Inn
       const onFonts = () => refit();
       document.fonts?.addEventListener?.("loadingdone", onFonts);
       window.addEventListener("resize", refit);
+      const unwatch = watchRoom(el, refit);
 
       // The photo decoded ahead of its first show.
       for (const img of q<HTMLImageElement>("img")) {
@@ -332,6 +352,7 @@ function PosterWindow({ image, lines, accent, place, link, className = "" }: Inn
         dead = true;
         document.fonts?.removeEventListener?.("loadingdone", onFonts);
         window.removeEventListener("resize", refit);
+        unwatch();
         mm.revert();
       };
     },
@@ -377,7 +398,7 @@ function PosterWindow({ image, lines, accent, place, link, className = "" }: Inn
       <h1 className="sr-only">{`${lines[0]} ${lines[1]}`}</h1>
 
       {/* The poster: line, window, line, foot. The lines stand above the photo as it opens past them. */}
-      <div data-hp-sheet="" className="relative flex h-full flex-col px-sheet-margin pb-6 pt-8 md:pb-[3svh] md:pt-[4svh]">
+      <div data-hp-sheet="" className="relative flex h-full flex-col px-sheet-margin pb-6 pt-[var(--hp-pt)] md:pb-[3svh]">
         <div data-hp-top="" className="relative z-10 will-change-transform">
           <p aria-hidden className="m-0">
             <span
@@ -401,7 +422,7 @@ function PosterWindow({ image, lines, accent, place, link, className = "" }: Inn
           >
             <div
               data-stack-photo=""
-              className="absolute inset-0 md:inset-auto md:-left-sheet-margin md:top-[calc(-4svh_-_0.84_*_var(--hp-s1,var(--hp-e1))_-_1.2svh)] md:h-svh md:w-screen"
+              className="absolute inset-0 md:inset-auto md:-left-sheet-margin md:top-[calc(0px_-_var(--hp-pt)_-_0.84_*_var(--hp-s1,var(--hp-e1))_-_1.2svh)] md:h-svh md:w-screen"
             >
               <Image
                 src={image.src}
@@ -623,7 +644,7 @@ function PosterColumn({ image, lines, accent, place, link, className = "" }: Inn
           return width > 0 ? (100 * room) / width : 100;
         });
         const rows = wide ? [1, 1] : words.map((ws) => ws.length);
-        const free = H - (foot?.offsetHeight ?? 0) - (wide ? H * 0.2 : 140);
+        const free = H - (foot?.offsetHeight ?? 0) - padsOf(el) - (wide ? H * 0.13 : 84);
         const k = Math.min(1, free / (LEADING * (sizes[0] * rows[0] + sizes[1] * rows[1])));
         return [Math.floor(sizes[0] * k), Math.floor(sizes[1] * k)];
       };
@@ -690,6 +711,7 @@ function PosterColumn({ image, lines, accent, place, link, className = "" }: Inn
       const onFonts = () => refit();
       document.fonts?.addEventListener?.("loadingdone", onFonts);
       window.addEventListener("resize", refit);
+      const unwatch = watchRoom(el, refit);
       decoded.then(() => !dead && grade());
 
       const masks = q("[data-hp-rise]");
@@ -775,6 +797,7 @@ function PosterColumn({ image, lines, accent, place, link, className = "" }: Inn
         dead = true;
         document.fonts?.removeEventListener?.("loadingdone", onFonts);
         window.removeEventListener("resize", refit);
+        unwatch();
         mm.revert();
       };
     },
@@ -813,7 +836,7 @@ function PosterColumn({ image, lines, accent, place, link, className = "" }: Inn
       data-hp-layer={copy ? "copy" : "ground"}
       aria-hidden={copy || undefined}
       data-hp-sheet=""
-      className={`absolute inset-0 flex flex-col px-sheet-margin pb-6 pt-8 md:pb-[3svh] md:pt-[4svh] ${copy ? "text-on-photo" : "text-ink"}`}
+      className={`absolute inset-0 flex flex-col px-sheet-margin pb-6 pt-[var(--hp-pt)] md:pb-[3svh] ${copy ? "text-on-photo" : "text-ink"}`}
     >
       <div className="flex-1" />
       <div data-hp-l1="" className="will-change-transform">
@@ -908,7 +931,7 @@ function PosterStack({ image, lines, accent, place, link, className = "" }: Inne
         const wide = W >= 768;
         const room = W - 2 * sideOf(el);
         const widest = Math.max(1, ...wordEls.map((w) => widthAt100(w, false)));
-        const free = H - (foot?.offsetHeight ?? 0) - (wide ? H * 0.1 : 72) - m * H * (wide ? 0.075 : 0.08);
+        const free = H - (foot?.offsetHeight ?? 0) - padsOf(el) - (wide ? H * 0.03 : 16) - m * H * (wide ? 0.075 : 0.08);
         return [Math.floor(Math.min((100 * room) / widest, free / (LEADING * n)))];
       };
 
@@ -930,6 +953,7 @@ function PosterStack({ image, lines, accent, place, link, className = "" }: Inne
       const onFonts = () => refit();
       document.fonts?.addEventListener?.("loadingdone", onFonts);
       window.addEventListener("resize", refit);
+      const unwatch = watchRoom(el, refit);
       for (const img of q("img") as HTMLImageElement[]) img.decode?.().catch(() => {});
 
       const masks = q("[data-hp-rise]");
@@ -1047,16 +1071,18 @@ function PosterStack({ image, lines, accent, place, link, className = "" }: Inne
         dead = true;
         document.fonts?.removeEventListener?.("loadingdone", onFonts);
         window.removeEventListener("resize", refit);
+        unwatch();
         mm.revert();
       };
     },
     { scope: stage, dependencies: [lines[0], lines[1], accent] },
   );
 
-  // The script-free estimate: the longest word over the width, capped so the rows and their windows fit the height.
+  // The script-free estimate: the longest word over the width, capped so the rows and their windows fit the height
+  // left under the sheet's top room (--hp-pt, which keeps the site's bar clear).
   const per = (longest * EM_PER_CHAR).toFixed(2);
-  const est = `min(calc(${INSIDE} / ${per}), calc((90svh - 2rem - ${m} * 7.5svh) / ${(n * LEADING).toFixed(2)}))`;
-  const estPhone = `min(calc(${INSIDE} / ${per}), calc((100svh - 7rem - ${m} * 8svh) / ${(n * LEADING).toFixed(2)}))`;
+  const est = `min(calc(${INSIDE} / ${per}), calc((96svh - var(--hp-pt) - 2rem - ${m} * 7.5svh) / ${(n * LEADING).toFixed(2)}))`;
+  const estPhone = `min(calc(${INSIDE} / ${per}), calc((100svh - var(--hp-pt) - 5rem - ${m} * 8svh) / ${(n * LEADING).toFixed(2)}))`;
 
   return (
     <section
@@ -1068,7 +1094,7 @@ function PosterStack({ image, lines, accent, place, link, className = "" }: Inne
       style={{ "--hp-e": est, "--hp-p": estPhone } as React.CSSProperties}
     >
       <h1 className="sr-only">{`${lines[0]} ${lines[1]}`}</h1>
-      <div data-hp-sheet="" className="relative flex h-full flex-col px-sheet-margin pb-6 pt-8 md:pb-[3svh] md:pt-[4svh]">
+      <div data-hp-sheet="" className="relative flex h-full flex-col px-sheet-margin pb-6 pt-[var(--hp-pt)] md:pb-[3svh]">
         {marked.map((w, i) => (
           <div key={i} className="contents">
             <div data-hp-row="" className="relative z-10 will-change-transform">

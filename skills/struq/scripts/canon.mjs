@@ -3,6 +3,7 @@
 // blocks read. The same block, derivation and font requests as Struq's block lab and the MCP's struq_richting
 // (scripts/tokens.mjs), from the snapshot in canon/canon.json that the skill's release copies from Struq.
 //
+//   node <skill-dir>/scripts/canon.mjs draw                       this site's hand: 2 languages, 3 pairings, 4 palettes
 //   node <skill-dir>/scripts/canon.mjs list                       every palette and pairing
 //   node <skill-dir>/scripts/canon.mjs palette <id>               writes the STRUQ TOKENS block in app/globals.css
 //   node <skill-dir>/scripts/canon.mjs type <id>                  the same block with the pairing, and app/fonts.ts
@@ -13,9 +14,11 @@
 // reply to the treatment (gate.mjs). list and print never ask.
 //
 // Node 18 or later, no network, no dependencies.
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { projectHand } from "./draw.mjs";
+import { HAND_LENSES } from "./hand.mjs";
 import { refuse, stopRefusal } from "./gate.mjs";
 import { appendLog } from "./log.mjs";
 import { fontHrefs, headFamily, lightness, paletteTokens } from "./tokens.mjs";
@@ -38,6 +41,7 @@ const pairing = (id) => {
   return t;
 };
 const faces = (t) => [t.display, t.body, t.accentItalic].filter(Boolean).map(headFamily);
+const shuffled = (list) => list.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(([, x]) => x);
 
 export function tokenBlock(p, t) {
   const lines = paletteTokens(p, t).map(([k, v]) => `  ${k}: ${v};`);
@@ -83,17 +87,42 @@ export const fontHrefs: string[] = ${JSON.stringify(hrefs, null, 2)};
 
 const commands = {
   list() {
-    console.log(`PALETTES (${CANON.palettes.length}): id, mood, ground. "kept out" means kept for a brand that asks, never picked unasked.`);
-    for (const p of CANON.palettes) {
+    // Random order on every call: the first line is never a recommendation.
+    console.log(`PALETTES (${CANON.palettes.length}), in random order: id, mood, ground. "kept out" means kept for a brand that asks, never picked unasked.`);
+    for (const p of shuffled(CANON.palettes)) {
       const ground = lightness(p.colors.background) < 0.5 ? "dark" : "light";
       console.log(`  ${p.id.padEnd(40)} ${(p.mood ?? "").padEnd(44)} ${ground}${p.autoPick === false ? "  kept out" : ""}`);
     }
-    console.log(`\nPAIRINGS (${CANON.pairings.length}): id, display + body (+ italic accent), display weight`);
-    for (const t of CANON.pairings) {
+    console.log(`\nPAIRINGS (${CANON.pairings.length}), in random order: id, display + body (+ italic accent), display weight`);
+    for (const t of shuffled(CANON.pairings)) {
       const [d, bo, ac] = [t.display, t.body, t.accentItalic].map((s) => (s ? headFamily(s) : null));
       console.log(`  ${t.id.padEnd(26)} ${d} + ${bo}${ac ? ` (+ ${ac} italic)` : ""}, ${t.displayScale?.weight ?? 300}${t.autoPick === false ? "  kept out" : ""}`);
     }
     console.log(`\nSnapshot: Struq ${CANON.source.ref} ${CANON.source.commit}.`);
+  },
+  // The hand this site chooses from (draw.mjs, dealt by Struq's hand.mjs): two languages, one light and one dark
+  // palette, two pairings, three openings and one centerpiece, saved to .struq/draw.json so the plan check holds
+  // the plan to it. Dealt once: drawing again shows the same hand.
+  draw() {
+    const { hand: draw, fresh } = projectHand(root);
+    const palettes = draw.palettes.map(palette);
+    const pairings = draw.pairings.map(pairing);
+    console.log(`Hand ${draw.id}${fresh ? "" : " (dealt before, the same hand)"}. Choose the Language, the Palette and the Type from it,`);
+    console.log("for the idea; only the client's own brand colours or faces go outside it, marked (brand) on the line.");
+    console.log(`Write "Hand: ${draw.id}" into STRUQ.md. blocks.mjs arc shows the hand's openings and centerpieces.\n`);
+    console.log(`LANGUAGES  ${draw.languages.join(", ")}\n`);
+    console.log("PALETTES");
+    for (const p of palettes) console.log(`  ${p.id.padEnd(40)} ${(p.mood ?? "").padEnd(44)} ${lightness(p.colors.background) < 0.5 ? "dark" : "light"}`);
+    console.log("\nPAIRINGS");
+    for (const t of pairings) {
+      const [d, bo, ac] = [t.display, t.body, t.accentItalic].map((s) => (s ? headFamily(s) : null));
+      console.log(`  ${t.id.padEnd(26)} ${d} + ${bo}${ac ? ` (+ ${ac} italic, optional)` : ""}, display weight ${t.displayScale?.weight ?? 300}`);
+    }
+    if (draw.lenses?.length) {
+      console.log("\nLENSES  where your three ideas start looking, one idea from each; the Idea line names its lens");
+      for (const id of draw.lenses) console.log(`  ${id.padEnd(14)} ${HAND_LENSES.find((lens) => lens.id === id)?.prompt ?? ""}`);
+    }
+    console.log("\nOK hand saved to .struq/draw.json");
   },
   palette() {
     const p = palette(a);
@@ -125,8 +154,8 @@ const commands = {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const run = commands[cmd];
-  if (!run || (cmd !== "list" && !a)) {
-    console.error("Usage: canon.mjs list | palette <id> | type <id> | print <palette> [pairing]   [--dir <project>]");
+  if (!run || (cmd !== "list" && cmd !== "draw" && !a)) {
+    console.error("Usage: canon.mjs draw | list | palette <id> | type <id> | print <palette> [pairing]   [--dir <project>]");
     process.exit(2);
   }
   try {

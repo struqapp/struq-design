@@ -1,8 +1,8 @@
 "use client";
 // header-bar (Struq header recipe): the bar a site wears on every screen when it shows its links
 // The wordmark, three or four links and one quiet action as a text link. The bar has no ground on the first screen; once
-// the page has scrolled it takes the ground of whatever is under it (the page's own surface, the inverse, or none over a
-// photo), so it reads as a window onto the page, never as a coloured strip.
+// the page has scrolled it takes a solid ground in the tone of whatever is under it (the page's own surface, the
+// inverse, or the photo band's dark), so body text never runs through its ink and it still reads as part of the page.
 //
 //   quiet   wordmark left, links right; each label rolls through its mask on hover, letter by letter. The bar hides
 //           as the page scrolls down and returns as it scrolls up, scrubbed to the scroll with a short ease and
@@ -19,11 +19,19 @@
 // The bar turns its ink with what is under it, exactly at the edge, per pixel: it is drawn three times (ink for the
 // page ground, on-photo, on-inverse), each copy clipped to the stretches of the bar its own sections cover. Sections
 // opt in with data-bar-tone="photo" or data-bar-tone="inverse" (the menu curtain's contract); anything else is ground.
+// Mark a section "photo" only where a photo really runs under the bar's band (a full-bleed hero); a poster or a framed
+// photo with ground above it is ground. The start tone is read from the page too, never passed: before the script,
+// the first section's data-bar-tone (the element right after the bar, or that element's first child) sets the ink.
+// Over a "photo" section the bar reads the photo itself (kit/photo-read): the band of the photo under the bar, with
+// any data-veil over it and the bar's own ground at the strength it has come in, is held against each ink, and the
+// on-photo ink stays while it keeps 3:1; over a bright window the bar takes the ink (and the scrolled ground) that
+// reads instead, and keeps it while that still holds 3:1, so it never flickers. A photo that cannot be read (not
+// loaded yet, another origin) keeps the declared tone. No scrim is ever added for it.
 // The real bar (the links) sits on top with transparent text: one focusable bar, never three. Hover and keyboard focus
 // on a real link are mirrored onto the copies, so the focus ring is drawn in the right ink too.
 //
-// Mount it once at the top of the page; it is fixed and needs no wrapper:
-//   <HeaderBar variant="quiet" name="Noord" links={[{ label: "Werk", href: "/werk" }]} startTone="photo"
+// Mount it once at the top of the page, right before the first section; it is fixed and needs no wrapper:
+//   <HeaderBar variant="quiet" name="Noord" links={[{ label: "Werk", href: "/werk" }]}
 //     action={{ label: "Plan een gesprek", href: "/contact" }} menuHref="#menu" />
 // Keep the hero's type below var(--hb-top) (set on the nearest [data-blocks]: the bar's height, or for settle the
 // bottom of the large wordmark). On phones the bar is the wordmark and one "Menu" link: pass onMenu to open a menu
@@ -34,6 +42,7 @@
 // Without JavaScript the plain bar stands in the start tone's ink, and nothing waits.
 import { useEffect, useRef, useState, type CSSProperties, type FocusEvent, type HTMLAttributes, type PointerEvent } from "react";
 import { gsap, ScrollTrigger, useGSAP } from "../kit/gsap";
+import { photoLuminances } from "../kit/photo-read";
 
 export const HEADER_BAR_VARIANTS = [
   { id: "quiet", title: "De stille balk" },
@@ -47,17 +56,45 @@ export type BarTone = "ground" | "photo" | "inverse";
 
 const TONES: BarTone[] = ["ground", "photo", "inverse"];
 const TONE_INK: Record<BarTone, string> = { ground: "text-ink", photo: "text-on-photo", inverse: "text-on-inverse" };
-// Over a photo the scrolled bar takes the palette's own dark for bands over photos (--photo-ground: the inverse on a
-// light palette, the page ground on a dark one), nearly opaque, over a blur of what passes under it, so the hero's type
-// runs under the bar quiet and soft and the band never reads as a letterbox beside the page.
+// Once the page scrolls the bar stands on a solid ground, so nothing that passes under it ever prints through its ink:
+// the page's own surface, the inverse, and over a photo the palette's own dark for bands over photos (--photo-ground:
+// the inverse on a light palette, the page ground on a dark one). Never a blur, a see-through tint or a shadow.
 const TONE_GROUND: Record<BarTone, string> = {
   ground: "bg-surface-0",
-  photo: "bg-[color-mix(in_oklab,var(--photo-ground,var(--inverse))_88%,transparent)]",
+  photo: "bg-[var(--photo-ground,var(--inverse))]",
   inverse: "bg-inverse",
 };
 const NONE = "polygon(0px 0px, 0px 0px, 0px 0px)";
 /** The display face is waited for at most this long before the large wordmark is measured. */
 const FONT_CAP = 800;
+/** The wordmark and the links against what is under them over a photo: at least this much. */
+const PHOTO_RATIO = 3;
+
+const linear = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+const encode = (l: number) => (l <= 0.0031308 ? l * 12.92 : 1.055 * Math.pow(l, 1 / 2.4) - 0.055);
+const contrast = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+/** A layer of luminance `top` at opacity `a` over `under`, composited in sRGB as the browser does. */
+const over = (under: number, top: number, a: number) => linear(encode(under) * (1 - a) + encode(top) * a);
+
+/** Any CSS colour's relative luminance and alpha, through a one-pixel canvas so every colour syntax resolves. */
+const colours = new Map<string, { y: number; a: number }>();
+function colourOf(css: string) {
+  const kept = colours.get(css);
+  if (kept) return kept;
+  let out = { y: 0, a: 0 };
+  const cv = document.createElement("canvas");
+  cv.width = 1;
+  cv.height = 1;
+  const ctx = cv.getContext("2d", { willReadFrequently: true });
+  if (ctx) {
+    ctx.fillStyle = css;
+    ctx.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+    out = { y: 0.2126 * linear(r / 255) + 0.7152 * linear(g / 255) + 0.0722 * linear(b / 255), a: a / 255 };
+  }
+  colours.set(css, out);
+  return out;
+}
 
 /**
  * settle: the wordmark's advance, estimated from its letters, so the CSS can set it large across the hero from the
@@ -274,7 +311,6 @@ export function HeaderBar({
   place = "Rotterdam",
   clock = false,
   timeZone = "Europe/Amsterdam",
-  startTone = "ground",
 }: {
   variant?: HeaderBarVariant;
   /** The wordmark. */
@@ -294,8 +330,6 @@ export function HeaderBar({
   clock?: boolean;
   /** IANA zone for the clock. */
   timeZone?: string;
-  /** The ground under the bar on the first paint, before the script measures it (the hero's, usually "photo"). */
-  startTone?: BarTone;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const api = useRef<{ hot: (i: number, on: boolean, from?: "left" | "right") => void; focus: (on: boolean) => void } | null>(null);
@@ -340,7 +374,6 @@ export function HeaderBar({
       const words = q("[data-hb-word]");
       const fades = q("[data-hb-fade]");
       const fills = q("[data-hb-fill]");
-      const blur = q("[data-hb-blur]")[0] as HTMLElement | undefined;
       if (!move || !realFace || !realWord) return;
 
       let barH = realFace.offsetHeight;
@@ -408,16 +441,82 @@ export function HeaderBar({
         host.style.setProperty("--hb-top", `${Math.round(bigTop + S * wordH + barH * 0.25)}px`);
       };
 
+      // --- over a photo: the ink the photo under the bar asks for ---
+      // Each copy's ink and its scrolled ground, as the page resolves them.
+      const inkY = {} as Record<BarTone, number>;
+      const groundY = {} as Record<BarTone, number>;
+      const readInks = () => {
+        TONES.forEach((t, i) => {
+          inkY[t] = colourOf(getComputedStyle(copies[i]).color).y;
+          const g = copies[i].querySelector<HTMLElement>("[data-hb-ground]");
+          groundY[t] = g ? colourOf(getComputedStyle(g).backgroundColor).y : inkY[t];
+        });
+      };
+      // The last pick per photo section: kept while it still holds, so a band near the line never flickers.
+      const picked = new WeakMap<HTMLElement, BarTone>();
+      const photoTone = (sec: HTMLElement, top: number, bottom: number, k: number): BarTone => {
+        const band = { x: 0, y: top, w: window.innerWidth, h: bottom - top };
+        let lo = 0;
+        let hi = 0;
+        if (k < 1) {
+          // The photo with the most of the band under it, read as object-cover of its own box.
+          let img: HTMLImageElement | null = null;
+          let f: DOMRect | null = null;
+          let most = 0;
+          for (const im of Array.from(sec.querySelectorAll("img"))) {
+            const r = im.getBoundingClientRect();
+            const w = Math.min(r.right, band.w) - Math.max(r.left, 0);
+            const h = Math.min(r.bottom, bottom) - Math.max(r.top, top);
+            if (w > 0 && h > 0 && w * h > most) {
+              most = w * h;
+              img = im;
+              f = r;
+            }
+          }
+          if (!img || !f) return "photo";
+          const ys = photoLuminances(img, { x: f.left, y: f.top, w: f.width, h: f.height }, band);
+          if (!ys) return "photo";
+          lo = ys[Math.floor(ys.length * 0.1)];
+          hi = ys[Math.floor(ys.length * 0.9)];
+          // The block's own veils over the photo (data-veil), where they cover the band.
+          const mid = (top + bottom) / 2;
+          sec.querySelectorAll<HTMLElement>("[data-veil]").forEach((v) => {
+            const r = v.getBoundingClientRect();
+            if (r.top > mid || r.bottom < mid) return;
+            const cs = getComputedStyle(v);
+            const c = colourOf(cs.backgroundColor);
+            const a = (parseFloat(cs.opacity) || 0) * c.a;
+            if (a <= 0) return;
+            lo = over(lo, c.y, a);
+            hi = over(hi, c.y, a);
+          });
+        }
+        // Each ink over the band with its own scrolled ground at the strength it has come in, the worse end counted.
+        const score = (t: BarTone) => {
+          const a = Math.min(1, k);
+          return Math.min(contrast(inkY[t], over(lo, groundY[t], a)), contrast(inkY[t], over(hi, groundY[t], a)));
+        };
+        const was = picked.get(sec);
+        let tone: BarTone = "photo";
+        if (was && score(was) >= PHOTO_RATIO) tone = was;
+        else if (score("photo") < PHOTO_RATIO) {
+          for (const t of TONES) if (score(t) > score(tone)) tone = t;
+        }
+        picked.set(sec, tone);
+        return tone;
+      };
+
       // --- the ink, cut where the sections under the bar meet, in the bar's own coordinates ---
-      const ink = (o: number, extent: number) => {
+      const ink = (o: number, extent: number, k: number) => {
         const segs: Array<[number, number, BarTone]> = [[0, extent, "ground"]];
         document.querySelectorAll<HTMLElement>("[data-bar-tone]").forEach((sec) => {
-          const tone = sec.dataset.barTone;
-          if ((tone !== "photo" && tone !== "inverse") || el.contains(sec)) return;
+          const declared = sec.dataset.barTone;
+          if ((declared !== "photo" && declared !== "inverse") || el.contains(sec)) return;
           const r = sec.getBoundingClientRect();
           const a = Math.max(0, r.top + o);
           const b = Math.min(extent, r.bottom + o);
           if (b <= a) return;
+          const tone: BarTone = declared === "photo" ? photoTone(sec, a - o, b - o, k) : declared;
           // Later sections in document order (the nested ones) paint over earlier ones.
           for (let k = segs.length - 1; k >= 0; k -= 1) {
             const [s0, s1, t] = segs[k];
@@ -437,9 +536,24 @@ export function HeaderBar({
           }
           copies[i].style.clipPath = pts.length ? `polygon(${pts.join(", ")})` : NONE;
         });
-        // The blur sits under the copies (a clipped copy would blur nothing), cut to the photo's stretches like its ink.
-        if (blur) blur.style.clipPath = copies[1].style.clipPath;
       };
+
+      // The plain bar's ink until the copies show (settle waits for its face): the tone of the section under the bar's
+      // middle now, read from the page's own data-bar-tone, so it can never disagree with the hero.
+      const startTone = (): BarTone => {
+        let tone: BarTone = "ground";
+        const h = realFace.offsetHeight;
+        const mid = h / 2;
+        document.querySelectorAll<HTMLElement>("[data-bar-tone]").forEach((sec) => {
+          const t = sec.dataset.barTone;
+          if ((t !== "photo" && t !== "inverse") || el.contains(sec)) return;
+          const r = sec.getBoundingClientRect();
+          if (r.top <= mid && r.bottom > mid) tone = t === "photo" ? photoTone(sec, Math.max(0, r.top), Math.min(h, r.bottom), 0) : t;
+        });
+        return tone;
+      };
+      readInks();
+      el.dataset.start = startTone();
 
       const paint = () => {
         const y = Math.max(0, window.scrollY);
@@ -478,7 +592,7 @@ export function HeaderBar({
         const from = variant === "settle" && S > 1 ? yFit : 0;
         const k = reduce ? (y > 2 ? 1 : 0) : Math.min(1, Math.max(0, (y - from) / barH));
         el.style.setProperty("--hb-k", k.toFixed(3));
-        ink(o, extent);
+        ink(o, extent, k);
       };
 
       // quiet: the wish follows the scroll pixel for pixel, the bar eases after it; at rest it settles to a side.
@@ -585,9 +699,15 @@ export function HeaderBar({
 
       const onResize = () => {
         measure();
+        readInks();
         paint();
       };
       window.addEventListener("resize", onResize);
+      // A photo under the bar that arrives after the bar has painted: read it as soon as it is there.
+      const onLoad = (e: Event) => {
+        if (e.target instanceof HTMLImageElement && e.target.closest('[data-bar-tone="photo"]')) paint();
+      };
+      document.addEventListener("load", onLoad, true);
 
       // --- start: settle's large wordmark already stands from the first paint at the CSS estimate (its scale from the
       // estimated advance); the script waits for the display face (capped), measures the real width and eases the
@@ -620,6 +740,7 @@ export function HeaderBar({
         window.clearTimeout(rest);
         window.removeEventListener("scroll", onScroll);
         window.removeEventListener("resize", onResize);
+        document.removeEventListener("load", onLoad, true);
         real.removeEventListener("focusin", onFocusIn);
         real.removeEventListener("focusout", onFocusOut);
         host.style.removeProperty("--hb-top");
@@ -632,15 +753,8 @@ export function HeaderBar({
   const face = { variant, name, homeHref, links, action, menuHref, onMenu, place, clock, time };
 
   return (
-    <div ref={root} data-header-bar={variant} data-start={startTone} style={{ "--hb-adv": advanceEm(name).toFixed(3) } as CSSProperties}>
+    <div ref={root} data-header-bar={variant} style={{ "--hb-adv": advanceEm(name).toFixed(3) } as CSSProperties}>
       <div data-hb-move="" className="pointer-events-none fixed inset-x-0 top-0 z-[70]">
-        {/* Over a photo the scrolled ground is see-through at its edge: what passes under it is blurred, not sharp. */}
-        <div
-          aria-hidden="true"
-          data-hb-blur=""
-          className="absolute inset-x-0 top-0 h-[var(--hb-h)] backdrop-blur-md"
-          style={{ clipPath: startTone === "photo" ? "none" : NONE }}
-        />
         {/* The bar's ink over the page: one copy per ground, each clipped to the stretches it covers. */}
         {TONES.map((tone) => (
           <div
@@ -648,13 +762,14 @@ export function HeaderBar({
             aria-hidden="true"
             data-hb-copy={tone}
             className={`absolute inset-x-0 top-0 ${TONE_INK[tone]}`}
-            style={{ clipPath: tone === startTone ? "none" : NONE }}
+            style={{ clipPath: NONE }}
           >
             <Face {...face} tone={tone} />
           </div>
         ))}
-        {/* The real bar: the links, on top, their ink drawn by the copies under them once those show. */}
-        <header data-hb-real="" className={`relative ${TONE_INK[startTone]}`}>
+        {/* The real bar: the links, on top, their ink drawn by the copies under them once those show. Until then its
+            ink is the start tone's (blocks.css, "--- header-bar ---"). */}
+        <header data-hb-real="" className={`relative ${TONE_INK.ground}`}>
           <Face {...face} real bind={bind} />
         </header>
       </div>
