@@ -13,13 +13,13 @@ const SCRIPTS = fileURLToPath(new URL('../skills/struq/scripts/', import.meta.ur
 const run = (script, args, cwd) => spawnSync(process.execPath, [join(SCRIPTS, script), ...args, '--dir', cwd], { encoding: 'utf8' });
 const CANON = JSON.parse(readFileSync(fileURLToPath(new URL('../skills/struq/canon/canon.json', import.meta.url)), 'utf8'));
 
-test('draw deals three open pairings and four open palettes, and saves the hand', () => {
+test('draw deals two open pairings and two open palettes (one light, one dark), and saves the hand', () => {
   const dir = mkdtempSync(join(tmpdir(), 'struq-draw-'));
   const out = run('canon.mjs', ['draw'], dir);
   assert.equal(out.status, 0, out.stderr);
   const hand = JSON.parse(readFileSync(join(dir, '.struq', 'draw.json'), 'utf8'));
-  assert.equal(hand.pairings.length, 3);
-  assert.equal(hand.palettes.length, 4);
+  assert.equal(hand.pairings.length, 2);
+  assert.equal(hand.palettes.length, 2);
   const kept = new Set([...CANON.palettes, ...CANON.pairings].filter((x) => x.autoPick === false).map((x) => x.id));
   for (const id of [...hand.pairings, ...hand.palettes]) assert.ok(!kept.has(id), `${id} is kept out`);
 });

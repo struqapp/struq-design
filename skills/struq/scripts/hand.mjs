@@ -3,10 +3,15 @@
 // The hand: what one site chooses its direction from. Proof runs of 2026-11-14 (struq-showcases, proof/phase-1) showed
 // why it exists. With a pre-filled storyboard 11 of 12 sites opened the same way; naming the reflex only moved it to
 // the next one. Dealing each site a random hand and holding its plan to it gave real variety while the agent still
-// chooses. A hand is two of the three motion languages, three type pairings, four palettes (two light, two dark),
-// five openings, five centerpieces and three lenses. A lens is where the idea starts looking: the round of 2026-11-15
+// chooses. A hand is two of the three motion languages, two type pairings, two palettes (one light, one dark), three
+// openings, three centerpieces and three lenses. A lens is where the idea starts looking: the round of 2026-11-15
 // showed that asking for three ideas still gave each brief the same idea on every run, so the starting points are
 // dealt too, and the plan's Idea line names the lens it came from.
+//
+// The hand is small on purpose. Round 6 of 2026-11-15 showed the model picks the same palette
+// (frontier-marrow-bone-blood-orange, dealt four times, picked four times), the same pairing (geometric-modern, three
+// of three) and the same opener and centerpiece whenever they are dealt, so dealing fewer makes the deal itself the
+// variety.
 //
 // A hand has a short id, and the id is the whole state: the same id deals the same hand from the same pools, so the
 // MCP (which keeps nothing between calls) and a check running on the client's machine both rebuild it from the
@@ -46,7 +51,7 @@ export const HAND_LENSES = [
 ];
 
 /** How many of each a hand holds. */
-export const HAND_SIZE = { languages: 2, lightPalettes: 2, darkPalettes: 2, pairings: 3, openings: 5, centerpieces: 5, lenses: 3 };
+export const HAND_SIZE = { languages: 2, lightPalettes: 1, darkPalettes: 1, pairings: 2, openings: 3, centerpieces: 3, lenses: 3 };
 
 const ID_LENGTH = 6;
 const ID_ALPHABET = 'abcdefghijkmnpqrstuvwxyz23456789';
@@ -120,7 +125,7 @@ function deal(id, pool, name, n) {
  */
 export const isPhotolessOpening = (slug) => slug.startsWith('background-') || slug === 'hero-opener';
 
-/** The opening hand: the five that rank lowest for this id, the last swapped for the best photoless one if none is in. */
+/** The opening hand: the three that rank lowest for this id, the last swapped for the best photoless one if none is in. */
 function openingsFor(id, pool) {
   const ranked = deal(id, pool, 'opening', pool.length);
   const hand = ranked.slice(0, HAND_SIZE.openings);
@@ -132,8 +137,8 @@ function openingsFor(id, pool) {
 /**
  * Deal a hand from the pools (handPools). `source` is a hand id, to rebuild a hand already dealt, or a random source in
  * [0, 1) for a new one (Math.random when left out). Returns the id with the dealt names, in the shape of the skill's
- * .struq/draw.json: { id, languages, palettes, pairings, openings, centerpieces, lenses }, the palettes two light then
- * two dark.
+ * .struq/draw.json: { id, languages, palettes, pairings, openings, centerpieces, lenses }, the palettes the light one
+ * then the dark one.
  */
 export function dealHand(pools, source = Math.random) {
   const id = typeof source === 'string' ? source : newHandId(source);

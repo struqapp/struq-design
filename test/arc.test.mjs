@@ -193,7 +193,8 @@ test('arc prints one storyboard line per scene, the frames and how to use it', (
     assert.match(out, /^Use: .*check\.mjs --plan\.$/m);
   }
   // why: listing the whole catalogue, even shuffled, still drew most sites to two or three openings (2026-11-14). The
-  // Opening and the Centerpiece offer a hand of five blocks of their role, from any language, dealt per project.
+  // Opening and the Centerpiece offer a hand of three blocks of their role, from any language, dealt per project
+  // (five until round 6 of 2026-11-15 showed the model taking the same favourite whenever it was dealt).
   const catalog = JSON.parse(readFileSync(join(BLOCKS_DIR, 'catalog.json'), 'utf8'));
   const list = Array.isArray(catalog) ? catalog : catalog.blocks;
   for (const language of LANGUAGES) {
@@ -202,7 +203,7 @@ test('arc prints one storyboard line per scene, the frames and how to use it', (
     for (const [name, role] of [['Opening', 'opening'], ['Centerpiece', 'centerpiece']]) {
       const options = at(name).match(/options: ([^|]*)/)[1].split(', ').map((o) => o.split(/[: ]/)[0]);
       const slugs = new Set(options);
-      assert.equal(slugs.size, 5, `${language} ${name}: ${[...slugs].join(', ')}`);
+      assert.equal(slugs.size, 3,`${language} ${name}: ${[...slugs].join(', ')}`);
       for (const slug of slugs) assert.equal(list.find((b) => b.slug === slug)?.role, role, `${slug} is not an ${role}`);
     }
   }

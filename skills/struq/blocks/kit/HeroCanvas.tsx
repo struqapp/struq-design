@@ -108,7 +108,8 @@ export function HeroCanvas({ scene, image, grade = 0.25, scrim = 0, className = 
 
       let renderer: import("three").WebGLRenderer;
       try {
-        renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "high-performance" });
+        // alpha: a resized or discarded buffer is transparent, so the poster or the ground shows, never opaque black.
+        renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: "high-performance" });
       } catch {
         return; // no WebGL: the poster stays, which is the designed fallback
       }
@@ -121,6 +122,8 @@ export function HeroCanvas({ scene, image, grade = 0.25, scrim = 0, className = 
       slot.appendChild(canvas);
 
       const palette = readPalette(el);
+      // An opaque clear in the page ground: a scene that does not set its own never paints black behind itself.
+      renderer.setClearColor(new THREE.Color(palette.surface), 1);
       let hero: Awaited<ReturnType<CreateScene>>;
       try {
         hero = await createScene({
@@ -220,7 +223,8 @@ export function HeroCanvas({ scene, image, grade = 0.25, scrim = 0, className = 
 
       const ro = new ResizeObserver(() => {
         size();
-        if (still) draw();
+        // A resize clears the canvas: draw at once, in this task, even when the loop is paused off screen.
+        draw();
       });
       ro.observe(el);
 

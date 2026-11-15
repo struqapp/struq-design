@@ -76,8 +76,8 @@ step has no entry.
 files, merge from `recipes/app/`).
 
 **2 Treatment, then stop once.** Think like a studio pitching this client. First run
-`node <skill-dir>/scripts/canon.mjs draw`: it deals this site a hand, two languages, three type pairings, four
-palettes and three lenses, the way a creative director hands a team its constraints. Every site gets a different hand,
+`node <skill-dir>/scripts/canon.mjs draw`: it deals this site a hand, two languages, two type pairings, two
+palettes (one light, one dark) and three lenses, the way a creative director hands a team its constraints. Every site gets a different hand,
 so no two start from the same place; your craft is choosing well within it. Write three ideas, one from each lens
 (each a point of view on this client, not a description), take the one a rival studio would least expect that still
 fits this client, and note the other two as Passed over. Name the Subject: what the brief is about

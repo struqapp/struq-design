@@ -456,8 +456,9 @@ export function BackgroundAurora({ variant = "veil", lines, accent, lead, link, 
     const leave = { now: 0, target: 0 };
     const ptr = { x: 0.5, y: 0.5, z: 0, tx: 0.5, ty: 0.5, tz: 0 };
 
+    // alpha: a cleared or discarded buffer is transparent, so the hero's own ground shows through, never black.
     const gl = canvas.getContext("webgl2", {
-      alpha: false,
+      alpha: true,
       antialias: false,
       depth: false,
       stencil: false,
