@@ -44,7 +44,7 @@ const middleScene = (name) => MIDDLE_SCENES.find((k) => k.toLowerCase() === name
 function middleVariants(name) {
   const head = readFileSync(join(MIDDLE_DIR, `${name}.tsx`), "utf8").split(/\r?\n/).slice(0, 80);
   // Some headers carry tone and className on the same line; only the part before them names variants.
-  const line = (head.find((l) => /^\/\/\s*-\s*variant:/.test(l)) ?? "").split(/\.\s+(?:tone|className)\b/)[0];
+  const line = (head.find((l) => /^\/\/\s*-\s*variant:/.test(l)) ?? "").split(/\.\s+\w+:/)[0];
   return [...line.matchAll(/"([a-z][\w-]*)"/g)].map((m) => m[1]);
 }
 
