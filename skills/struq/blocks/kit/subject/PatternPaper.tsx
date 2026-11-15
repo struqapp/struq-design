@@ -17,6 +17,10 @@
 // - cut: overrides the cutting line ("Cut 2 in lining").
 // - labels: { fold?, cutFold?, cutPair?, seam?, size?, grain?, front?, back? }: the fixed words; English or Dutch
 //   by locale otherwise. seam may hold {n} for the allowance ("{n} cm seam allowance included").
+// - notes: at most three named features, [{ word: "Notch", seg: 3, t: 0.4, on: "cut" }]: a small numeral sits on the
+//   cut edge ("cut") or the stitching line ("stitch") at that point of the outline, and the words are listed as a key
+//   under the sheet. Words never sit on the drawing, so nothing overprints at any width (trial-prim, 2026-11-15: hand
+//   callouts collided at 390). Further notes are dropped. Do not add callouts to this file; use notes.
 // - locale (default "en-GB"), caption (a line under the sheet, in the scene's ink), build ("scroll" default, or
 //   "static"), className (on the figure).
 //
@@ -43,6 +47,10 @@ type PatternLabels = {
   back: string;
 };
 
+export type PatternNote = { word: string; seg: number; t: number; on?: "cut" | "stitch" };
+
+const MAX_NOTES = 3;
+
 type Props = {
   piece: PieceName;
   style: string;
@@ -54,6 +62,7 @@ type Props = {
   labels?: Partial<PatternLabels>;
   locale?: string;
   caption?: string;
+  notes?: PatternNote[];
   build?: "scroll" | "static";
   className?: string;
 };
@@ -108,11 +117,13 @@ export function PatternPaper({
   labels,
   locale = "en-GB",
   caption,
+  notes: noteList,
   build = "scroll",
   className = "",
 }: Props) {
   const root = useRef<HTMLElement>(null);
   const base = PATTERN_PIECES[piece];
+  const notes = (noteList ?? []).filter((n) => base.outline.segs[n.seg]).slice(0, MAX_NOTES);
   const words = WORDS[languageOf(locale)] ?? WORDS.en;
   const text: PatternLabels = { ...words, ...labels };
   const sa = allowance ?? base.allowance;
@@ -145,24 +156,50 @@ export function PatternPaper({
         {base.long ? (
           <>
             <div className="@2xl:hidden">
-              <Sheet template={base} allowance={sa} text={text} block={block} />
+              <Sheet template={base} allowance={sa} text={text} block={block} notes={notes} />
             </div>
             <div className="hidden @2xl:block">
-              <Sheet template={turned(base)} allowance={sa} text={text} block={block} />
+              <Sheet template={turned(base)} allowance={sa} text={text} block={block} notes={notes} />
             </div>
           </>
         ) : (
-          <Sheet template={base} allowance={sa} text={text} block={block} />
+          <Sheet template={base} allowance={sa} text={text} block={block} notes={notes} />
         )}
       </div>
-      {caption ? <figcaption className="mx-auto mt-4 max-w-[44rem] font-body text-sheet-label text-ink-muted">{caption}</figcaption> : null}
+      {notes.length || caption ? (
+        <figcaption className="mx-auto mt-4 max-w-[44rem] font-body text-sheet-label text-ink-muted">
+          {notes.length ? (
+            <ol data-pattern-key="" className="m-0 flex list-none flex-wrap gap-x-6 gap-y-1 p-0 text-ink">
+              {notes.map((n, i) => (
+                <li key={`${n.word}-${i}`} className="flex gap-2">
+                  <span className="subject-figures text-ink-muted">{i + 1}</span>
+                  {n.word}
+                </li>
+              ))}
+            </ol>
+          ) : null}
+          {caption ? <p className={notes.length ? "m-0 mt-2" : "m-0"}>{caption}</p> : null}
+        </figcaption>
+      ) : null}
     </figure>
   );
 }
 
 type Block = { style: string; piece: string; number?: string; size?: string; cut: string; seam: string };
 
-function Sheet({ template, allowance, text, block }: { template: PatternTemplate; allowance: number; text: PatternLabels; block: Block }) {
+function Sheet({
+  template,
+  allowance,
+  text,
+  block,
+  notes,
+}: {
+  template: PatternTemplate;
+  allowance: number;
+  text: PatternLabels;
+  block: Block;
+  notes: PatternNote[];
+}) {
   const svg = useRef<SVGSVGElement>(null);
   const { outline } = template;
   const cutPts = offsetPoints(outline, allowance);
@@ -206,6 +243,16 @@ function Sheet({ template, allowance, text, block }: { template: PatternTemplate
       [tip[0] - ux * l + uy * w, tip[1] - uy * l - ux * w],
     ]);
   };
+
+  // Each note marks a point on the cut edge or the stitching line; its numeral sits just inside the piece, and its
+  // word lives in the key under the sheet.
+  const marks = notes.map((note) => {
+    const { p, n } = pointOn(outline, note.seg, note.t);
+    const out = note.on === "stitch" ? 0 : segAllowance(note.seg);
+    const point: Pt = [p[0] + n[0] * out, p[1] + n[1] * out];
+    const inside = out + 1.4;
+    return { point, label: [p[0] + n[0] * (out - inside), p[1] + n[1] * (out - inside)] as Pt };
+  });
 
   const [g0, g1] = template.grain;
   const grainAngle = (Math.atan2(g1[1] - g0[1], g1[0] - g0[0]) * 180) / Math.PI;
@@ -284,6 +331,14 @@ function Sheet({ template, allowance, text, block }: { template: PatternTemplate
           </g>
         ) : null}
 
+        {marks.length ? (
+          <g data-pattern-mark="" style={{ fill: ink }}>
+            {marks.map((m, i) => (
+              <circle key={i} cx={m.point[0]} cy={m.point[1]} r={u(3)} />
+            ))}
+          </g>
+        ) : null}
+
         <g data-pattern-mark="" style={{ stroke: ink, strokeWidth: u(1.2), fill: "none" }}>
           <path d={polyPath([[vb.x + vb.w - 1.5 - 5, vb.y + vb.h - 1.4], [vb.x + vb.w - 1.5, vb.y + vb.h - 1.4]])} />
           <path d={polyPath([[vb.x + vb.w - 6.5, vb.y + vb.h - 1.4 - u(4)], [vb.x + vb.w - 6.5, vb.y + vb.h - 1.4 + u(4)]])} />
@@ -292,6 +347,16 @@ function Sheet({ template, allowance, text, block }: { template: PatternTemplate
       </svg>
 
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        {marks.map((m, i) => (
+          <span
+            key={i}
+            data-pattern-mark=""
+            className={`absolute ${SMALL} subject-figures font-medium`}
+            style={{ ...at(m.label), transform: "translate(-50%, -50%)" }}
+          >
+            {i + 1}
+          </span>
+        ))}
         {template.fold ? (
           <span
             data-pattern-mark=""

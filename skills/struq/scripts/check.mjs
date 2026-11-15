@@ -910,6 +910,8 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
       if (ans) {
         cur.answer = ans[1].toLowerCase();
         cur.reason = ans[2];
+        // An ask can be partly built and partly refused; keep the Built line for the leftover check below.
+        if (cur.answer === "built") cur.built = ans[2];
       } else if (cur.answer === "refused" && line.trim()) cur.reason += ` ${line.trim()}`;
     }
     const shortAsk = (a) => `${a.ask.slice(0, 90)}${a.ask.length > 90 ? "..." : ""}`;
@@ -921,13 +923,48 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
     const NOT_GROUND = /\b(?:story-?board|(?:the |our |approved |agreed )?plan\b|budgets?|quiet share|pin(?:s| budget)?\b|one centerpiece|centerpiece|blocks?\b|block-owned|owns? (?:its|the)|fixed (?:layout|crop|composition)|the film|loud scene)/i;
     const weak = asks.filter((a) => a.answer === "refused" && (EMPTY.test(a.reason) || (NOT_GROUND.test(a.reason) && !GROUND.test(a.reason))));
     const bare = asks.filter((a) => a.answer === "built" && EMPTY.test(a.reason));
+    // A Built answer that says a quoted text was removed is checked against the files: trial-prim fashion logged
+    // 'the "Photos: Struq" credit is removed' and the credit was still on the page (2026-11-15).
+    const leftovers = [];
+    const isComment = (line) => /^(\/\/|\/?\*|\{\/\*)/.test(line.trim());
+    for (const a of asks.filter((x) => x.built)) {
+      for (const m of a.built.matchAll(/["“]([^"”]{3,160})["”]/g)) {
+        const after = a.built.slice(m.index + m[0].length, m.index + m[0].length + 50);
+        const before = a.built.slice(Math.max(0, m.index - 40), m.index);
+        const gone = /^\s*(?:[\w-]+\s+){0,2}(?:is|are|was|were|has been|have been|now)?\s*(?:removed|gone|deleted|dropped|cut)\b/i.test(after) || /\b(?:removed|deleted|dropped)\s+(?:the\s+)?(?:[\w-]+\s+)?$/i.test(before);
+        if (!gone) continue;
+        const words = m[1].trim().replace(/[.,;:!?]+$/, "");
+        if (words.length < 3) continue;
+        // Found in a shipped file (lib/struq-images.ts holds the credit as a constant), it counts only when the site's
+        // own files still use that export; found in an own file, it counts as it stands.
+        const hitIn = (f) => f.text.split(/\r?\n/).findIndex((line) => !isComment(line) && line.includes(words));
+        let where = null;
+        for (const f of files) {
+          if (f.rel.startsWith(".struq/") || /\.md$/i.test(f.rel)) continue;
+          const i = hitIn(f);
+          if (i < 0) continue;
+          if (!f.recipe) {
+            where = `${f.rel}:${i + 1}`;
+            break;
+          }
+          const name = f.text.split(/\r?\n/)[i].match(/export\s+const\s+(\w+)/)?.[1];
+          const user = name && own.find((o) => !/\.md$/i.test(o.rel) && new RegExp(`\\b${name}\\b`).test(o.text));
+          if (user) {
+            where = `${f.rel}:${i + 1}, used by ${user.rel}`;
+            break;
+          }
+        }
+        if (where) leftovers.push(`${shortAsk(a)}  "${words}" is still in ${where}`);
+      }
+    }
+    if (leftovers.length) add(G, "FAIL", `${leftovers.length} art-direction answer(s) say a text was removed that is still in the site. Remove it, or correct the Built line.`, leftovers);
     if (!asks.length && /ship it/i.test(text)) add(G, "PASS", "The art director said ship it: no asks to answer");
     else if (!asks.length) add(G, "FAIL", ".struq/art-direction.md holds no numbered asks. Write each ask as a numbered item (1. 2. 3.) with the still it names, and answer each with Built: or Refused:.");
     else {
       if (unanswered.length) add(G, "FAIL", `${unanswered.length} art-direction ask(s) with no answer. Under each ask write "Built: <what changed>" or "Refused: <reason>"; every ask is built unless it breaks a rule that never bends or a fact of the brief.`, unanswered.map(shortAsk));
       if (weak.length) add(G, "FAIL", `${weak.length} art-direction ask(s) refused with no ground. The storyboard, the plan, a budget or a block is never a reason: rewrite the storyboard for a good ask, keep a budget by dropping something else, swap or restyle the block. Refuse only an ask that breaks a rule that never bends (SKILL.md) or a fact the brief did not give, and say which.`, weak.map((a) => `${shortAsk(a)}  Refused: ${a.reason.slice(0, 100)}`));
       if (bare.length) add(G, "FAIL", `${bare.length} art-direction ask(s) marked Built with nothing said. Write what changed.`, bare.map(shortAsk));
-      if (!unanswered.length && !weak.length && !bare.length) {
+      if (!unanswered.length && !weak.length && !bare.length && !leftovers.length) {
         const built = asks.filter((a) => a.answer === "built").length;
         add(G, "PASS", `Every art-direction ask is answered: ${built} built, ${asks.length - built} refused on a rule or a fact of the brief`);
       }
