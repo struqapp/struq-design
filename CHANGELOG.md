@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.5 (2026-11-18)
+
+The centrepiece lands and the run ends at RESULT: PASS. Blocks and canon come from Struq main d6e1e9eb.
+
+- A centrepiece that fails the check is fixed or swapped, never removed, and a run is not done until `check.mjs` prints
+  RESULT: PASS.
+- `image-to-fullbleed`: the words part to the margins and stay in the frame, in the ink the photo takes, over a veil
+  that settles before the edge reaches them. The closing line rises out of a mask.
+- `project-stack`: each card deepens its veil only as far as its photo needs, so the labels read on pale photos.
+- `look.mjs` judges text a script is fading in at the colours it settles to, lets a scripted zoom pass the screen
+  edges, and no longer takes a hairline seam as the ground behind a word.
+- `blocks.mjs arc` writes the temperament on `<body>`, and logging a step ticks its checklist line.
+
 ## 0.5.4 (2026-11-15)
 
 The middle of the page comes from designed scenes. Blocks and canon come from Struq main f65e9208.

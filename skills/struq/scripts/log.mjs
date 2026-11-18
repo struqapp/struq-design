@@ -10,9 +10,10 @@
 //
 // Entry shape: a heading with the step name and the local time, then two to five short lines.
 // Earlier entries are never rewritten: the file is only ever opened for appending.
-import { appendFileSync, existsSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { hasApproval } from "./gate.mjs";
 
 const DASHES = /[\u2012\u2013\u2014\u2015]/g;
 
@@ -43,6 +44,7 @@ export function appendLog(root, step, lines) {
   }
   text += `\n## ${clean(step)} (${stamp()})\n${body.map((l) => `${l}\n`).join("")}`;
   appendFileSync(file, text);
+  syncChecklist(root);
   return file;
 }
 
@@ -72,4 +74,35 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   }
   const file = appendLog(root, step, lines);
   console.log(`Logged "${step}" in ${file}`);
+  const n = Number(step.match(/^Step ([0-9]+)/)[1]);
+  const plan = existsSync(join(root, "STRUQ.md")) ? readFileSync(join(root, "STRUQ.md"), "utf8") : "";
+  if (new RegExp(`^\\s*[-*]\\s*\\[[xX]\\]\\s*${n}\\b`, "m").test(plan)) console.log(`Step ${n} is ticked in STRUQ.md.`);
+  else if (n === 7 && /^\s*[-*]\s*\[\s\]\s*7\b/m.test(plan)) {
+    console.log("Step 7 stays open in STRUQ.md until .struq/art-direction.md holds a fresh subagent's asks, each answered Built: or Refused: (SKILL.md, Art direction).");
+  }
+}
+
+/**
+ * Tick every open Build checklist line in STRUQ.md whose step STRUQ-LOG.md already holds, so logging a step and
+ * ticking it are one move (two Haiku builds of 2026-11-16 logged their steps and left the lines open). Step 2 waits
+ * for the logged approval, step 7 for .struq/art-direction.md with the subagent's asks, and step 8 is check.mjs's
+ * own. Every log entry runs it, the scripts' own entries too. Returns the steps it ticked.
+ */
+export function syncChecklist(root) {
+  const planFile = join(root, "STRUQ.md");
+  const logFile = join(root, "STRUQ-LOG.md");
+  if (!existsSync(planFile) || !existsSync(logFile)) return [];
+  const log = readFileSync(logFile, "utf8");
+  let plan = readFileSync(planFile, "utf8");
+  const ticked = [];
+  for (let n = 1; n <= 7; n++) {
+    const line = new RegExp(`^(\\s*[-*]\\s*\\[)\\s(\\]\\s*${n}\\b)`, "m");
+    if (!line.test(plan) || !new RegExp(`^## Step ${n}\\b`, "m").test(log)) continue;
+    if (n === 2 && !hasApproval(log)) continue;
+    if (n === 7 && !existsSync(join(root, ".struq", "art-direction.md"))) continue;
+    plan = plan.replace(line, "$1x$2");
+    ticked.push(n);
+  }
+  if (ticked.length) writeFileSync(planFile, plan);
+  return ticked;
 }

@@ -55,9 +55,9 @@ Log each MCP call: `node <skill-dir>/scripts/log.mjs mcp <tool> --note "<what yo
 
 ## Build checklist
 
-Copy this into `STRUQ.md` under the plan and tick each line when done. Log every step in `STRUQ-LOG.md`
-(`node <skill-dir>/scripts/log.mjs "Step N Name" "what" "why"`); `check.mjs` fails while a line is open or a ticked
-step has no entry.
+Copy this into `STRUQ.md` under the plan. Log every step in `STRUQ-LOG.md`
+(`node <skill-dir>/scripts/log.mjs "Step N Name" "what" "why"`); logging a step ticks its line. `check.mjs` fails
+while a line is open or a ticked step has no entry.
 
 ```
 ## Build checklist
@@ -85,8 +85,8 @@ that a visitor must see (the app, the event, the garment, the cup, the bread); t
 the Unlike line: the site any agent would build, and Struq's own reflexes, which you must also avoid (a framed photo
 with the name small beside it; one italic word in every headline; a middle of one-word rows, a sentence with a small
 photo and a photo beside text; an echo close over a full-width wordmark). Pick the language from the hand, run
-`node <skill-dir>/scripts/blocks.mjs arc <language>`, and cast every line of the storyboard it prints, each pick with
-its reason after "because": the Opening and the Centerpiece from the five each it deals (look at the photos first,
+`node <skill-dir>/scripts/blocks.mjs arc <language>` (it also sets the language's temperament on `<body>`), and cast
+every line of the storyboard it prints, each pick with its reason after "because": the Opening and the Centerpiece from the five each it deals (look at the photos first,
 step 4), the middle scenes named and designed for this client, the close ending where the idea ends. Invent own scenes wherever the
 idea wants a moment no block gives. Outside the hand only what the client gave: their brand colours or faces, marked
 `(brand)`, or a block they named, marked `(named)`.
@@ -183,7 +183,9 @@ or the screen edge, a page wider than the screen, low contrast on a solid ground
 screen, a number broken across lines, a font that never loaded, and console or image errors; it warns on a
 screen-high empty stretch. Open the screenshots and crops it names and read
 them as a studio's art director would: the preloader lands, every pin engages and lets go, the first screen is bold
-enough to stop a visitor. Fix, rebuild, restart the server and run it again until `LOOK: PASS`.
+enough to stop a visitor. Fix, rebuild, restart the server and run it again until `LOOK: PASS`. A centerpiece that
+fails the look is fixed or swapped for another centerpiece from the hand (or an own loud scene), with the Centerpiece
+line rewritten. It is never removed.
 
 **Art direction.** Then hand the site to a fresh pair of eyes: start a subagent (the Agent tool in Claude Code, or your
 host's equivalent) and give it only the brief, the Idea line, the paths of the stills in `.struq/look/` and
@@ -195,9 +197,9 @@ the budget by dropping something else. Refuse only an ask that breaks a rule tha
 (a price, an address, a programme nobody gave), and say which. A refusal that cites the storyboard, the plan, a budget
 or a block is no refusal: `check.mjs` fails it, and fails an ask with no answer. Rebuild, run `look.mjs` again, and ask
 a new subagent once more; two rounds at most, each logged with `log.mjs`. A host without subagents: reread only the
-brief, then read the stills against that file yourself. Then `check.mjs` to
-`RESULT: PASS`; it fails while `.struq/look.json` is missing, failing or older than app/ and components/. A FAIL you
-are sure is false goes in the final report with the reason, never worked around. Stop the server when done.
+brief, then read the stills against that file yourself. The run is not over until `check.mjs` prints
+`RESULT: PASS`; it fails while `.struq/look.json` is missing, failing or older than app/ and components/. On a FAIL,
+keep fixing; only a FAIL you are sure is false, with its reason, may stand. Stop the server when done.
 
 ## The film
 

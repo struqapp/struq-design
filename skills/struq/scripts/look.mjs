@@ -176,6 +176,16 @@ function measurePage(opts) {
       opacityCache.set(el, o);
       return o;
     };
+    // The opacity a text settles at: an opacity a script set inline (a fade or a scrubbed stagger caught between its
+    // ends, such as a drawing's callout numbers setting in one by one) counts as whole, so contrast judges the colours
+    // the reader is left with. An opacity from a stylesheet, and a hidden element, still count as they are.
+    const settled = (el) => {
+      if (!el || el.nodeType !== 1) return 1;
+      const s = cs(el);
+      if (s.visibility === "hidden" || s.visibility === "collapse" || s.display === "none") return 0;
+      const own = parseFloat(s.opacity);
+      return (el.style?.opacity !== "" && own > 0 ? 1 : own) * settled(el.parentElement);
+    };
     const translation = (el) => {
       const t = cs(el).transform;
       if (!t || t === "none") return { x: 0, y: 0 };
@@ -184,6 +194,19 @@ function measurePage(opts) {
         return { x: m.m41, y: m.m42 };
       } catch {
         return { x: 0, y: 0 };
+      }
+    };
+    // A layer a script is scaling up (an inline transform past 1) is a zoom in progress: its type falls away past the
+    // edges by design (zoom-through), the way a sliding track does. A scale set in a stylesheet is not exempt.
+    const zooming = (el) => {
+      if (!el.style?.transform) return false;
+      const t = cs(el).transform;
+      if (!t || t === "none") return false;
+      try {
+        const m = new DOMMatrixReadOnly(t);
+        return Math.hypot(m.m11, m.m12) > 1.02;
+      } catch {
+        return false;
       }
     };
     const isMedia = (el) => /^(IMG|VIDEO|CANVAS|PICTURE|IFRAME)$/.test(el.tagName) || (el.tagName === "image" && el.ownerSVGElement);
@@ -321,7 +344,7 @@ function measurePage(opts) {
           const seen = (Math.min(k.b, c.b) - Math.max(k.t, c.t)) / inkH;
           // A line still travelling through its mask is a reveal in progress, not a cut.
           let moving = false;
-          for (let a = t.el; a && a !== c.byY; a = a.parentElement) if (Math.abs(translation(a).y) > 0.5) moving = true;
+          for (let a = t.el; a && a !== c.byY; a = a.parentElement) if (Math.abs(translation(a).y) > 0.5 || zooming(a)) moving = true;
           if (!moving && seen >= 0.5) {
             const where = cutB > tol ? `the bottom ${Math.round(cutB)}px (descenders)` : `the top ${Math.round(cutT)}px`;
             add({ kind: "clipped", text: t.text, selector: path(t.el), detail: `${where} cut by the overflow of ${c.byY ? path(c.byY) : "the screen"}`, key: `clipped|${path(t.el)}|${t.text.slice(0, 40)}|v`, x: k.l });
@@ -332,7 +355,7 @@ function measurePage(opts) {
           // a box that holds it, with no sliding track in between, runs off the edge.
           let verdict = "fits";
           for (let a = t.el; a && a !== document.body; a = a.parentElement) {
-            if (Math.abs(translation(a).x) > 0.5 && a !== t.el) {
+            if ((Math.abs(translation(a).x) > 0.5 && a !== t.el) || zooming(a)) {
               verdict = "track";
               break;
             }
@@ -485,9 +508,19 @@ function measurePage(opts) {
       const layers = [];
       let ground = null;
       let image = false;
+      // A box under the line's centre that covers less than half the line is no ground: a hairline seam standing
+      // through a word (split-pair) read as the word's ground once, so the accent measured 2.88 against the seam.
+      const lineArea = Math.max(1, lr.width * lr.height);
+      const underLine = (e) => {
+        const r = e.getBoundingClientRect();
+        const w = Math.min(r.right, lr.right) - Math.max(r.left, lr.left);
+        const h = Math.min(r.bottom, lr.bottom) - Math.max(r.top, lr.top);
+        return w > 0 && h > 0 && w * h >= 0.5 * lineArea;
+      };
       for (let k = at; k < stack.length; k++) {
         const e = stack[k];
         if (k > at && t.el.contains(e)) continue;
+        if (k > at && !isMedia(e) && !underLine(e)) continue;
         if (k > at && isMedia(e)) {
           image = true;
           break;
@@ -505,7 +538,7 @@ function measurePage(opts) {
         }
         layers.push([bg[0], bg[1], bg[2], a]);
       }
-      const ink = [t.color[0], t.color[1], t.color[2], t.color[3] * t.o];
+      const ink = [t.color[0], t.color[1], t.color[2], t.color[3] * settled(t.el)];
       const need = t.fontSize >= 24 ? 3 : 4.5;
       const flatten = (base) => {
         let g = base;

@@ -2,7 +2,7 @@
   "source": {
     "repo": "Struq blocks/",
     "ref": "origin/main",
-    "commit": "f65e9208"
+    "commit": "d6e1e9eb"
   },
   "blocks": [
     {
@@ -946,7 +946,7 @@
       "slug": "image-to-fullbleed",
       "kind": "showpiece",
       "title": "Image to full bleed",
-      "does": "A small image between the two halves of a name unclips to the full screen as the words travel off the edges.",
+      "does": "A small image between the two halves of a name unclips to the full screen as the words part to the margins, inside the frame, in the ink the photo takes.",
       "reference": null,
       "variants": [],
       "role": "centerpiece",
@@ -973,6 +973,7 @@
         "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
+        "kit/photo-read.ts",
         "showpieces/image-to-fullbleed.tsx"
       ]
     },
@@ -1074,6 +1075,7 @@
         "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
+        "kit/photo-read.ts",
         "showpieces/project-stack.tsx"
       ]
     },
