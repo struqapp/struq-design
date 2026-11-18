@@ -66,6 +66,9 @@ const PAGES = {
   number: page(`${HEADER}<main>${HERO}<section><p style="font-size:56px;max-width:4ch;line-height:1.2">Totaal 3 900.00</p></section>${FILL}</main>${FOOTER}`),
   // A face asked for first that the page never loads: the heading reads in Georgia.
   font: page(`${HEADER}<main>${HERO}<section><h2 style='font-family:"Struq Absent Face", Georgia, serif'>Een letter die niet laadt</h2></section>${FILL}</main>${FOOTER}`),
+  // A word in the accent on its paper ground with a hairline seam standing through its middle, under the letters
+  // (split-pair, proof run 2026-11-16): the seam is not the word's ground, so the word passes on the paper.
+  seam: page(`${HEADER}<main>${HERO}<section style="position:relative"><span style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:#1a1a1a"></span><h2 style="position:relative;font-size:160px;line-height:1.2;color:#bb0916;text-align:center;margin:0">Stil</h2></section>${FILL}</main>${FOOTER}`),
   // None of the four may fire here: a quiet pinned scene with one sentence on its flat ground, white text over a dark
   // photo, a total kept whole by a no-break space beside running text with numbers that wrap between them, and a face
   // that loads.
@@ -197,6 +200,13 @@ test('look: pale text on a solid ground fails as contrast', async (t) => {
   const f = r.json.findings.find((x) => x.kind === 'contrast');
   assert.ok(f && f.severity === 'FAIL' && /needs 4.5/.test(f.detail), r.out);
   assert.deepEqual([...new Set(kinds(r))], ['contrast'], r.out);
+});
+
+test('look: a hairline seam under a word is not its ground; the word is measured on the paper it stands on', async (t) => {
+  if (skip) return t.skip(skip);
+  const r = await result('seam');
+  assert.ok(!kinds(r).includes('contrast'), r.out);
+  assert.equal(r.code, 0, r.out);
 });
 
 test('look: a screen-high stretch of nothing warns as empty', async (t) => {

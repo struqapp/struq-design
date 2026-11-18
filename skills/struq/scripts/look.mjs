@@ -485,9 +485,19 @@ function measurePage(opts) {
       const layers = [];
       let ground = null;
       let image = false;
+      // A box under the line's centre that covers less than half the line is no ground: a hairline seam standing
+      // through a word (split-pair) read as the word's ground once, so the accent measured 2.88 against the seam.
+      const lineArea = Math.max(1, lr.width * lr.height);
+      const underLine = (e) => {
+        const r = e.getBoundingClientRect();
+        const w = Math.min(r.right, lr.right) - Math.max(r.left, lr.left);
+        const h = Math.min(r.bottom, lr.bottom) - Math.max(r.top, lr.top);
+        return w > 0 && h > 0 && w * h >= 0.5 * lineArea;
+      };
       for (let k = at; k < stack.length; k++) {
         const e = stack[k];
         if (k > at && t.el.contains(e)) continue;
+        if (k > at && !isMedia(e) && !underLine(e)) continue;
         if (k > at && isMedia(e)) {
           image = true;
           break;

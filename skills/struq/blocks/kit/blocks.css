@@ -163,6 +163,11 @@
   .sq-js [data-blocks] [data-showpiece="image-to-fullbleed"] [data-frame] {
     clip-path: inset(31% 40% 31% 40%);
   }
+  /* The closing line waits below its mask; until the script holds it there it is not shown over the ground. */
+  .sq-js [data-blocks] [data-showpiece="image-to-fullbleed"]:not([data-motion]) [data-line] {
+    visibility: hidden;
+    animation: struq-show 0s 3s forwards;
+  }
   /* The connector's start is computed from the layout, so the joined still waits unseen until it is set. */
   .sq-js [data-blocks] [data-showpiece="scrub-connector"]:not([data-motion]) > [data-row] {
     visibility: hidden;

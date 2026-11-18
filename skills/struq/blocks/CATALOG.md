@@ -222,10 +222,10 @@ Files: `kit/HeroCanvas.tsx`, `kit/MagneticButton.tsx`, `kit/accent.ts`, `kit/blo
 ### image-to-fullbleed
 film: role centerpiece · home none · motif frame · energy 3 · pins 2.2 · none
 
-Image to full bleed. A small image between the two halves of a name unclips to the full screen as the words travel off the edges.
+Image to full bleed. A small image between the two halves of a name unclips to the full screen as the words part to the margins, inside the frame, in the ink the photo takes.
 
 Exports: `ImageToFullbleed`. Packages: @gsap/react, gsap.
-Files: `kit/blocks.css`, `kit/feel.ts`, `kit/gsap.ts`, `kit/images.ts`, `showpieces/image-to-fullbleed.tsx`.
+Files: `kit/blocks.css`, `kit/feel.ts`, `kit/gsap.ts`, `kit/images.ts`, `kit/photo-read.ts`, `showpieces/image-to-fullbleed.tsx`.
 
 ### panel-wipe
 film: role centerpiece · home none · motif aperture · energy 3 · pins 1.7 · none

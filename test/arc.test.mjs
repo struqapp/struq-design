@@ -293,3 +293,24 @@ test('the gate takes a storyboard that names kit quiet scenes, and add installs 
   assert.equal(other.status, 0, other.stderr);
   assert.ok(!/storyboard does not name/.test(other.stderr));
 });
+
+test('arc writes the language temperament on <body> beside data-blocks, and keeps one already set', () => {
+  // why: two Haiku builds of 2026-11-16 (plumber, skill 0.5.4) ended without data-temperament; check.mjs failed it.
+  for (const language of LANGUAGES) {
+    const want = film.FILM_LANGUAGES.find((l) => l.id === language).temperament;
+    const dir = nextProject();
+    mkdirSync(join(dir, 'app'), { recursive: true });
+    writeFileSync(join(dir, 'app', 'layout.tsx'), '<html lang="nl">\n  <body data-blocks="">\n    {children}\n  </body>\n</html>\n');
+    const r = blocks('arc', language, '--dir', dir);
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(readFileSync(join(dir, 'app', 'layout.tsx'), 'utf8'), new RegExp(`<body data-blocks="" data-temperament="${want}">`));
+    assert.match(r.stdout, new RegExp(`wrote data-temperament="${want}" on <body> in app/layout\\.tsx`));
+  }
+  const dir = nextProject();
+  mkdirSync(join(dir, 'app'), { recursive: true });
+  writeFileSync(join(dir, 'app', 'layout.tsx'), '<body data-blocks="" data-temperament="slow">x</body>\n');
+  const r = blocks('arc', 'weight', '--dir', dir);
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(readFileSync(join(dir, 'app', 'layout.tsx'), 'utf8'), '<body data-blocks="" data-temperament="slow">x</body>\n');
+  assert.match(r.stdout, /has data-temperament="slow": keep it only as the neighbour/);
+});

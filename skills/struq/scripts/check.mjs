@@ -14,7 +14,7 @@
 // only report done on "RESULT: PASS".
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
-import { appendLog } from "./log.mjs";
+import { appendLog, syncChecklist } from "./log.mjs";
 import { altFitsBrief, packSignalForBrief } from "./packs.mjs";
 import { savedHand } from "./draw.mjs";
 import { filmCheck, planCheck } from "./film-check.mjs";
@@ -137,6 +137,8 @@ if (!existsSync(join(root, "package.json"))) {
 }
 const pkg = JSON.parse(read("package.json"));
 const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+// A step the log already holds is ticked before the plan is read (log.mjs, syncChecklist).
+syncChecklist(root);
 const plan = read("STRUQ.md");
 
 /** "file:line" for an index into a file's text. */
@@ -767,7 +769,7 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   else {
     const open = plan.split(/\r?\n/).filter((l) => /^\s*[-*]\s*\[\s\]/.test(l) && !/check\.mjs/.test(l));
     const done = plan.split(/\r?\n/).filter((l) => /^\s*[-*]\s*\[[xX]\]/.test(l)).length;
-    if (open.length) add(G, "FAIL", `${open.length} Build checklist item(s) not ticked in STRUQ.md. Do them, then tick them.`, open.map((l) => l.trim()));
+    if (open.length) add(G, "FAIL", `${open.length} Build checklist item(s) not ticked in STRUQ.md. Do each, then log it with log.mjs "Step <N> ...", which ticks its line (step 7 also needs .struq/art-direction.md).`, open.map((l) => l.trim()));
     else if (done >= 7) add(G, "PASS", `Build checklist ticked (${done} items)`);
     else add(G, "FAIL", "STRUQ.md has no Build checklist: copy it from SKILL.md and tick each step as you finish it.");
     const has = (k) => new RegExp(`^${k}:\\s*\\S`, "mi").test(plan);

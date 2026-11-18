@@ -48,6 +48,31 @@ function middleVariants(name) {
   return [...line.matchAll(/"([a-z][\w-]*)"/g)].map((m) => m[1]);
 }
 
+/**
+ * The language's temperament on <body> in app/layout.tsx, beside data-blocks, written here so it is never left out
+ * (two Haiku builds of 2026-11-16 ended without it). A temperament already set is kept: the neighbour, chosen with its
+ * reason on the Language line, is the agent's call. Returns the line to print.
+ */
+function temperament(value, id) {
+  const file = join(root, src, "app", "layout.tsx");
+  const where = relative(root, file).split("\\").join("/");
+  const want = `data-temperament="${value}"`;
+  if (!existsSync(file)) return `Temperament of ${id}: ${value}. Set <body data-blocks="" ${want}> in ${where}.`;
+  const text = readFileSync(file, "utf8");
+  const body = text.match(/<body\b[^>]*>/);
+  if (!body) return `Temperament of ${id}: ${value}. ${where} has no <body>: set <body data-blocks="" ${want}>.`;
+  const has = body[0].match(/\bdata-temperament=(?:["']([^"']*)["']|\{\s*["'`]([^"'`]*)["'`]\s*\})/);
+  if (has) {
+    const set = has[1] ?? has[2];
+    return set === value
+      ? `Temperament of ${id}: ${value}, already on <body> in ${where}.`
+      : `Temperament of ${id}: ${value}. <body> in ${where} has data-temperament="${set}": keep it only as the neighbour, with the reason on the Language line, or set ${want}.`;
+  }
+  const tag = body[0].replace(/^<body\b/, `<body ${want}`).replace(/^<body (data-temperament="[^"]*") (data-blocks=(?:"[^"]*"|'[^']*'|\{[^}]*\}))/, "<body $2 $1");
+  writeFileSync(file, text.replace(body[0], tag));
+  return `Temperament of ${id}: wrote ${want} on <body> in ${where}. A neighbour goes there instead only with its reason on the Language line.`;
+}
+
 const args = process.argv.slice(2);
 const dirAt = args.indexOf("--dir");
 const root = resolve(dirAt >= 0 ? args[dirAt + 1] : process.cwd());
@@ -230,6 +255,7 @@ const commands = {
     for (const line of arcLines(arc, film.FILM_ARCS.flatMap((a) => a.scenes.flatMap((s) => s.footer ?? [])))) console.log(line);
     const f = language.frames;
     console.log(`\nFrames of ${id}: preloader ${f.preloader}, page transition ${f.pageTransition} (only with a second route), menu ${f.menu}. Header: ${film.FILM_HEADER.join(" or ")}.`);
+    console.log(temperament(language.temperament, id));
     console.log(`The Opening and the Centerpiece options are this site's hand, dealt once (.struq/draw.json): cast from it; a block the client named goes outside it, marked (named) on its line.`);
     console.log(`Use: paste the Tone arc and the Storyboard into STRUQ.md under your treatment head. Cast every <cast: ...> from the Idea, the Motif and the Unlike line, not from the order of the options: each option is a different first screen or moment (blocks/CATALOG.md says what each does). Write one pick per line with its reason after "because", delete the options list, set (loud) for E2 or more and (quiet) for E1 or less, and change, add or drop middle scenes as the idea needs (7 to 9 scenes, the budgets in SKILL.md hold). Then run check.mjs --plan.`);
   },
