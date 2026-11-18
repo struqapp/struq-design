@@ -186,6 +186,19 @@ function measurePage(opts) {
         return { x: 0, y: 0 };
       }
     };
+    // A layer a script is scaling up (an inline transform past 1) is a zoom in progress: its type falls away past the
+    // edges by design (zoom-through), the way a sliding track does. A scale set in a stylesheet is not exempt.
+    const zooming = (el) => {
+      if (!el.style?.transform) return false;
+      const t = cs(el).transform;
+      if (!t || t === "none") return false;
+      try {
+        const m = new DOMMatrixReadOnly(t);
+        return Math.hypot(m.m11, m.m12) > 1.02;
+      } catch {
+        return false;
+      }
+    };
     const isMedia = (el) => /^(IMG|VIDEO|CANVAS|PICTURE|IFRAME)$/.test(el.tagName) || (el.tagName === "image" && el.ownerSVGElement);
     const hasImageGround = (el) => {
       const b = cs(el).backgroundImage;
@@ -321,7 +334,7 @@ function measurePage(opts) {
           const seen = (Math.min(k.b, c.b) - Math.max(k.t, c.t)) / inkH;
           // A line still travelling through its mask is a reveal in progress, not a cut.
           let moving = false;
-          for (let a = t.el; a && a !== c.byY; a = a.parentElement) if (Math.abs(translation(a).y) > 0.5) moving = true;
+          for (let a = t.el; a && a !== c.byY; a = a.parentElement) if (Math.abs(translation(a).y) > 0.5 || zooming(a)) moving = true;
           if (!moving && seen >= 0.5) {
             const where = cutB > tol ? `the bottom ${Math.round(cutB)}px (descenders)` : `the top ${Math.round(cutT)}px`;
             add({ kind: "clipped", text: t.text, selector: path(t.el), detail: `${where} cut by the overflow of ${c.byY ? path(c.byY) : "the screen"}`, key: `clipped|${path(t.el)}|${t.text.slice(0, 40)}|v`, x: k.l });
@@ -332,7 +345,7 @@ function measurePage(opts) {
           // a box that holds it, with no sliding track in between, runs off the edge.
           let verdict = "fits";
           for (let a = t.el; a && a !== document.body; a = a.parentElement) {
-            if (Math.abs(translation(a).x) > 0.5 && a !== t.el) {
+            if ((Math.abs(translation(a).x) > 0.5 && a !== t.el) || zooming(a)) {
               verdict = "track";
               break;
             }

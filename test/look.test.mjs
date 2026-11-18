@@ -69,6 +69,10 @@ const PAGES = {
   // A word in the accent on its paper ground with a hairline seam standing through its middle, under the letters
   // (split-pair, proof run 2026-11-16): the seam is not the word's ground, so the word passes on the paper.
   seam: page(`${HEADER}<main>${HERO}<section style="position:relative"><span style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:#1a1a1a"></span><h2 style="position:relative;font-size:160px;line-height:1.2;color:#bb0916;text-align:center;margin:0">Stil</h2></section>${FILL}</main>${FOOTER}`),
+  // A title a script is scaling up through an overflow-hidden stage (zoom-through mid-zoom, lab of 2026-11-18): its
+  // letters fall away past the edges by design. The same scale from a stylesheet is no zoom and still runs off.
+  zoom: page(`${HEADER}<main>${HERO}<section style="position:relative;overflow:hidden;height:100vh;padding:0"><div style="position:absolute;inset:0;transform:scale(2.6)"><p style="position:absolute;left:10%;top:40%;margin:0;font-size:120px;line-height:1.2;white-space:nowrap">Stil werk</p></div></section>${FILL}</main>${FOOTER}`),
+  zoomcss: page(`${HEADER}<main>${HERO}<section style="position:relative;overflow:hidden;height:100vh;padding:0"><div class="big" style="position:absolute;inset:0"><p style="position:absolute;left:10%;top:40%;margin:0;font-size:120px;line-height:1.2;white-space:nowrap">Stil werk</p></div></section>${FILL}</main>${FOOTER}`, '.big { transform: scale(2.6); }'),
   // None of the four may fire here: a quiet pinned scene with one sentence on its flat ground, white text over a dark
   // photo, a total kept whole by a no-break space beside running text with numbers that wrap between them, and a face
   // that loads.
@@ -207,6 +211,13 @@ test('look: a hairline seam under a word is not its ground; the word is measured
   const r = await result('seam');
   assert.ok(!kinds(r).includes('contrast'), r.out);
   assert.equal(r.code, 0, r.out);
+});
+
+test('look: type a script is zooming past the edges is a zoom in progress; the same scale from CSS is clipped', async (t) => {
+  if (skip) return t.skip(skip);
+  const [zoom, css] = await Promise.all([result('zoom'), result('zoomcss')]);
+  assert.ok(!kinds(zoom).includes('clipped'), zoom.out);
+  assert.ok(css.json.findings.some((f) => f.kind === 'clipped' && f.text === 'Stil werk'), css.out);
 });
 
 test('look: a screen-high stretch of nothing warns as empty', async (t) => {

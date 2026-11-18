@@ -249,7 +249,7 @@ film: role centerpiece · home none · motif neutral · energy 3 · pins 3.3 · 
 Project stack. One project per screen; each slides up full bleed over the last while the one beneath recedes.
 
 Exports: `ProjectStack`. Packages: @gsap/react, gsap.
-Files: `kit/blocks.css`, `kit/feel.ts`, `kit/gsap.ts`, `kit/images.ts`, `showpieces/project-stack.tsx`.
+Files: `kit/blocks.css`, `kit/feel.ts`, `kit/gsap.ts`, `kit/images.ts`, `kit/photo-read.ts`, `showpieces/project-stack.tsx`.
 
 ### manifesto-scrub
 film: role centerpiece · home none · motif word · energy 3 · pins 2 · none

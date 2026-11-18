@@ -1075,6 +1075,7 @@
         "kit/feel.ts",
         "kit/gsap.ts",
         "kit/images.ts",
+        "kit/photo-read.ts",
         "showpieces/project-stack.tsx"
       ]
     },
