@@ -176,6 +176,16 @@ function measurePage(opts) {
       opacityCache.set(el, o);
       return o;
     };
+    // The opacity a text settles at: an opacity a script set inline (a fade or a scrubbed stagger caught between its
+    // ends, such as a drawing's callout numbers setting in one by one) counts as whole, so contrast judges the colours
+    // the reader is left with. An opacity from a stylesheet, and a hidden element, still count as they are.
+    const settled = (el) => {
+      if (!el || el.nodeType !== 1) return 1;
+      const s = cs(el);
+      if (s.visibility === "hidden" || s.visibility === "collapse" || s.display === "none") return 0;
+      const own = parseFloat(s.opacity);
+      return (el.style?.opacity !== "" && own > 0 ? 1 : own) * settled(el.parentElement);
+    };
     const translation = (el) => {
       const t = cs(el).transform;
       if (!t || t === "none") return { x: 0, y: 0 };
@@ -528,7 +538,7 @@ function measurePage(opts) {
         }
         layers.push([bg[0], bg[1], bg[2], a]);
       }
-      const ink = [t.color[0], t.color[1], t.color[2], t.color[3] * t.o];
+      const ink = [t.color[0], t.color[1], t.color[2], t.color[3] * settled(t.el)];
       const need = t.fontSize >= 24 ? 3 : 4.5;
       const flatten = (base) => {
         let g = base;

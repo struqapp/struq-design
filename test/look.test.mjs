@@ -73,6 +73,10 @@ const PAGES = {
   // letters fall away past the edges by design. The same scale from a stylesheet is no zoom and still runs off.
   zoom: page(`${HEADER}<main>${HERO}<section style="position:relative;overflow:hidden;height:100vh;padding:0"><div style="position:absolute;inset:0;transform:scale(2.6)"><p style="position:absolute;left:10%;top:40%;margin:0;font-size:120px;line-height:1.2;white-space:nowrap">Stil werk</p></div></section>${FILL}</main>${FOOTER}`),
   zoomcss: page(`${HEADER}<main>${HERO}<section style="position:relative;overflow:hidden;height:100vh;padding:0"><div class="big" style="position:absolute;inset:0"><p style="position:absolute;left:10%;top:40%;margin:0;font-size:120px;line-height:1.2;white-space:nowrap">Stil werk</p></div></section>${FILL}</main>${FOOTER}`, '.big { transform: scale(2.6); }'),
+  // Callout numbers caught mid-fade by a scrubbed stagger (an opacity set inline by the script, trial-centerpiece of
+  // 2026-11-18 measured 1.39 to 3.70): judged at the colours they settle to. The same opacity from a class is pale.
+  midfade: page(`${HEADER}<main>${HERO}<section><p style="opacity:0.25">Een tekst die nog binnenkomt.</p></section>${FILL}</main>${FOOTER}`),
+  faint: page(`${HEADER}<main>${HERO}<section><p class="faint">Een tekst die altijd vaag blijft.</p></section>${FILL}</main>${FOOTER}`, '.faint { opacity: 0.25; }'),
   // None of the four may fire here: a quiet pinned scene with one sentence on its flat ground, white text over a dark
   // photo, a total kept whole by a no-break space beside running text with numbers that wrap between them, and a face
   // that loads.
@@ -218,6 +222,13 @@ test('look: type a script is zooming past the edges is a zoom in progress; the s
   const [zoom, css] = await Promise.all([result('zoom'), result('zoomcss')]);
   assert.ok(!kinds(zoom).includes('clipped'), zoom.out);
   assert.ok(css.json.findings.some((f) => f.kind === 'clipped' && f.text === 'Stil werk'), css.out);
+});
+
+test('look: text a script is fading in is judged at its settled colours; a faint text from a stylesheet still fails', async (t) => {
+  if (skip) return t.skip(skip);
+  const [mid, faint] = await Promise.all([result('midfade'), result('faint')]);
+  assert.ok(!kinds(mid).includes('contrast'), mid.out);
+  assert.ok(faint.json.findings.some((f) => f.kind === 'contrast' && /vaag/.test(f.text)), faint.out);
 });
 
 test('look: a screen-high stretch of nothing warns as empty', async (t) => {
