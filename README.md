@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="https://struq.app/skill">
+  <a href="https://struq.app/skill?utm_source=github-readme">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="assets/readme/hero-dark.svg">
       <img alt="Struq skill: studio-grade sites from the AI you already use." src="assets/readme/hero-light.svg" width="100%">
@@ -8,19 +8,19 @@
 </h1>
 
 <p align="center">
-  Struq is a free, open-source design skill for Claude Code, Cursor, Codex and other AI coding tools: your AI settles the direction, type, colour and motion before it builds, so your site looks studio-made, not AI-made.
+  The Struq skill is a free, open-source design skill for Claude Code, Cursor, Codex and other AI coding tools. Your AI directs the site the way a studio would, with an idea, a type pairing, a palette and a motion language, and then builds it from award-tier blocks.
 </p>
 
 <p align="center">
-  <a href="https://struq.app/skill">Website</a>
+  <a href="https://struq.app/skill?utm_source=github-readme">Website</a>
   &nbsp;&middot;&nbsp;
-  <a href="https://struq.app/docs">Docs</a>
+  <a href="https://struq.app/docs?utm_source=github-readme">Docs</a>
   &nbsp;&middot;&nbsp;
-  <a href="https://struq.app/showcase">Showcase</a>
+  <a href="https://struq.app/showcase?utm_source=github-readme">Showcase</a>
   &nbsp;&middot;&nbsp;
   <a href="#the-struq-mcp">Struq MCP</a>
   &nbsp;&middot;&nbsp;
-  <a href="https://struq.app/icons">Struq Icons</a>
+  <a href="https://struq.app/icons?utm_source=github-readme">Struq Icons</a>
   &nbsp;&middot;&nbsp;
   <a href="https://github.com/struqapp/struq-design/discussions">Discussions</a>
 </p>
@@ -41,11 +41,19 @@ It finds the AI tools on your machine and installs the skill into each one. Then
 
 <br>
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/h/film-dark.svg"><img src="assets/readme/h/film-light.svg" width="26" height="26" alt=""></picture> Watch the Struq skill in 58 seconds
+<p align="center">
+  <img alt="Noir Atelier, a fashion label's first collection, built twice by Claude Haiku from the same line. Left, with the Struq skill: the name cut by a strip of a hanging coat, then a close crop of denim twill. Right, without: a dark template with a large serif title, a small label above it and two outlined buttons." src="assets/readme/proof/fashion.webp" width="100%">
+</p>
+
+<p align="center"><sub><b>Your AI builds the generic site. With the Struq skill, it directs one.</b> One line, the same AI: with the skill (left), without it (right). More pairs <a href="#the-same-brief-with-and-without-the-skill">further down</a>.</sub></p>
+
+<br>
+
+## <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/h/film-dark.svg"><img src="assets/readme/h/film-light.svg" width="26" height="26" alt=""></picture> Watch the Struq skill direct a site
 
 https://github.com/user-attachments/assets/19587b11-ef4c-4cf6-81ef-87230923e567
 
-<p align="center"><sub>The launch film, silent. Also on <a href="https://struq.app">struq.app</a>.</sub></p>
+<p align="center"><sub>The launch film, silent. Also on <a href="https://struq.app?utm_source=github-readme">struq.app</a>.</sub></p>
 
 <br>
 
@@ -56,49 +64,47 @@ https://github.com/user-attachments/assets/19587b11-ef4c-4cf6-81ef-87230923e567
   <img alt="Three frames: a brief typed into the agent, the plan the skill stops once to show, and the site assembling and passing its check." src="assets/readme/story-light.svg" width="100%">
 </picture>
 
-Your agent settles the idea, the motion language, the motif and a storyboard of scenes before it writes any markup. It stops once to show you that plan and asks for a logo, photos or real numbers if you have them. Then it builds from the plan and runs its own check until the page passes. It never invents a testimonial or a number the brief did not give.
+Your agent directs the site before it writes any markup: the idea, the type pairing, the palette, the motion language, the motif and a storyboard of scenes. It stops once to show you that direction, and you can add your logo and photos. Then it builds from the plan with award-tier blocks and runs its own check until the page passes.
 
 <br>
 
 ## <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/h/showcase-dark.svg"><img src="assets/readme/h/showcase-light.svg" width="26" height="26" alt=""></picture> What a directed site looks like
 
 <p align="center">
-  <a href="https://struq.app/showcase/vuur"><img alt="Vuur, a restaurant site built with the Struq skill, playing its opening and first scene." src="assets/readme/showcase/vuur.webp" width="100%"></a>
+  <a href="https://struq.app/showcase/vuur?utm_source=github-readme"><img alt="Vuur, a restaurant site built with the Struq skill, playing its opening and first scene." src="assets/readme/showcase/vuur.webp" width="100%"></a>
 </p>
 
 <p align="center"><sub><b>Vuur</b>, a restaurant with a wood-fired oven. Built with the Struq skill by Claude Opus 5.5.</sub></p>
 
 <p align="center">
-  <a href="https://struq.app/showcase/forge"><img alt="Ostrava Steel, a knife forge site." src="assets/readme/showcase/forge.webp" width="49%"></a>
-  <a href="https://struq.app/showcase/brume"><img alt="Brume, a lighthouse hotel site." src="assets/readme/showcase/brume.webp" width="49%"></a>
+  <a href="https://struq.app/showcase/forge?utm_source=github-readme"><img alt="Ostrava Steel, a knife forge site." src="assets/readme/showcase/forge.webp" width="49%"></a>
+  <a href="https://struq.app/showcase/brume?utm_source=github-readme"><img alt="Brume, a lighthouse hotel site." src="assets/readme/showcase/brume.webp" width="49%"></a>
 </p>
 
 <p align="center">
-  <a href="https://struq.app/showcase/lowlight"><img alt="Lowlight, a film studio site." src="assets/readme/showcase/lowlight.webp" width="49%"></a>
-  <a href="https://struq.app/showcase/halide"><img alt="Halide, a site directed in ink." src="assets/readme/showcase/halide.webp" width="49%"></a>
+  <a href="https://struq.app/showcase/lowlight?utm_source=github-readme"><img alt="Lowlight, a film studio site." src="assets/readme/showcase/lowlight.webp" width="49%"></a>
+  <a href="https://struq.app/showcase/halide?utm_source=github-readme"><img alt="Halide, a site directed in ink." src="assets/readme/showcase/halide.webp" width="49%"></a>
 </p>
 
-<p align="center"><sub><b>Ostrava Steel</b>, <b>Brume</b>, <b>Lowlight</b> and <b>Halide</b> were directed the Struq way and written by Claude Opus as one file, before the skill carried the method. Much of what the skill knows about craft came from them. All five run live on <a href="https://struq.app/showcase">struq.app/showcase</a>.</sub></p>
+<p align="center"><sub><b>Ostrava Steel</b>, <b>Brume</b>, <b>Lowlight</b> and <b>Halide</b> were directed the Struq way and written by Claude Opus as one file, before the skill carried the method. Much of what the skill knows about craft came from them. All five run live on <a href="https://struq.app/showcase?utm_source=github-readme">struq.app/showcase</a>.</sub></p>
 
-**The same brief, with and without the skill.** Each pair is one line typed into Claude Haiku, the smallest model, built once with the Struq skill (left) and once without it (right). Both got the same answer at the one stop: yes, and a phone number or an email. We ran eight briefs this way; every site built with the skill came out clearly ahead, and every site built without it made up facts about the business.
+### The same brief, with and without the skill
+
+Each pair is one line typed into Claude Haiku, the smallest model, built once with the Struq skill (left) and once without it (right). Both got the same answer at the one stop: yes, and a phone number or an email. The plain builds are shown as they came out. Look at what the skill adds from the same line: an idea of its own, a type pairing, a palette and motion with intent.
+
+<p align="center"><sub><b>"A site for Noir Atelier, an independent fashion label launching its first collection."</b> The pair at the top: with the skill it sets Bodoni Moda against ink green and lets a hanging coat carry the page.</sub></p>
 
 <p align="center">
-  <img alt="Bakkerij Zoet, a neighbourhood bakery in Haarlem. Left, with the skill: the wood oven at night and the line you smell the bread before you see it, then the dough by hand. Right, without: a cream template with emoji cards, a claim it has baked since 2009 and a price list nobody gave it." src="assets/readme/proof/bakery.webp" width="100%">
+  <img alt="Bakkerij Zoet, a neighbourhood bakery in Haarlem. Left, with the skill: the wood oven in firelight under a serif line, then hands working dough on a dark, warm ground. Right, without: a cream template with an italic accent word in the headline, floating cards and a grid of product cards with icons." src="assets/readme/proof/bakery.webp" width="100%">
 </p>
 
-<p align="center"><sub><b>"Maak een website voor Bakkerij Zoet, een buurtbakkerij in Haarlem."</b> Without the skill the page invents a founding year, eight products and their prices.</sub></p>
+<p align="center"><sub><b>"Maak een website voor Bakkerij Zoet, een buurtbakkerij in Haarlem."</b> Typed in Dutch, directed in Dutch: one idea, that you smell the bread before you see it, opening on fire in Fraunces on a dark brass palette.</sub></p>
 
 <p align="center">
-  <img alt="Noir Atelier, a fashion label's first collection. Left, with the skill: the name cut by a strip of a hanging coat, then a close crop of denim twill. Right, without: a dark template announcing a collection called Nocturne with eleven pieces and prices." src="assets/readme/proof/fashion.webp" width="100%">
+  <img alt="Kiln and Co, a ceramics studio that sells online. Left, with the skill: Made to be kept, then stacked vessels and a jar in soft light. Right, without: a cream shop template with a serif headline, an italic accent phrase and rounded buttons." src="assets/readme/proof/ceramics.webp" width="100%">
 </p>
 
-<p align="center"><sub><b>"A site for Noir Atelier, an independent fashion label launching its first collection."</b> Without the skill it names the collection, counts the pieces and prices the coat at €890.</sub></p>
-
-<p align="center">
-  <img alt="Kiln and Co, a ceramics studio that sells online. Left, with the skill: Made to be kept, then stacked vessels and a jar in soft light. Right, without: a shop template with drawn mugs and bowls, invented names and prices, and Add to cart buttons." src="assets/readme/proof/ceramics.webp" width="100%">
-</p>
-
-<p align="center"><sub><b>"A website for Kiln and Co, a ceramics studio that sells mugs and bowls online."</b> Without the skill it builds a cart for eight products it made up.</sub></p>
+<p align="center"><sub><b>"A website for Kiln and Co, a ceramics studio that sells mugs and bowls online."</b> With the skill it builds around one idea, a bowl you keep, in Newsreader on cream paper.</sub></p>
 
 Where the skill still loses: craft under pressure. An ambitious page with pinned scenes has more that can break than a plain one, and a reveal can still come out empty on a first build. The check catches most of it, and each release works on the rest.
 
@@ -180,7 +186,7 @@ Cursor, in `~/.cursor/mcp.json` (then approve Struq under Settings, MCP):
 }
 ```
 
-VS Code, Windsurf, Antigravity and the Claude app each want a slightly different shape. [The connect guide](https://struq.app/docs/connect) has every one, checked against each tool's own docs.
+VS Code, Windsurf, Antigravity and the Claude app each want a slightly different shape. [The connect guide](https://struq.app/docs/connect?utm_source=github-readme) has every one, checked against each tool's own docs.
 
 </details>
 
@@ -198,7 +204,7 @@ VS Code, Windsurf, Antigravity and the Claude app each want a slightly different
 | `struq_search_assets` | Searches the library by mood, sector or name |
 | `struq_get_asset` | One asset with its prompt and its exact colours and fonts |
 
-All of them read; none of them changes anything in your account or your project. [More on the MCP](https://struq.app/mcp).
+All of them read; none of them changes anything in your account or your project. [More on the MCP](https://struq.app/mcp?utm_source=github-readme).
 
 </details>
 
@@ -206,7 +212,7 @@ All of them read; none of them changes anything in your account or your project.
 
 ## <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/h/icons-dark.svg"><img src="assets/readme/h/icons-light.svg" width="26" height="26" alt=""></picture> Struq Icons
 
-<a href="https://struq.app/icons">
+<a href="https://struq.app/icons?utm_source=github-readme">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/readme/icons-dark.svg">
     <img alt="Sixteen Struq Icons, each playing its own hover move." src="assets/readme/icons-light.svg" width="100%">
@@ -285,8 +291,12 @@ The Struq skill is instructions, the block files and five small Node scripts (`b
 
 <br>
 
+<p align="center">Watch the repo for releases to hear about new blocks.</p>
+
+<br>
+
 <p align="center">
-  <a href="https://struq.app">
+  <a href="https://struq.app?utm_source=github-readme">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="assets/readme/outro-dark.svg">
       <img alt="Struq. Free and open source, MIT." src="assets/readme/outro-light.svg" width="100%">
