@@ -288,6 +288,7 @@ The Struq skill is instructions, the block files and five small Node scripts (`b
 - **Something went wrong?** [Open an issue](https://github.com/struqapp/struq-design/issues/new/choose) and paste your `STRUQ-LOG.md`: it shows where the build went off.
 - **A question, or a site you built?** [Discussions](https://github.com/struqapp/struq-design/discussions). Before and after screenshots are the most useful thing you can share.
 - **Want to change the skill?** [CONTRIBUTING.md](https://github.com/struqapp/struq-design/blob/main/CONTRIBUTING.md) maps the repository and the house rules. Every release is in the [changelog](https://github.com/struqapp/struq-design/blob/main/CHANGELOG.md).
+- **Looking for another Struq?** The Struq skill is a free design skill for AI coding tools. It is not StruQ, the prompt-injection defence from UC Berkeley research, and it is not struq.co or Instruqt. None of them is connected to the Struq skill.
 
 <br>
 
