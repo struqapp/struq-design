@@ -291,7 +291,7 @@ The Struq skill is instructions, the block files and five small Node scripts (`b
 
 <br>
 
-<p align="center">Watch the repo for releases to hear about new blocks.</p>
+<p align="center">If the Struq skill built you something better than you had before, a star helps other builders find it.<br>Watch the repo for releases to hear about new blocks.</p>
 
 <br>
 
