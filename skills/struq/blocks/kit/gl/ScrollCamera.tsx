@@ -21,9 +21,15 @@ type Props = {
   path: CameraKey[];
   /** How quickly the camera catches up, higher is tighter. Default 3.5. */
   follow?: number;
+  /**
+   * The closest the camera may come to what it looks at, in scene units. Default 3.2: an object about 2 tall stays
+   * whole in frame. A camera inside the glass shows one blurred blob, never the object; lower it only for a detail
+   * shot you have looked at.
+   */
+  minDistance?: number;
 };
 
-export function ScrollCamera({ progress, path, follow = 3.5 }: Props) {
+export function ScrollCamera({ progress, path, follow = 3.5, minDistance = 3.2 }: Props) {
   const camera = useThree((s) => s.camera);
   const keys = useMemo(() => [...path].sort((a, b) => a.at - b.at), [path]);
   const scratch = useMemo(() => ({ pos: new Vector3(), look: new Vector3(), lookNow: new Vector3(0, 0, 0), b: new Vector3() }), []);
@@ -38,6 +44,9 @@ export function ScrollCamera({ progress, path, follow = 3.5 }: Props) {
     const t = MathUtils.smoothstep(MathUtils.clamp((p - a.at) / span, 0, 1), 0, 1);
     scratch.pos.set(...a.position).lerp(scratch.b.set(...b.position), t);
     scratch.look.set(...(a.target ?? [0, 0, 0])).lerp(scratch.b.set(...(b.target ?? [0, 0, 0])), t);
+    // Never closer than minDistance to the target: keep the direction, push the camera back along it.
+    scratch.b.copy(scratch.pos).sub(scratch.look);
+    if (scratch.b.length() < minDistance) scratch.pos.copy(scratch.look).add(scratch.b.setLength(minDistance));
     const k = 1 - Math.exp(-follow * delta);
     camera.position.lerp(scratch.pos, k);
     scratch.lookNow.lerp(scratch.look, k);

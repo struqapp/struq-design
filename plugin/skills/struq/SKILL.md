@@ -29,7 +29,9 @@ Work in this order:
 1. **The idea**: a point of view on this client that a visitor leaves believing, not a description of the business.
 2. **The signature element**: the one moment a juror remembers tomorrow. Everything else makes room for it. It
    lives on the first screen or starts there: the opening is where a visitor decides to stay, so never hide the best
-   moment halfway down a page of type.
+   moment halfway down a page of type. The first screen is bold: the signature filling the frame, or display type
+   at poster scale, or both. A calm editorial page of small serif lines on a pale ground is what every agent makes;
+   it is the reflex to beat, not the bar.
 3. **The system**: type, palette, motion language, easing curves and grid, each chosen because of the idea.
 4. **The build**: Struq's blocks first, because they are hardened and already at this level. For a real-time
    signature start from the 3D kit (`kit/gl`: a Stage with studio light and post-processing, real glass,

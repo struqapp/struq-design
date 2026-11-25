@@ -29,7 +29,9 @@ Work in this order:
 1. **The idea**: a point of view on this client that a visitor leaves believing, not a description of the business.
 2. **The signature element**: the one moment a juror remembers tomorrow. Everything else makes room for it. It
    lives on the first screen or starts there: the opening is where a visitor decides to stay, so never hide the best
-   moment halfway down a page of type.
+   moment halfway down a page of type. The first screen is bold: the signature filling the frame, or display type
+   at poster scale, or both. A calm editorial page of small serif lines on a pale ground is what every agent makes;
+   it is the reflex to beat, not the bar.
 3. **The system**: type, palette, motion language, easing curves and grid, each chosen because of the idea.
 4. **The build**: Struq's blocks first, because they are hardened and already at this level. For a real-time
    signature start from the 3D kit (`kit/gl`: a Stage with studio light and post-processing, real glass,
@@ -196,8 +198,11 @@ trade has: a price board for a bakery, a tide table for a guesthouse, a joint dr
 like a chalkboard for a restaurant. No two middle scenes share a layout, and none is a one-word list, a big sentence
 with a small photo, or a photo beside text unless the idea truly asks for it.
 
-When no photo shows the Subject, design it in code as a scene of its own, often the centerpiece's neighbour: the
-app's real screen or document (the invoice of an invoicing app) built in HTML with the tokens, the event's identity (a
+When no photo shows the Subject and the client makes a physical object (a lamp, a machine, a bottle, a chair), show
+the object itself in real-time 3D with the kit (`kit/gl`: a lathe form or a few turned and machined parts in real
+glass, metal or ceramic, lit by the Stage), on the first screen when it is the signature. A line drawing or a
+technical section is a supporting scene, never the way a visitor first meets the product. For everything else, design
+the subject in code as a scene of its own, often the centerpiece's neighbour: the app's real screen or document (the invoice of an invoicing app) built in HTML with the tokens, the event's identity (a
 poster system, a badge, a programme grid with only the slots the brief gives), the label's lookbook frame, a menu
 board. Sample content inside it reads as an example of the trade (an invoice for "Studio Noord, identity, round 2"),
 never as a fact about the client: no customer names, no figures they would quote, no feature the brief did not give.

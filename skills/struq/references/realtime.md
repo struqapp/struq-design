@@ -72,8 +72,11 @@ export default function PendantScene({ progress }: { progress: Signal }) {
 }
 ```
 
-Composition: the object sits on the calm side of the headline, never under it; the type stays readable at every
-beat. Take the colours from the palette tokens (`useTokenColor`) rather than hex. Fork any kit file into your own
+Composition: the object sits on the calm side of the headline, never under it, and stays whole in frame at every
+beat: no half-cut object at the screen edge unless the crop is the idea. The camera stays outside the object
+(`ScrollCamera` keeps `minDistance`, default 3.2); a close-up is a slow drift toward the shoulder or the light, never
+a flight into the glass. Check the first, middle and last beat at 1440 and 390 wide before you call it done: on a
+phone, move the object above or behind the type rather than off the edge. The type stays readable at every beat. Take the colours from the palette tokens (`useTokenColor`) rather than hex. Fork any kit file into your own
 when the idea needs more; the rest of this file is how.
 
 Writing your own canvas instead: load it in its own chunk, keep a poster until the first frame, cap the DPR, pause off
