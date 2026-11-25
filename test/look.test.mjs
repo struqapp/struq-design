@@ -231,13 +231,14 @@ test('look: text a script is fading in is judged at its settled colours; a faint
   assert.ok(faint.json.findings.some((f) => f.kind === 'contrast' && /vaag/.test(f.text)), faint.out);
 });
 
-test('look: a screen-high stretch of nothing warns as empty', async (t) => {
+test('look: a stretch of nothing is empty, and fails from a screen and a half', async (t) => {
   if (skip) return t.skip(skip);
   const r = await result('empty');
   // Two and a half screens of nothing also hold a scroll stop that is one flat colour: that stop fails as blank.
   assert.deepEqual([...new Set(kinds(r))].sort(), ['blank', 'empty'], r.out);
-  assert.ok(r.json.findings.filter((f) => f.kind === 'empty').every((f) => f.severity === 'WARN'));
-  assert.match(r.out, /WARN empty/);
+  // Dead stretches were the most common hole in the proof builds of 2026-11-25: past a screen and a half it fails.
+  assert.ok(r.json.findings.filter((f) => f.kind === 'empty').every((f) => f.severity === 'FAIL'));
+  assert.match(r.out, /FAIL empty/);
 });
 
 test('look: a scroll stop of one flat colour fails as blank; a quiet scene with a sentence does not', async (t) => {

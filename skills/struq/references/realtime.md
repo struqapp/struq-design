@@ -12,17 +12,72 @@ The four things that separate a studio scene from a demo, in the order they are 
    every screen changes something. A model that sits still while text scrolls past is a sticker.
 4. **It answers the visitor.** The pointer leans on it, scroll speed shakes or stretches it, it settles with inertia.
 
-## Setup
+## Start from the kit
 
-```bash
-npm i three @react-three/fiber @react-three/drei @react-three/postprocessing
+`node <skill-dir>/scripts/blocks.mjs add gl` installs three, the React Three packages and `components/struq/kit/gl`:
+
+- **`Stage`**: the canvas with every guard (poster first, paused off screen, reduced motion follows only the
+  visitor's own scroll, DPR caps and PerformanceMonitor), a light room from code (`light`: studio, warm, night,
+  daylight) and the post stack (`post`: bloom, grain, vignette, aberration; AgX tone mapping).
+- **`TurnedObject`**: a lathe object from a profile (`pendant-globe`, `pendant-bell`, `pendant-drop`, `vase`, `cup`,
+  `bottle`, or your own silhouette) with a real wall, in `glass` (transmission, tinted by depth), `ceramic` or
+  `metal`; `glow` lights it from inside with a coil and a soft halo; `hang` adds a cap and cord; it sways with the
+  scroll speed and leans toward the pointer.
+- **`ScrollCamera`**: keyframes on one progress value, eased between beats and damped so it moves with weight.
+- **`Backdrop`**: a lit wall behind the object, a pool of light in the palette that opens with `light`.
+- **Signals**: `useScrollProgress(ref, { start, end, pin })`, `useScrollVelocity()`, `usePointer()`,
+  `useTokenColor("--accent")`.
+
+A worked signature, the opening of a glass studio's site. The pin is 2.2 screens and each screen changes something:
+the pendant lights from its coil, the room turns from night to warm and the camera drifts to look up into the glow.
+
+```tsx
+// app/Opening.tsx: the section, the copy and the pin.
+"use client";
+import dynamic from "next/dynamic";
+import { useRef } from "react";
+import { useScrollProgress } from "@/components/struq/kit/gl";
+const Scene = dynamic(() => import("./PendantScene"), { ssr: false });
+
+export function Opening() {
+  const section = useRef<HTMLElement>(null);
+  const progress = useScrollProgress(section, { start: "top top", end: "+=220%", pin: true });
+  return (
+    <section ref={section} className="relative h-svh overflow-hidden bg-[var(--surface-0)]">
+      <Scene progress={progress} />
+      <div className="pointer-events-none relative z-10 flex h-full flex-col justify-end p-[4vw]">
+        <h1 className="text-display">Daylight, kept in glass.</h1>
+        <p className="text-lead mt-6 max-w-[28rem]">Pendant lights designed and blown by hand in our Bergen studio.</p>
+      </div>
+    </section>
+  );
+}
+
+// app/PendantScene.tsx: the scene, loaded in its own chunk.
+"use client";
+import { Backdrop, ScrollCamera, Stage, TurnedObject, type Signal } from "@/components/struq/kit/gl";
+export default function PendantScene({ progress }: { progress: Signal }) {
+  return (
+    <Stage className="absolute inset-0" light="warm" post={{ bloom: 1.6, grain: 0.04, vignette: 0.5 }}
+      camera={{ fov: 30, position: [0, 0.3, 8] }} label="A hand-blown glass pendant that lights up as you scroll">
+      <Backdrop ground="#0d0b0a" glow="#9c5a2c" light={progress} center={[3, 0.8]} />
+      <TurnedObject profile="pendant-drop" material="glass" tint="#f3d2a8" glow={progress} hang position={[2.1, 0.35, 0]} scale={0.95} />
+      <ScrollCamera progress={progress} path={[
+        { at: 0, position: [0, 0.3, 8], target: [0.6, 0.2, 0] },
+        { at: 0.55, position: [1.2, 0.1, 6.6], target: [1.3, 0.1, 0] },
+        { at: 1, position: [0.9, -0.9, 6.2], target: [1.4, 0.4, 0] },
+      ]} />
+    </Stage>
+  );
+}
 ```
 
-Load the canvas in its own chunk after paint (`dynamic(() => import("./Scene"), { ssr: false })`), keep a poster
-behind it until the first frame, cap `dpr={[1, 1.75]}`, pause when off screen (`frameloop="demand"` plus
-`invalidate()`, or drei `<View>`), and on `prefers-reduced-motion` render one composed frame and stop. Run the loop on
-the same clock as Lenis and ScrollTrigger: `gsap.ticker.add` drives `advance()` with `frameloop="never"`, or read the
-scroll value inside `useFrame`. The kit's `HeroCanvas` already does all of this for a 2D field; copy its guards.
+Composition: the object sits on the calm side of the headline, never under it; the type stays readable at every
+beat. Take the colours from the palette tokens (`useTokenColor`) rather than hex. Fork any kit file into your own
+when the idea needs more; the rest of this file is how.
+
+Writing your own canvas instead: load it in its own chunk, keep a poster until the first frame, cap the DPR, pause off
+screen, render one frame under reduced motion, and run on the page's one GSAP clock, as `Stage` does.
 
 ## Form
 

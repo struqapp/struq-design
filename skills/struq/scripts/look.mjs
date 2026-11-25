@@ -20,6 +20,7 @@
 //   broken-number  a number ("3 900.00", "EUR 1.250,00", "12%") whose glyphs sit on two lines           FAIL
 //   font-missing   a face the visible text asks for first that never loaded (a fallback shows)          FAIL
 //   empty      a screen-high stretch without text or image between the hero and the footer            WARN
+//              (a screen and a half or more                                                           FAIL)
 //   error      console errors, page errors and images that did not load                                 FAIL
 //
 // Screenshots go to .struq/look/ (desktop-NN.png, phone-NN.png): open the ones a finding names and look. The findings
@@ -1123,7 +1124,9 @@ async function lookAt(browser, vp, errors) {
   if (end - reach >= vp.height) gaps.push([reach, end]);
   for (const [a, b] of gaps) {
     const near = steps.reduce((best, s) => (Math.abs(s.scrollY - a) < Math.abs(best.scrollY - a) ? s : best), steps[0]);
-    findings.push({ kind: "empty", viewport: vp.name, step: near.step, scrollY: Math.round(a), text: "", selector: "", detail: `${Math.round(b - a)}px without text or image, from ${Math.round(a)}px down`, shot: near.shot });
+    // A dead stretch of a screen and a half is a hole in the film, not a breath: it fails. One screen warns.
+    const dead = b - a >= vp.height * 1.5;
+    findings.push({ kind: "empty", severity: dead ? "FAIL" : "WARN", viewport: vp.name, step: near.step, scrollY: Math.round(a), text: "", selector: "", detail: `${Math.round(b - a)}px without text or image, from ${Math.round(a)}px down${dead ? ": every screen of scroll must change something; shorten the pin or the padding, or give the stretch its beat" : ""}`, shot: near.shot });
   }
   await context.close();
   return { findings, steps: steps.length };

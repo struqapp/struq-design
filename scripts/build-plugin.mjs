@@ -40,7 +40,7 @@ export const MANIFEST_FIELDS = [
   "privacyPolicyUrl",
 ];
 
-const REFERENCES = ["craft.md", "iconography.md", "realtime.md", "stack-targets.md", "tells.md", "triage.md"];
+const REFERENCES = ["copy.md", "craft.md", "iconography.md", "realtime.md", "stack-targets.md", "tells.md", "triage.md"];
 
 // Each script step in a reference, rewritten to the tool that does the same. A rewrite whose text is gone throws, so
 // a changed reference cannot slip through with a script step in it.
@@ -53,6 +53,12 @@ const REWRITES = {
     ],
   ],
   "triage.md": [["with check.mjs (and struq_check when connected) and", "with `struq_check`'s detectors and"]],
+  "realtime.md": [
+    [
+      "`node <skill-dir>/scripts/blocks.mjs add gl` installs three, the React Three packages and `components/struq/kit/gl`:",
+      "`struq_block(\"gl\")` hands over `components/struq/kit/gl` and the packages to install (three and the React Three\npackages):",
+    ],
+  ],
   "stack-targets.md": [
     [
       "`blocks.mjs` refuses a project without `next`: copy the files by hand instead, keeping the layout of `blocks/` under\n`src/components/struq/` so the relative imports hold (each block's files are listed in `blocks/catalog.json`).",

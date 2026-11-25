@@ -215,10 +215,11 @@ const commands = {
 
   init() {
     const deps = project();
-    // The kit, minus the WebGL hero layer: HeroCanvas and its scenes need three, so they come with hero-opener.
+    // The kit, minus what needs three: HeroCanvas and its scenes come with hero-opener, the real-time kit (gl/) with
+    // `blocks.mjs add gl`, so a site without 3D never installs three.
     for (const f of walk(join(BLOCKS, "kit"))) {
       const r = relative(join(BLOCKS, "kit"), f).split("\\").join("/");
-      if (r === "HeroCanvas.tsx" || r.startsWith("scenes/")) continue;
+      if (r === "HeroCanvas.tsx" || r.startsWith("scenes/") || r.startsWith("gl/")) continue;
       place(f, target("kit", r));
     }
     const appDir = join(root, src, "app");
@@ -277,6 +278,17 @@ const commands = {
           (variants.length ? ` Variants: ${variants.join(", ")}.` : "") +
           ` Fill its props from the brief (the file header lists them and what renders when one is empty); never rewrite it.`,
       );
+    }
+    // The real-time kit: Stage, TurnedObject, ScrollCamera, Backdrop and the scroll signals, with three and the React
+    // Three packages. It is kit, not a block, so it needs no storyboard line of its own; the scene built with it does.
+    if (rest.some((arg) => arg.toLowerCase() === "gl")) {
+      const deps = project();
+      for (const f of walk(join(BLOCKS, "kit", "gl"))) place(f, target("kit", relative(join(BLOCKS, "kit"), f).split("\\").join("/")));
+      installMissing(deps, ["three", "@react-three/fiber", "@react-three/drei", "@react-three/postprocessing", "postprocessing", "@types/three"]);
+      console.log('\ngl: import { Stage, TurnedObject, ScrollCamera, Backdrop, useScrollProgress } from "@/components/struq/kit/gl";');
+      console.log("  Load your scene file with next/dynamic and ssr: false. The craft and a worked example: references/realtime.md.");
+      report("Step 5 Blocks", "blocks.mjs added the real-time kit (kit/gl).");
+      rest.splice(0, rest.length, ...rest.filter((arg) => arg.toLowerCase() !== "gl"));
     }
     rest.splice(0, rest.length, ...rest.filter((arg) => !kitScene(arg) && !middleScene(arg)));
     if (!rest.length) return;
