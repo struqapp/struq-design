@@ -12,7 +12,7 @@
 //   plugin/.mcp.json                    the Struq MCP at its production URL; OAuth, so no keys
 //   plugin/icon.png                     the listing icon
 //   plugin/skills/struq/SKILL.md        scripts/plugin/SKILL.template.md with the shared sections of the full SKILL.md
-//   plugin/skills/struq/catalog.json    the block catalogue, without the file lists struq_blok hands over
+//   plugin/skills/struq/catalog.json    the block catalogue, without the file lists struq_block hands over
 //   plugin/skills/struq/references/     the full skill's references, with every script step rewritten to a tool call
 import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
@@ -40,28 +40,28 @@ export const MANIFEST_FIELDS = [
   "privacyPolicyUrl",
 ];
 
-const REFERENCES = ["craft.md", "iconography.md", "stack-targets.md", "tells.md", "triage.md"];
+const REFERENCES = ["craft.md", "iconography.md", "realtime.md", "stack-targets.md", "tells.md", "triage.md"];
 
 // Each script step in a reference, rewritten to the tool that does the same. A rewrite whose text is gone throws, so
 // a changed reference cannot slip through with a script step in it.
 const REWRITES = {
-  "craft.md": [["`canon.mjs type` requests each face's real range.", "`struq_richting`'s font URLs carry each face's real range."]],
+  "craft.md": [["`canon.mjs type` requests each face's real range.", "`struq_direction`'s font URLs carry each face's real range."]],
   "tells.md": [
     [
-      "`check.mjs` detects the marked ones (and `struq_controle` returns the same rules when the MCP is\nconnected)",
-      "`struq_controle` returns detectors for the marked ones, to run on your own\nfiles",
+      "`check.mjs` detects the marked ones (and `struq_check` returns the same rules when the MCP is\nconnected)",
+      "`struq_check` returns detectors for the marked ones, to run on your own\nfiles",
     ],
   ],
-  "triage.md": [["with check.mjs (and struq_controle when connected) and", "with `struq_controle`'s detectors and"]],
+  "triage.md": [["with check.mjs (and struq_check when connected) and", "with `struq_check`'s detectors and"]],
   "stack-targets.md": [
     [
       "`blocks.mjs` refuses a project without `next`: copy the files by hand instead, keeping the layout of `blocks/` under\n`src/components/struq/` so the relative imports hold (each block's files are listed in `blocks/catalog.json`).",
-      "Put the files `struq_blok` returns under `src/components/struq/` instead of `components/struq/`, keeping their\npaths so the relative imports hold.",
+      "Put the files `struq_block` returns under `src/components/struq/` instead of `components/struq/`, keeping their\npaths so the relative imports hold.",
     ],
-    ["per URL that `canon.mjs print <palette> <pairing>` prints;", "per font URL `struq_richting` returns;"],
+    ["per URL that `canon.mjs print <palette> <pairing>` prints;", "per font URL `struq_direction` returns;"],
     [
       "the kit import, the `@theme inline` names and the STRUQ TOKENS block from\n  `recipes/app/globals.css` (the block comes from `canon.mjs print`).",
-      "the kit import (`src/components/struq/kit/blocks.css`) and the token block from\n  `struq_richting`.",
+      "the kit import (`src/components/struq/kit/blocks.css`) and the token block from\n  `struq_direction`.",
     ],
     [
       "`check.mjs` reads `app/layout.tsx` for the gate; on Vite it reports that line as missing. Check `index.html` by eye\nand note it under Verify in STRUQ.md.",
@@ -100,7 +100,7 @@ export function buildPlugin() {
     name: "struq",
     version: pkg.version,
     description:
-      "Award-tier studio sites for coding agents, built through the Struq MCP from Struq's admitted blocks: preloaders, page transitions, headers, heroes, WebGL backgrounds, showpieces, sections and footers, on Struq's palettes and type pairings, with a check against the AI tells.",
+      "Websites at Awwwards Site of the Day and FWA level for coding agents: one idea, art direction, choreographed motion and real-time 3D, built through the Struq MCP from Struq's hardened blocks (preloaders, page transitions, heroes, WebGL backgrounds, showpieces, sections, footers) plus recipes for glass, light, shaders and scroll choreography.",
     author: { name: "Struq", url: "https://struq.app" },
     homepage: "https://struq.app",
     repository: "https://github.com/struqapp/struq-design",
@@ -121,7 +121,7 @@ export function buildPlugin() {
 
   const catalog = JSON.parse(readText(join(SKILL, "blocks", "catalog.json")));
   const blocks = catalog.blocks.map(({ slug, kind, title, does, reference, variants, packages }) => ({ slug, kind, title, does, reference, variants, packages }));
-  files.set("skills/struq/catalog.json", `${JSON.stringify({ source: catalog.source, tool: "struq_blok(slug, variant)", blocks }, null, 2)}\n`);
+  files.set("skills/struq/catalog.json", `${JSON.stringify({ source: catalog.source, tool: "struq_block(slug, variant)", blocks }, null, 2)}\n`);
 
   for (const name of REFERENCES) files.set(`skills/struq/references/${name}`, rewrite(name, readText(join(SKILL, "references", name))));
 

@@ -54,7 +54,7 @@ catalogue does not have: your code has to hold the same bar or it shows as the s
   from scale: `text-display`, `text-h2`, `text-h3`, `text-lead`, `text-body`, `text-small`.
 - **Real faces, measured.** A line fitted to the width (a wordmark, a poster line) is measured after
   `document.fonts.ready` with the loaded face, and refitted on `loadingdone`. Never fit with the fallback face, and
-  never ask Google for a weight the family does not ship: `struq_richting`'s font URLs carry each face's real range.
+  never ask Google for a weight the family does not ship: `struq_direction`'s font URLs carry each face's real range.
 - **Word spacing at poster size:** 0.06 to 0.1em on display lines, so tight tracking never runs two words into one.
 - **Descenders are never cut.** A mask that hides a rising line must leave room below the baseline for g, j, p and y
   and above the cap line for accents: use `SplitHeadline` or the `.struq-line-mask` class, never `overflow-hidden`

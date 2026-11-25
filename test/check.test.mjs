@@ -147,15 +147,17 @@ test('the blocks need the gate in the layout and at least one block on the page'
   assert.ok(fails(run(fixture({ page: handBuilt })), 'No Struq block'));
 });
 
-test('a photo hero gets its photo, and a hand-built hero shows one at poster size', () => {
+// The photo and poster-size rules for a hand-built hero are defaults (WARN): a real-time scene is a subject too.
+test('a photo hero gets its photo; a hand-built hero warns without a photo, a scene or poster size', () => {
   assert.ok(!fails(run(fixture()), 'without its photo'));
   const bare = PAGE_OK.replace(' image={images.hero[0]}', '');
   assert.ok(fails(run(fixture({ page: bare })), 'without its photo'));
   const hand = 'import { MediaFrame } from "@/components/struq/kit/MediaFrame";\nexport default function Page() { return <section><h1 className="text-[16vw]">Zout</h1><MediaFrame image={images.hero[0]} /></section>; }\n';
   assert.ok(!fails(run(fixture({ page: hand })), 'Hero without a photo'));
   assert.ok(!fails(run(fixture({ page: hand })), 'under 10vw'));
-  assert.ok(fails(run(fixture({ page: hand.replace('<MediaFrame image={images.hero[0]} />', '') })), 'Hero without a photo'));
-  assert.ok(fails(run(fixture({ page: hand.replace('text-[16vw]', 'font-display text-display') })), 'under 10vw'));
+  assert.ok(warns(run(fixture({ page: hand.replace('<MediaFrame image={images.hero[0]} />', '') })), 'Hero without a photo'));
+  assert.ok(!warns(run(fixture({ page: hand.replace('<MediaFrame image={images.hero[0]} />', '<Canvas />') })), 'Hero without a photo'));
+  assert.ok(warns(run(fixture({ page: hand.replace('text-[16vw]', 'font-display text-display') })), 'under 10vw'));
 });
 
 test('every page has a header', () => {
@@ -166,11 +168,14 @@ test('every page has a header', () => {
   assert.ok(!fails(run(fixture({ page: own })), 'No header'));
 });
 
-test('the product is never modelled from primitives, also not in a scene beside the kit', () => {
-  assert.ok(!fails(run(fixture()), 'Hand-built product geometry'));
+// Real-time 3D is welcome; bare primitives with no physical material, environment or shader warn that they read as plastic.
+test('3D from bare primitives warns, and passes once it has a physical material or shader', () => {
+  assert.ok(!warns(run(fixture()), 'bare primitives'));
   const bike = 'import * as THREE from "three";\nexport const frame = new THREE.Mesh(new THREE.BoxGeometry(2, 0.2, 0.2));\nexport const wheel = new THREE.TorusGeometry(1, 0.1);\n';
-  assert.ok(fails(run(fixture({ extra: { 'components/Bike.tsx': bike } })), 'Hand-built product geometry'));
-  assert.ok(fails(run(fixture({ extra: { 'components/struq/kit/scenes/bakfiets.ts': bike } })), 'Hand-built product geometry'));
+  assert.ok(warns(run(fixture({ extra: { 'components/Bike.tsx': bike } })), '3D from bare primitives'));
+  assert.ok(warns(run(fixture({ extra: { 'components/struq/kit/scenes/bakfiets.ts': bike } })), '3D from bare primitives'));
+  const glass = `${bike}export const m = new THREE.MeshPhysicalMaterial({ transmission: 1 });\n`;
+  assert.ok(!warns(run(fixture({ extra: { 'components/Bike.tsx': glass } })), '3D from bare primitives'));
 });
 
 test('generic CTAs and stat banners fail', () => {
@@ -190,14 +195,14 @@ test('glow fails; the shipped blocks are not scanned for tells', () => {
   assert.ok(!fails(run(fixture({ extra: { 'components/struq/headers/header-bar.tsx': shipped } })), 'Eyebrows'));
 });
 
-test('a page without a contrast scene warns, more than two still fail', () => {
+test('a page without a contrast scene warns, and so do more than two', () => {
   assert.ok(!fails(run(fixture()), 'contrast scene'));
   const none = PAGE_OK.replace(' className="scene-inverse"', '');
   const out = run(fixture({ page: none }));
   assert.ok(!fails(out, 'contrast scene'));
   assert.ok(warns(out, 'No contrast scene'));
   const three = 'export const S = () => <><section className="scene-inverse" /><section className="scene-field" /></>;\n';
-  assert.ok(fails(run(fixture({ extra: { 'components/Scene.tsx': three } })), 'contrast scene'));
+  assert.ok(warns(run(fixture({ extra: { 'components/Scene.tsx': three } })), 'contrast scenes'));
 });
 
 test('a heavy display weight passes only at its poster pairing', () => {
@@ -497,12 +502,13 @@ test('--plan passes a good storyboard with nothing but STRUQ.md and app/', () =>
   assert.ok(!/^FAIL /m.test(r.stdout), r.stdout);
 });
 
-test('--plan fails a storyboard with two centerpieces, naming the rule and the fix', () => {
+// The budgets are defaults: two centerpieces warn with the rule and the fix, and the plan still passes.
+test('--plan warns on a storyboard with two centerpieces, naming the rule and the fix', () => {
   const two = GOOD_BOARD.map((s) => (s.startsWith('Approach') ? 'Approach (loud) film-strip | on screen: the four seasons' : s));
   const r = planOnly(planWith(two));
-  assert.equal(r.status, 1, r.stdout);
-  assert.match(r.stdout, /^FAIL one-centerpiece: 2 centerpieces: film-strip, image-to-fullbleed\. Fix: Keep one centerpiece/m);
-  assert.match(r.stdout, /^PLAN: FAIL$/m);
+  assert.equal(r.status, 0, r.stdout);
+  assert.match(r.stdout, /^WARN one-centerpiece: 2 centerpieces: film-strip, image-to-fullbleed\. Fix: Keep one centerpiece/m);
+  assert.match(r.stdout, /^PLAN: PASS$/m);
 });
 
 test('the FILM group fails a page transition on a site with one route', () => {
@@ -538,16 +544,16 @@ test('the LOOK group fails without a look, on a failing look and on a look older
 // why: proof round 6 found most own scenes written in raw GSAP (hand-rolled SplitText, clip-path wipes, dash-offset
 // draws, literal eases) and six of eight sites closing on the name at full width. The kit's motion primitives, the
 // feel's temperaments and the kit's Close replace each.
-test('MOTION: SplitText outside the kit fails; own wipes, drawn strokes and literal timing warn; the kit is not scanned', () => {
+test('MOTION: own SplitText, wipes, drawn strokes and literal timing warn; the kit is not scanned', () => {
   const scene = (body) => ({
     'components/scenes/Cut.tsx': `"use client";\nimport { gsap } from "gsap";\nexport function Cut() {\n  ${body}\n  return null;\n}\n`,
   });
   const clean = run(fixture());
-  assert.ok(!fails(clean, 'SplitText outside the kit'));
+  assert.ok(!warns(clean, 'SplitText of your own'));
   assert.ok(!warns(clean, 'clip-path tween'));
   assert.ok(!warns(clean, 'Ease or duration'));
   const split = run(fixture({ extra: scene('const s = SplitText.create("h2", { type: "lines" });') }));
-  assert.ok(fails(split, 'SplitText outside the kit'), split);
+  assert.ok(warns(split, 'SplitText of your own'), split);
   assert.match(split, /components\/scenes\/Cut\.tsx:4 {2}const s = SplitText/);
   assert.ok(warns(run(fixture({ extra: scene('gsap.to(el, { clipPath: "inset(0% 0% 0% 0%)" });') })), 'clip-path tween'));
   assert.ok(warns(run(fixture({ extra: scene('gsap.to(path, { strokeDashoffset: 0 });') })), 'stroke drawn by hand'));
@@ -562,7 +568,7 @@ test('MOTION: SplitText outside the kit fails; own wipes, drawn strokes and lite
   // The kit itself is never scanned.
   const kit = { 'components/struq/kit/motion/RevealText.tsx': 'import { gsap, SplitText } from "../gsap";\ngsap.to(el, { clipPath: "inset(0%)", ease: "expo.out", duration: 1 });\n' };
   const kitOut = run(fixture({ extra: kit }));
-  assert.ok(!fails(kitOut, 'SplitText outside the kit'));
+  assert.ok(!warns(kitOut, 'SplitText of your own'));
   assert.ok(!warns(kitOut, 'clip-path tween'));
 });
 

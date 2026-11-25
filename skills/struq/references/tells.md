@@ -1,7 +1,7 @@
 # The tell list
 
 One list: Struq's tells, the slop audit and Roy's rules. Each is something a generator does by reflex and a studio
-never does. `check.mjs` detects the marked ones (and `struq_controle` returns the same rules when the MCP is
+never does. `check.mjs` detects the marked ones (and `struq_check` returns the same rules when the MCP is
 connected); the rest are judged by eye. The fix is beside each.
 
 ## Type and labels

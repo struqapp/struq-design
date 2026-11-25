@@ -42,9 +42,10 @@ test('add refuses without STRUQ.md, and with a plan that fails the plan check', 
   refused(add(none, 'preloader-stack'), /No STRUQ\.md/, /check\.mjs" --plan until PLAN: PASS/);
   assert.ok(!installed(none));
 
-  const two = WEIGHT_BOARD.map((s) => (s.startsWith('Approach') ? 'Approach (loud) film-strip | on screen: the steps' : s));
-  const failing = project({ plan: treatment({ board: two }) });
-  refused(add(failing, 'preloader-stack'), /does not pass: one-centerpiece/, /until PLAN: PASS/);
+  // A budget only warns now, so the failing plan names a block that does not exist (a broken page, still a FAIL).
+  const unknown = WEIGHT_BOARD.map((s) => (s.startsWith('Approach') ? 'Approach (quiet) no-such-block | on screen: the steps' : s));
+  const failing = project({ plan: treatment({ board: unknown }) });
+  refused(add(failing, 'preloader-stack'), /does not pass: unknown-block/, /until PLAN: PASS/);
   assert.ok(!installed(failing));
 });
 

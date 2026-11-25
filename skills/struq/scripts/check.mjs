@@ -596,7 +596,7 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   else add(G, "FAIL", "The motion gate is missing: the layout puts sq-js on <html> in an inline script before paint and data-blocks on <body> (recipes/app/layout.tsx). Without them the blocks lose their tokens and their first frame.");
 
   if (usedBlocks.size) add(G, "PASS", `${usedBlocks.size} Struq block(s) on the page: ${[...usedBlocks].join(", ")}`);
-  else add(G, "FAIL", "No Struq block on the page: pick the hero, the sections and the footer from blocks/CATALOG.md (or struq_blokken) and install them with blocks.mjs add.");
+  else add(G, "FAIL", "No Struq block on the page: pick the hero, the sections and the footer from blocks/CATALOG.md (or struq_blocks) and install them with blocks.mjs add.");
 
   if (/prefers-reduced-motion/.test(all)) add(G, "PASS", "prefers-reduced-motion respected");
   else add(G, "FAIL", "Nothing reads prefers-reduced-motion.");
@@ -607,8 +607,8 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   const gsapFiles = site.filter((f) => /from\s*["'](?:gsap(?:\/[\w/]+)?|@gsap\/react|[^"']*components\/struq\/kit\/gsap)["']|\bgsap\./.test(f.text));
 
   const split = hits(/\bSplitText\b/, { scope: site });
-  if (split.length) add(G, "FAIL", "SplitText outside the kit: use RevealText (@/components/struq/kit/motion) for a line or word reveal; it keeps the masks descender-safe and reads the temperament.", split);
-  else add(G, "PASS", "No hand-rolled SplitText: text reveals go through the kit");
+  if (split.length) add(G, "WARN", "SplitText of your own: fine for kinetic type the kit cannot do. For a plain line or word reveal RevealText (@/components/struq/kit/motion) is already descender-safe; if you keep your own, give each mask line room below the baseline (padding-bottom about 0.15em) so no g, j, p or y is clipped.", split);
+  else add(G, "PASS", "Text reveals go through the kit");
 
   const inlineStyle = /style=\{\{/;
   const clip = hits(/\bclipPath\s*:|["']clip-path["']\s*:|\binset\(/, { scope: gsapFiles, exclude: inlineStyle });
@@ -813,9 +813,11 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
     else {
       const at = heroFile.text.search(/<h1\b|<SplitHeadline\b/);
       const slice = heroFile.text.slice(Math.max(0, heroFile.text.lastIndexOf("<section", at)), heroFile.text.indexOf("</section>", at) + 1 || undefined);
-      if (!noFit && !/images\.hero\b|<MediaFrame\b|\bimage=\{/.test(slice)) add(G, "FAIL", "Hero without a photo: a hand-built hero shows images.hero[0] (or the client's photo). Or use a hero block.", [heroFile.rel]);
+      // A real-time scene (a Canvas, a shader, a model) is a subject of its own: the hero needs no photo then.
+      const realtime = /<Canvas\b|<View\b|ShaderMaterial|useFrame\b|WebGL|data-gl\b/.test(slice) || own.some((f) => /<Canvas\b/.test(f.text));
+      if (!noFit && !realtime && !/images\.hero\b|<MediaFrame\b|\bimage=\{/.test(slice)) add(G, "WARN", "Hero without a photo or a real-time scene: show the subject, as images.hero[0], the client's photo, or a WebGL scene of it.", [heroFile.rel]);
       const vw = [...(slice.match(/<(?:h1|SplitHeadline)\b[^>]*>/)?.[0] ?? "").matchAll(/text-\[(\d+(?:\.\d+)?)vw\]/g)].map((m) => Number(m[1]));
-      if (!vw.length || Math.max(...vw) < 10) add(G, "FAIL", "Hand-built hero line under 10vw: set it at 12 to 20vw, or use a hero block.", [heroFile.rel]);
+      if (!vw.length || Math.max(...vw) < 10) add(G, "WARN", "Hand-built hero line under 10vw: display type at poster scale (12 to 20vw) is the default; a quieter line is fine when the scene beside it is the signature.", [heroFile.rel]);
       else add(G, "PASS", "The hand-built hero line runs at poster size");
     }
   }
@@ -829,12 +831,16 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   const scenes = own.filter((f) => !f.rel.endsWith(".css")).reduce((n, f) => n + (f.text.match(/\bscene-(inverse|field)\b/g) ?? []).length, 0);
   // The tone arc in the treatment decides where the ground turns; a page without a turn is a choice to look at.
   if (scenes === 0) add(G, "WARN", "No contrast scene: wrap one section in scene-inverse or scene-field, so the page does not stay on one ground.");
-  else if (scenes > 2) add(G, "FAIL", `${scenes} contrast scenes: one, at most two, or the contrast stops being a moment.`);
+  else if (scenes > 2) add(G, "WARN", `${scenes} contrast scenes: one, at most two, or the contrast stops being a moment.`);
   else add(G, "PASS", `${scenes} contrast scene${scenes > 1 ? "s" : ""}`);
 
   const geometry = hits(/new\s+THREE\.(Box|Cylinder|Torus|Sphere|Capsule|Cone|Tube|Lathe|Extrude|Tetrahedron|Octahedron|Icosahedron)Geometry\b|<(box|cylinder|torus|sphere|capsule|cone|tube|lathe|extrude)Geometry\b/, { scope: own });
-  if (geometry.length) add(G, "FAIL", "Hand-built product geometry: never model the client's product from primitives. Show the product photography.", geometry);
-  else add(G, "PASS", "No product modelled from primitives");
+  // Real-time 3D is welcome. A raw primitive with a flat material reads as a toy, so the check asks for craft, not
+  // for its removal: a physical material, an environment and light, or a glTF of the real object.
+  const crafted = own.some((f) => /meshPhysicalMaterial|MeshPhysicalMaterial|MeshTransmissionMaterial|<Environment\b|RoomEnvironment|PMREMGenerator|useGLTF|GLTFLoader|ShaderMaterial|shaderMaterial/.test(f.text));
+  if (geometry.length && !crafted) add(G, "WARN", "3D from bare primitives with no physical material, environment or shader: it will read as plastic. Use a lathe or a glTF for the form, MeshPhysicalMaterial (transmission, ior, thickness) or MeshTransmissionMaterial, an environment map, and post-processing (references/realtime.md).", geometry);
+  else if (geometry.length) add(G, "PASS", "Real-time 3D with a physical material or shader");
+  else add(G, "PASS", "No 3D built from bare primitives");
 }
 
 /* -------------------------------------------------------------------- FILM */

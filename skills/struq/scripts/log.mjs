@@ -58,7 +58,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (rest[0] === "mcp") {
     const tool = rest[1];
     const k = rest.indexOf("--note");
-    const STEP = { struq_richting: 2, struq_blokken: 2, struq_blok: 5, struq_controle: 8 };
+    // The Dutch names are what servers before the English rename call these tools.
+    const STEP = { struq_direction: 2, struq_blocks: 2, struq_block: 5, struq_check: 8, struq_richting: 2, struq_blokken: 2, struq_blok: 5, struq_controle: 8 };
     if (!tool || !/^struq_/.test(tool)) {
       console.error('Usage: node log.mjs mcp <struq_tool> [--note "<text>"]');
       process.exit(2);

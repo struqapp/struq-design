@@ -4,7 +4,7 @@
     "ref": "origin/main",
     "commit": "d6e1e9eb"
   },
-  "tool": "struq_blok(slug, variant)",
+  "tool": "struq_block(slug, variant)",
   "blocks": [
     {
       "slug": "preloader-wordmark",

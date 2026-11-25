@@ -17,7 +17,7 @@ const CHECKLIST = `# STRUQ.md: fixture
 ## Build checklist
 - [ ] 1 Project: Next.js App Router + Tailwind v4; blocks.mjs init printed OK
 - [ ] 2 Treatment and approval: the treatment in STRUQ.md, the plan check at PLAN: PASS; the one stop sent and answered
-- [ ] 3 Canon: the token block and fonts written (canon.mjs palette and type, or struq_richting)
+- [ ] 3 Canon: the token block and fonts written (canon.mjs palette and type, or struq_direction)
 - [ ] 4 Images: images.mjs --brief printed OK; only photos whose alt fits the client
 - [ ] 5 Scenes: frames and the centerpiece installed
 - [ ] 6 Build: npm run build passes

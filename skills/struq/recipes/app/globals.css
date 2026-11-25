@@ -16,7 +16,7 @@ html {
   font-size: clamp(1rem, 0.92rem + 0.2vw, 1.125rem);
 }
 
-/* STRUQ TOKENS: palette graphite-ivory, type serif-editorial. Written by canon.mjs, the block Struq's lab and struq_richting give. */
+/* STRUQ TOKENS: palette graphite-ivory, type serif-editorial. Written by canon.mjs, the block Struq's lab and struq_direction give. */
 [data-blocks] {
   --surface-0: #F3F0E8;
   --surface-1: #E8E1D5;

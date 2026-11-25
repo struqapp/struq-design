@@ -58,7 +58,7 @@ change its dress.
 
 ## Workflow
 
-1. **Scan** with check.mjs (and struq_controle when connected) and [tells.md](tells.md); collect every tell.
+1. **Scan** with check.mjs (and struq_check when connected) and [tells.md](tells.md); collect every tell.
 2. **Filter** the findings through the preserve-list above. A "fix" that reassigns brand
    color, rewrites copy, or replaces a component primitive is dropped (or downgraded to a
    *suggestion* the user can opt into), not applied.

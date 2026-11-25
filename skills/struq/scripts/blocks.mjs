@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Struq blocks, offline: the skill's own copy of Struq's admitted blocks (blocks/, catalog.json), installed into a
-// Next.js App Router project. The same files the MCP's struq_blok returns.
+// Next.js App Router project. The same files the MCP's struq_block returns.
 //
 //   node <skill-dir>/scripts/blocks.mjs list [kind]          the catalogue, one line per block with its variants
 //   node <skill-dir>/scripts/blocks.mjs init                 the kit, the app shell (on a starter) and the base packages
