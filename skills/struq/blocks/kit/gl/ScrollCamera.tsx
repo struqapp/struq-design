@@ -58,6 +58,8 @@ export function ScrollCamera({ progress, path, follow = 3.5, minDistance = 3.2 }
       lens.fov = MathUtils.lerp(lens.fov, MathUtils.lerp(fovA, fovB, t), k);
       lens.updateProjectionMatrix();
     }
-  });
+    camera.updateMatrixWorld();
+    // Priority -1: the camera moves before anything that places itself by it (Framed) reads it, in the same frame.
+  }, -1);
   return null;
 }
