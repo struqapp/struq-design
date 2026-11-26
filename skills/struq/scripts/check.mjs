@@ -479,7 +479,8 @@ function namedInBrief(name) {
         if (!DISPLAY.test(m[2])) continue;
         const before = f.text.slice(Math.max(0, m.index - 400), m.index);
         const span = [...before.matchAll(/col-span-(\d+)/g)].pop();
-        const longest = Math.max(0, ...m[3].split(/\s+/).map((w) => w.length));
+        // A JSX expression ({site.heading}) is not a word: its length says nothing about the line.
+        const longest = /^\s*\{[^}]*\}\s*$/.test(m[3]) ? 0 : Math.max(0, ...m[3].split(/\s+/).map((w) => w.length));
         const after = f.text.slice(m.index, m.index + 700);
         const lifted = /\bz-(10|20|30)\b[^>]*>[\s\S]{0,200}<(MediaFrame|Image|img)\b/.test(after);
         if (span && Number(span[1]) <= 4 && (longest >= 11 || lifted)) {
