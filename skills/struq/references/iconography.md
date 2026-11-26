@@ -12,6 +12,9 @@ none: the blocks carry their links as type.
 
 ## Wiring (React)
 
+The skill's init step installs `@struq/icons` and writes both parts below into the layout and globals.css. The header bar
+already carries `Menu` on its phone control; an icon you add follows the same rules.
+
 ```tsx
 // app/layout.tsx, once, before globals.css
 import "@struq/icons/tokens.css";

@@ -10,7 +10,11 @@
 // A plain ES module with no imports at all: it is copied as is into the public skill and served as a file by the MCP,
 // so it has to run on bare Node 18 wherever it lands.
 
-/** One entry per rule: FAIL breaks the film, WARN bends it. `fix` tells an agent what to change. */
+/**
+ * One entry per rule. FAIL is kept for what breaks the page: no treatment, an uncast slot, two clocks, a dead
+ * transition, a block that does not exist. The budgets are WARN: strong defaults a director may override with one line
+ * of reason in STRUQ.md. `fix` tells an agent what to change.
+ */
 export const FILM_RULES = [
   {
     id: 'no-treatment',
@@ -22,7 +26,7 @@ export const FILM_RULES = [
     id: 'uncast-slot',
     severity: 'fail',
     title: 'Every scene is cast',
-    fix: 'Replace every <cast: ...> and <loud|quiet> the arc printed (blocks.mjs arc, or the treatment struq_richting returns) with one pick and its reason after "because", chosen from the Idea and the Motif, and delete the options list.',
+    fix: 'Replace every <cast: ...> and <loud|quiet> the arc printed (blocks.mjs arc, or the treatment struq_direction returns) with one pick and its reason after "because", chosen from the Idea and the Motif, and delete the options list.',
   },
   {
     id: 'no-unlike',
@@ -32,19 +36,19 @@ export const FILM_RULES = [
   },
   {
     id: 'one-centerpiece',
-    severity: 'fail',
+    severity: 'warn',
     title: 'Exactly one centerpiece',
     fix: 'Keep one centerpiece block on the page and replace the others with quieter blocks or own scenes, or add one if there is none.',
   },
   {
     id: 'no-pin-after-centerpiece',
-    severity: 'fail',
+    severity: 'warn',
     title: 'No pin after the centerpiece',
     fix: 'Move each pinned block before the centerpiece, or pick a variant of it that does not pin.',
   },
   {
     id: 'frames-one-language',
-    severity: 'fail',
+    severity: 'warn',
     title: "Every framed block speaks the plan's language",
     fix: "Swap each listed block for the variant or block whose home is the plan's Language.",
   },
@@ -56,13 +60,13 @@ export const FILM_RULES = [
   },
   {
     id: 'one-marquee',
-    severity: 'fail',
+    severity: 'warn',
     title: 'At most one marquee',
     fix: 'Keep one marquee band on the page and pick a variant or block without one for the others.',
   },
   {
     id: 'pinned-screens',
-    severity: 'fail',
+    severity: 'warn',
     title: 'At most 4.5 pinned screens, at most 1.5 in the opening',
     fix: 'Pick variants that do not pin, or pin shorter, until the page holds 4.5 screens or fewer and the opening 1.5 or fewer.',
   },
@@ -74,13 +78,13 @@ export const FILM_RULES = [
   },
   {
     id: 'centerpiece-is-planned',
-    severity: 'fail',
+    severity: 'warn',
     title: 'The planned centerpiece is the one on the page',
     fix: "Make the plan's Centerpiece line name the centerpiece block on the page, or put the planned one on the page.",
   },
   {
     id: 'scene-count',
-    severity: 'fail',
+    severity: 'warn',
     title: 'The storyboard has seven to nine scenes (plan check only)',
     fix: 'Write seven to nine numbered storyboard lines: merge scenes that say the same thing, or add a quiet scene where the film needs a breath.',
   },

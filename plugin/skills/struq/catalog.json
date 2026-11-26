@@ -2,9 +2,9 @@
   "source": {
     "repo": "Struq blocks/",
     "ref": "origin/main",
-    "commit": "d6e1e9eb"
+    "commit": "d0df7a45"
   },
-  "tool": "struq_blok(slug, variant)",
+  "tool": "struq_block(slug, variant)",
   "blocks": [
     {
       "slug": "preloader-wordmark",
@@ -134,6 +134,7 @@
       ],
       "packages": [
         "@gsap/react",
+        "@struq/icons",
         "gsap"
       ]
     },

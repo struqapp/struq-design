@@ -114,6 +114,8 @@ function hits(pattern, { scope = files, exclude = null } = {}) {
   return out;
 }
 const uses = (pattern) => own.some((f) => pattern.test(f.text));
+/** A placeholder door: flagged placeholder: true, or an example.com, example.no or example.nl address. */
+const PLACEHOLDER_DOOR = /\bplaceholder\s*:\s*true\b|(?:mailto:[\w.+-]+@|https?:\/\/(?:[\w-]+\.)?)example\.(?:com|no|nl)\b/i;
 
 function isImageFile(path) {
   try {
@@ -276,7 +278,8 @@ function namedInBrief(name) {
 
   const placeholders = hits(
     /\b(Image|Media|Photo|Img)?Placeholder\b|Planned image|placehold\.co|via\.placeholder|picsum\.photos|source\.unsplash|nog te fotograferen|te maken:|foto volgt|beeld volgt|to be shot|image coming soon|photo coming soon/i,
-    { scope: own, exclude: /placeholder=["'{]/ },
+    // An input's placeholder attribute and the placeholder door flag are not image frames.
+    { scope: own, exclude: /placeholder=["'{]|\bplaceholder\??\s*:\s*(?:true\b|boolean\b)|data-door-placeholder/ },
   );
   const emptyFrames = hits(/<(div|figure|span)\b[^>]*(aspect-|aspectRatio)[^>]*(\/>|>\s*<\/(div|figure|span)>)/, { scope: own });
   // Both domains: struq.app is home, and struq.nl still serves the media for older installs.
@@ -307,7 +310,8 @@ function namedInBrief(name) {
   // Copy
   tell("Notes to the client on the page",
     /volg(?:t|en) zodra|zodra (?:de studio|de klant|je|jullie|we)\b[^"'<>]{0,40}(?:aanlever|doorgeef|doorgeven|binnen)|nog aan te leveren|wordt nog aangevuld|(?:telefoon|e-?mail|adres|reserveren|gegevens|openingstijden|data|datum|prijzen)[^.<>"'{}]{0,30}\bvolg(?:t|en)\b|\bvolg(?:t|en) (?:nog|later|binnenkort)\b|lorem ipsum|\bcoming soon\b|to be (?:confirmed|announced)|will be announced|details to (?:follow|come)|\bto follow\)|\bTB[AC]\b|\byour (?:name|company|logo|photo|text) here\b|\bYour Name\b|\bexample\.(?:com|org|net)\b|\b(?:John|Jane) Doe\b|\[(?:naam|adres|telefoon|e-?mail|name|phone|address)\]/i,
-    "a line written to the client or the developer, or a stand-in (Your Name, example.com, to be announced), is not copy. A missing fact leaves no line on the page: drop the sentence, the field or the button, and list it under Assumptions: in STRUQ.md.");
+    "a line written to the client or the developer, or a stand-in (Your Name, example.com, to be announced), is not copy. A missing fact leaves no line on the page: drop the sentence, the field or the button, and list it under Assumptions: in STRUQ.md.",
+    { exclude: PLACEHOLDER_DOOR });
 
   // The visible copy of your own files: string literals and JSX text, line by line, comments left out. Class lists,
   // paths and identifiers hold no sentences, so the honesty phrases below match the words a reader sees.
@@ -374,21 +378,39 @@ function namedInBrief(name) {
     return [...segs, ...wholeLine].some(isCall);
   }).map((c) => `${c.where}  ${c.line.slice(0, 120)}`);
   const invites = [...new Set([...copyHits(COME_BY), ...calls])];
+  const DOORS = [
+    /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/,
+    /(?:\+|\b00)\d{1,3}[\s.-]?\(?\d[\d\s.()-]{6,}\d|\b0\d{1,3}[\s.-]?\d{3}[\s.-]?\d{2,4}(?:[\s.-]?\d{2,4})?\b/,
+    /\b\p{Lu}[\p{L}'-]*(?:straat|weg|laan|plein|gracht|kade|dijk|singel|markt|steeg|dreef|hof|pad|haven|wal|baan|burgwal|straße|strasse|gasse|platz)\s+\d+[a-z]?\b/u,
+    /\b[1-9]\d{3}\s?[A-Z]{2}\b/,
+    /\b\d{1,5}\s+(?:\p{Lu}[\p{L}'-]+\s+){1,3}(?:Street|St|Road|Rd|Avenue|Ave|Lane|Way|Square|Place|Boulevard|Drive|Court|Row|Terrace)\b/u,
+    /\b[A-Z]{1,2}\d[A-Z\d]?\s\d[A-Z]{2}\b/,
+  ];
+  // An external link is a door only to a booking or shop: not Struq's own credit, a font host, or a social profile.
+  const EXTERNAL = /\b(?:href|action)\s*[:=]\s*\{?\s*["'`]https?:\/\/(?!(?:www\.)?(?:struq\.(?:app|nl)|localhost|schema\.org|w3\.org|fonts\.(?:googleapis|gstatic)\.com|api\.fontshare\.com|(?:instagram|facebook|twitter|x|linkedin|tiktok|youtube|pinterest|github|behance|dribbble)\.com)\b)[^"'`\s]+/i;
+  // A placeholder door (placeholder: true, or an example.com, example.no or example.nl address) is the door the skill
+  // sets when the brief gave none: it counts as a door, so the page reads finished, and warns until it is replaced.
+  const placeholderDoors = hits(PLACEHOLDER_DOOR, { scope: own.filter((f) => !f.rel.endsWith(".css")) });
+  const door = placeholderDoors.length > 0 || copy.some((c) => c.segs.some((s) => DOORS.some((re) => re.test(s)))) || own.some((f) => /\b(?:tel|mailto):[^"'`\s{}]{4,}/.test(f.text) || EXTERNAL.test(f.text));
   if (invites.length) {
-    const DOORS = [
-      /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/,
-      /(?:\+|\b00)\d{1,3}[\s.-]?\(?\d[\d\s.()-]{6,}\d|\b0\d{1,3}[\s.-]?\d{3}[\s.-]?\d{2,4}(?:[\s.-]?\d{2,4})?\b/,
-      /\b\p{Lu}[\p{L}'-]*(?:straat|weg|laan|plein|gracht|kade|dijk|singel|markt|steeg|dreef|hof|pad|haven|wal|baan|burgwal|straße|strasse|gasse|platz)\s+\d+[a-z]?\b/u,
-      /\b[1-9]\d{3}\s?[A-Z]{2}\b/,
-      /\b\d{1,5}\s+(?:\p{Lu}[\p{L}'-]+\s+){1,3}(?:Street|St|Road|Rd|Avenue|Ave|Lane|Way|Square|Place|Boulevard|Drive|Court|Row|Terrace)\b/u,
-      /\b[A-Z]{1,2}\d[A-Z\d]?\s\d[A-Z]{2}\b/,
-    ];
-    // An external link is a door only to a booking or shop: not Struq's own credit, a font host, or a social profile.
-    const EXTERNAL = /\b(?:href|action)\s*[:=]\s*\{?\s*["'`]https?:\/\/(?!(?:www\.)?(?:struq\.(?:app|nl)|localhost|schema\.org|w3\.org|fonts\.(?:googleapis|gstatic)\.com|api\.fontshare\.com|(?:instagram|facebook|twitter|x|linkedin|tiktok|youtube|pinterest|github|behance|dribbble)\.com)\b)[^"'`\s]+/i;
-    const door = copy.some((c) => c.segs.some((s) => DOORS.some((re) => re.test(s)))) || own.some((f) => /\b(?:tel|mailto):[^"'`\s{}]{4,}/.test(f.text) || EXTERNAL.test(f.text));
     if (door) add(G, "PASS", "The invitations on the page have a door: an address, a phone number, an email or a booking or shop link is on it");
     else add(G, "FAIL", "Invitation without a door: the copy asks the reader to act (come by, call, eat, book, buy, order, join, sit down, pick up: tonight, kom langs, Schuif aan, Pick up a mug, Reserveer, Shop the collection), but the page shows no address, phone number, mailto or tel link, or external booking or shop link. With no door the site ends on the idea, never on an invitation: drop the line, the button or the link, and list the door the client must add under Assumptions: in STRUQ.md.", invites);
   } else add(G, "PASS", "No invitation without a door");
+  if (placeholderDoors.length) add(G, "WARN", "Placeholder door: the way to buy or get in touch points at a placeholder (placeholder: true or an example address), set because the brief gave no door. The page reads finished, but nobody can order yet: replace before launch (Assumptions) with the client's real email, shop or booking link.", placeholderDoors);
+
+  // A site that sells needs a way to buy. The Brief line says it sells (sells, shop, order, buy, verkoopt, selger,
+  // bestill, kopen); then the page needs the order close, a ProductRow with its shop door, or a door of any kind.
+  {
+    const SELLS = /(?<![\p{L}\p{N}])(?:sells?|selling|(?:web)?shop|order|orders|buy|verkoopt|verkopen|selger|selge|bestill\w*|kopen)(?![\p{L}\p{N}])/iu;
+    const word = BRIEF.match(SELLS)?.[0];
+    if (word) {
+      const orderClose = uses(/<Close\b[^>]*\bshape=\{?\s*["'`]order["'`]/);
+      const shopRow = uses(/<ProductRow\b[^>]*\bshop=/);
+      if (!orderClose && !shopRow && !door) {
+        add(G, "FAIL", `The site sells but has no way to buy: the Brief line says it sells ("${word}"), but the page has no order close, no ProductRow with a shop door and no door at all. End the page on <Close shape="order"> with the things for sale and the brief's door; with no door in the brief or the one stop, set the placeholder door in lib/site.ts (door: { kind: "email", href: "mailto:post@example.com", label, placeholder: true }) and list it under Assumptions: in STRUQ.md.`, [`STRUQ.md  Brief: ${BRIEF.slice(0, 110)}`]);
+      } else add(G, "PASS", "The site sells and has a way to buy");
+    }
+  }
 
   // A stand-in name: the trade word shown as the business's name (a yoga studio called "Yoga"). The names a site shows are
   // the wordmark props of its header, preloader, hero and footer blocks, a data-wordmark element, the name and title in
@@ -457,7 +479,8 @@ function namedInBrief(name) {
         if (!DISPLAY.test(m[2])) continue;
         const before = f.text.slice(Math.max(0, m.index - 400), m.index);
         const span = [...before.matchAll(/col-span-(\d+)/g)].pop();
-        const longest = Math.max(0, ...m[3].split(/\s+/).map((w) => w.length));
+        // A JSX expression ({site.heading}) is not a word: its length says nothing about the line.
+        const longest = /^\s*\{[^}]*\}\s*$/.test(m[3]) ? 0 : Math.max(0, ...m[3].split(/\s+/).map((w) => w.length));
         const after = f.text.slice(m.index, m.index + 700);
         const lifted = /\bz-(10|20|30)\b[^>]*>[\s\S]{0,200}<(MediaFrame|Image|img)\b/.test(after);
         if (span && Number(span[1]) <= 4 && (longest >= 11 || lifted)) {
@@ -596,7 +619,7 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   else add(G, "FAIL", "The motion gate is missing: the layout puts sq-js on <html> in an inline script before paint and data-blocks on <body> (recipes/app/layout.tsx). Without them the blocks lose their tokens and their first frame.");
 
   if (usedBlocks.size) add(G, "PASS", `${usedBlocks.size} Struq block(s) on the page: ${[...usedBlocks].join(", ")}`);
-  else add(G, "FAIL", "No Struq block on the page: pick the hero, the sections and the footer from blocks/CATALOG.md (or struq_blokken) and install them with blocks.mjs add.");
+  else add(G, "FAIL", "No Struq block on the page: pick the hero, the sections and the footer from blocks/CATALOG.md (or struq_blocks) and install them with blocks.mjs add.");
 
   if (/prefers-reduced-motion/.test(all)) add(G, "PASS", "prefers-reduced-motion respected");
   else add(G, "FAIL", "Nothing reads prefers-reduced-motion.");
@@ -607,8 +630,8 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   const gsapFiles = site.filter((f) => /from\s*["'](?:gsap(?:\/[\w/]+)?|@gsap\/react|[^"']*components\/struq\/kit\/gsap)["']|\bgsap\./.test(f.text));
 
   const split = hits(/\bSplitText\b/, { scope: site });
-  if (split.length) add(G, "FAIL", "SplitText outside the kit: use RevealText (@/components/struq/kit/motion) for a line or word reveal; it keeps the masks descender-safe and reads the temperament.", split);
-  else add(G, "PASS", "No hand-rolled SplitText: text reveals go through the kit");
+  if (split.length) add(G, "WARN", "SplitText of your own: fine for kinetic type the kit cannot do. For a plain line or word reveal RevealText (@/components/struq/kit/motion) is already descender-safe; if you keep your own, give each mask line room below the baseline (padding-bottom about 0.15em) so no g, j, p or y is clipped.", split);
+  else add(G, "PASS", "Text reveals go through the kit");
 
   const inlineStyle = /style=\{\{/;
   const clip = hits(/\bclipPath\s*:|["']clip-path["']\s*:|\binset\(/, { scope: gsapFiles, exclude: inlineStyle });
@@ -813,9 +836,11 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
     else {
       const at = heroFile.text.search(/<h1\b|<SplitHeadline\b/);
       const slice = heroFile.text.slice(Math.max(0, heroFile.text.lastIndexOf("<section", at)), heroFile.text.indexOf("</section>", at) + 1 || undefined);
-      if (!noFit && !/images\.hero\b|<MediaFrame\b|\bimage=\{/.test(slice)) add(G, "FAIL", "Hero without a photo: a hand-built hero shows images.hero[0] (or the client's photo). Or use a hero block.", [heroFile.rel]);
+      // A real-time scene (a Canvas, a shader, a model) is a subject of its own: the hero needs no photo then.
+      const realtime = /<Canvas\b|<View\b|ShaderMaterial|useFrame\b|WebGL|data-gl\b/.test(slice) || own.some((f) => /<Canvas\b/.test(f.text));
+      if (!noFit && !realtime && !/images\.hero\b|<MediaFrame\b|\bimage=\{/.test(slice)) add(G, "WARN", "Hero without a photo or a real-time scene: show the subject, as images.hero[0], the client's photo, or a WebGL scene of it.", [heroFile.rel]);
       const vw = [...(slice.match(/<(?:h1|SplitHeadline)\b[^>]*>/)?.[0] ?? "").matchAll(/text-\[(\d+(?:\.\d+)?)vw\]/g)].map((m) => Number(m[1]));
-      if (!vw.length || Math.max(...vw) < 10) add(G, "FAIL", "Hand-built hero line under 10vw: set it at 12 to 20vw, or use a hero block.", [heroFile.rel]);
+      if (!vw.length || Math.max(...vw) < 10) add(G, "WARN", "Hand-built hero line under 10vw: display type at poster scale (12 to 20vw) is the default; a quieter line is fine when the scene beside it is the signature.", [heroFile.rel]);
       else add(G, "PASS", "The hand-built hero line runs at poster size");
     }
   }
@@ -829,12 +854,21 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   const scenes = own.filter((f) => !f.rel.endsWith(".css")).reduce((n, f) => n + (f.text.match(/\bscene-(inverse|field)\b/g) ?? []).length, 0);
   // The tone arc in the treatment decides where the ground turns; a page without a turn is a choice to look at.
   if (scenes === 0) add(G, "WARN", "No contrast scene: wrap one section in scene-inverse or scene-field, so the page does not stay on one ground.");
-  else if (scenes > 2) add(G, "FAIL", `${scenes} contrast scenes: one, at most two, or the contrast stops being a moment.`);
+  else if (scenes > 2) add(G, "WARN", `${scenes} contrast scenes: one, at most two, or the contrast stops being a moment.`);
   else add(G, "PASS", `${scenes} contrast scene${scenes > 1 ? "s" : ""}`);
 
   const geometry = hits(/new\s+THREE\.(Box|Cylinder|Torus|Sphere|Capsule|Cone|Tube|Lathe|Extrude|Tetrahedron|Octahedron|Icosahedron)Geometry\b|<(box|cylinder|torus|sphere|capsule|cone|tube|lathe|extrude)Geometry\b/, { scope: own });
-  if (geometry.length) add(G, "FAIL", "Hand-built product geometry: never model the client's product from primitives. Show the product photography.", geometry);
-  else add(G, "PASS", "No product modelled from primitives");
+  // Real-time 3D is welcome. A raw primitive with a flat material reads as a toy, so the check asks for craft, not
+  // for its removal: a physical material, an environment and light, or a glTF of the real object.
+  const crafted = own.some((f) => /meshPhysicalMaterial|MeshPhysicalMaterial|MeshTransmissionMaterial|<Environment\b|RoomEnvironment|PMREMGenerator|useGLTF|GLTFLoader|ShaderMaterial|shaderMaterial/.test(f.text));
+  if (geometry.length && !crafted) add(G, "WARN", "3D from bare primitives with no physical material, environment or shader: it will read as plastic. Use a lathe or a glTF for the form, MeshPhysicalMaterial (transmission, ior, thickness) or MeshTransmissionMaterial, an environment map, and post-processing (references/realtime.md).", geometry);
+  else if (geometry.length) {
+    // Sharp boxes read as a toy even in good metal (proof run 2026-11-26: a lever machine of boxes and cylinders).
+    const boxes = hits(/new\s+THREE\.BoxGeometry\b|<boxGeometry\b/, { scope: own });
+    if (boxes.length >= 2) add(G, "WARN", `${boxes.length} sharp boxes in the 3D: a housing is a RoundedBox with a radius (the highlight on the edge is what reads as metal), a round part is turned, a lever is a tube along a curve (references/realtime.md, Form).`, boxes);
+    else add(G, "PASS", "Real-time 3D with a physical material or shader");
+  }
+  else add(G, "PASS", "No 3D built from bare primitives");
 }
 
 /* -------------------------------------------------------------------- FILM */
@@ -853,6 +887,45 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   if (!findings.some((f) => f.severity === "fail")) {
     add(G, "PASS", `The page holds the film budgets (${scenes.length} block${scenes.length === 1 ? "" : "s"} in page order)`);
   }
+}
+
+/* ------------------------------------------------------------------ FINISH */
+// A site ships finished: its own favicon and logo, a link preview, the metadata, the files crawlers and agents read,
+// a 404 with a way home. blocks.mjs finish writes them from lib/site.ts; this holds every site to them.
+{
+  const G = "FINISH";
+  const appRel = existsSync(join(root, "src", "app")) ? "src/app" : "app";
+  const conv = (stem, exts = ["tsx", "ts", "jsx", "js"]) => exts.some((e) => existsSync(join(root, appRel, `${stem}.${e}`)));
+  const pub = (name) => existsSync(join(root, "public", name));
+  const layoutText = read(`${appRel}/layout.tsx`) || read(`${appRel}/layout.jsx`) || read(`${appRel}/layout.js`);
+  const missing = [];
+  const need = (ok, what, fix) => (ok ? null : missing.push(`${what}. Fix: ${fix}`));
+  const runFinish = "node <skill-dir>/scripts/blocks.mjs finish";
+
+  // create-next-app's favicon.ico (by size) is no favicon of this site.
+  const STARTER_ICO = new Set([15086, 25931]);
+  const ownIco = (p) => existsSync(join(root, p)) && !STARTER_ICO.has(statSync(join(root, p)).size);
+  const favicon = conv("icon", ["tsx", "ts", "jsx", "js", "png", "svg", "ico", "jpg"]) || ownIco(`${appRel}/favicon.ico`) || ownIco("public/favicon.ico") || pub("favicon.svg") || pub("icon.svg") || pub("icon.png");
+  need(favicon, "No favicon of the site's own (create-next-app's favicon.ico alone is the starter's)", `${runFinish} writes app/icon.tsx from site.brand.symbol`);
+
+  const sources = own.filter((f) => /\.(tsx|jsx)$/.test(f.rel));
+  const logo = sources.some((f) => /<(?:Logo|Mark|SiteLogo|BrandMark)\b/.test(f.text) || /<HeaderBar\b[^>]*?\b(?:mark|logo)=\{/s.test(f.text) || /<header\b[\s\S]{0,1500}?<(?:svg|img|Image)\b/.test(f.text));
+  need(logo, "No logo in the header: the name alone as text", "design the mark (references/identity.md), put it in lib/site.ts brand.symbol and pass mark={<Mark symbol={site.brand.symbol} />} to HeaderBar, or <Logo> in your own bar");
+
+  need(conv("opengraph-image", ["tsx", "ts", "jsx", "js", "png", "jpg"]) || /openGraph\s*:\s*\{[\s\S]{0,400}images\s*:/.test(layoutText), "No link preview image (app/opengraph-image)", runFinish);
+  need(/\bdescription\s*:/.test(layoutText) || /siteMetadata\(/.test(layoutText) || /generateMetadata/.test(layoutText), "No meta description in app/layout.tsx", "export const metadata = siteMetadata(site) (blocks.mjs finish does it)");
+  need(conv("sitemap", ["ts", "js", "xml"]) || pub("sitemap.xml"), "No sitemap (app/sitemap.ts)", runFinish);
+  need(conv("robots", ["ts", "js", "txt"]) || pub("robots.txt"), "No robots (app/robots.ts)", runFinish);
+  need(pub("llms.txt") || existsSync(join(root, appRel, "llms.txt")), "No llms.txt (app/llms.txt/route.ts or public/llms.txt)", runFinish);
+  need(conv("manifest", ["ts", "js", "json", "webmanifest"]) || pub("manifest.json") || pub("manifest.webmanifest") || pub("site.webmanifest"), "No web app manifest (app/manifest.ts)", runFinish);
+  need(/<html\b[^>]*\blang=/.test(layoutText), "No lang on <html> in app/layout.tsx", "<html lang={site.lang}>");
+  need(conv("not-found"), "No 404 page (app/not-found.tsx) with a way home", runFinish);
+
+  if (missing.length) add(G, "FAIL", `${missing.length} finishing piece(s) missing: a site ships complete, down to the last file.`, missing);
+  else add(G, "PASS", "Finished: favicon, logo in the header, link preview, description, sitemap, robots, llms.txt, manifest, lang, 404");
+
+  const icons = own.some((f) => /from\s+["']@struq\/icons(?:\/[^"']*)?["']|import\s+["']@struq\/icons\//.test(f.text)) || files.some((f) => f.recipe && /from\s+["']@struq\/icons["']/.test(f.text));
+  if (!icons) add(G, "WARN", "No @struq/icons import: the functional icons (menu, close, an arrow on a text link) come from Struq Icons. npm i @struq/icons and wire it as references/iconography.md says.");
 }
 
 /* -------------------------------------------------------------------- LOOK */
@@ -995,7 +1068,7 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
 }
 
 /* ------------------------------------------------------------------ REPORT */
-const order = ["IMAGES", "TELLS", "MOTION", "HERO", "FILM", "TYPE", "PLAN", "LOOK", "ART", "LOG"];
+const order = ["IMAGES", "TELLS", "MOTION", "HERO", "FILM", "TYPE", "FINISH", "PLAN", "LOOK", "ART", "LOG"];
 console.log(`Struq check: ${root}\n`);
 for (const g of order) {
   const rows = results.filter((r) => r.group === g);

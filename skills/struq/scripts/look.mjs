@@ -11,7 +11,7 @@
 //
 //   collision  the fixed header's text over other text; the site name twice on the first screen       FAIL
 //   clipped    glyphs cut by an overflow mask (descenders under a line mask, a word past the edge)     FAIL
-//   overflow   the document wider than the screen                                                        FAIL
+//   overflow   the document wider than the screen (also measured at 1024 and 1280 wide)                 FAIL
 //   contrast   text against its solid ground under 4.5 (3 from 24px)                                    FAIL
 //   unreadable text over a photo, video or canvas: the glyphs hidden, the worse quartile of the pixels  FAIL
 //              behind them under 3 (24px, 18.66px bold, a wordmark in the header or nav) or 4.5; WARN as
@@ -19,7 +19,20 @@
 //   blank      a scroll stop with no text seen and the screen one flat colour (header and cursor aside) FAIL
 //   broken-number  a number ("3 900.00", "EUR 1.250,00", "12%") whose glyphs sit on two lines           FAIL
 //   font-missing   a face the visible text asks for first that never loaded (a fallback shows)          FAIL
-//   empty      a screen-high stretch without text or image between the hero and the footer            WARN
+//   covered    a line partly under a canvas, photo or opaque panel above it that holds still          FAIL
+//   over-object  a line with a canvas under it (the world behind the page) that draws an object, not   FAIL
+//              a smooth wall or glow, inside the line's box (the glyphs hidden, held still)
+//   tap-target phone: a link or button under 44 by 44 (inline links in a sentence aside)               WARN
+//              (the page's door [data-door] or the menu button                                        FAIL)
+//   small-text phone: running text (ten words or more) under 15px                                      FAIL
+//   input-zoom phone: a field under 16px (iOS zooms in on tap)                                        WARN
+//   fixed-cover phone: fixed or sticky chrome covering more than a quarter of the screen              WARN
+//   type-wall  desktop: more than 20 words in one block at display size (72px and 7vw)              FAIL
+//   type-scale desktop: more than two blocks at display size after the first screen                  WARN
+//   sparse     a settled stop where type and media cover under a tenth of the screen and no image,    WARN
+//              canvas or video is in view: mostly empty ground with one small line
+//   empty      six tenths of a screen without text or image between the hero and the footer          WARN
+//              (a whole screen or more                                                                FAIL)
 //   error      console errors, page errors and images that did not load                                 FAIL
 //
 // Screenshots go to .struq/look/ (desktop-NN.png, phone-NN.png): open the ones a finding names and look. The findings
@@ -42,7 +55,7 @@ const VIEWPORTS = [
   { name: "desktop", width: 1440, height: 900 },
 ];
 const MAX_STEPS = 60;
-const SEVERITY = { collision: "FAIL", clipped: "FAIL", overflow: "FAIL", contrast: "FAIL", unreadable: "FAIL", blank: "FAIL", "broken-number": "FAIL", "font-missing": "FAIL", error: "FAIL", "self-link": "FAIL", empty: "WARN" };
+const SEVERITY = { collision: "FAIL", clipped: "FAIL", overflow: "FAIL", contrast: "FAIL", unreadable: "FAIL", blank: "FAIL", "broken-number": "FAIL", "font-missing": "FAIL", error: "FAIL", "self-link": "FAIL", covered: "FAIL", "over-object": "FAIL", "type-wall": "FAIL", "type-scale": "WARN", empty: "WARN", "tap-target": "WARN", "small-text": "FAIL", "input-zoom": "WARN", "fixed-cover": "WARN", sparse: "WARN" };
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -598,6 +611,198 @@ function measurePage(opts) {
       }
     }
 
+    const chromeCache = new Map();
+    const chrome = (el) => {
+      if (!el || el === document.body) return false;
+      if (chromeCache.has(el)) return chromeCache.get(el);
+      const p = cs(el).position;
+      const v = (header && header.contains(el)) || ((p === "fixed" || p === "sticky") && el.getBoundingClientRect().height < 0.35 * vh) || chrome(el.parentElement);
+      chromeCache.set(el, v);
+      return v;
+    };
+
+    /* --- 3b. covered: a line partly under a canvas, a photo or an opaque panel that sits above it and holds still
+       (proof run 2026-11-25: a split screen's headline ran under its own 3D panel and read "Lyset er i gl"). A cover
+       a script is moving (a panel sliding over the hero, a zoom) is a transition in progress; a line wholly under a
+       cover is hidden on purpose (stacked cards); the header and small fixed chrome are on every screen. */
+    const coverOf = (stack, at, el) => {
+      for (let i = 0; i < at; i++) {
+        const e = stack[i];
+        if (el.contains(e)) continue;
+        const s = cs(e);
+        const solid = (isMedia(e) && opacity(e) >= 0.5) || rgba(s.backgroundColor)[3] * opacity(e) >= 0.9 || (hasImageGround(e) && opacity(e) >= 0.5);
+        if (!solid || chrome(e)) continue;
+        return e;
+      }
+      return null;
+    };
+    const sliding = (el) => {
+      for (let a = el; a && a !== document.body; a = a.parentElement) if ((a.style?.transform && (Math.abs(translation(a).x) > 0.5 || Math.abs(translation(a).y) > 0.5)) || zooming(a)) return true;
+      return false;
+    };
+    const coveredDone = new Set();
+    for (const t of shown) {
+      if (t.fontSize < 14 || inHeader(t) || chrome(t.el) || coveredDone.has(t.el)) continue;
+      let total = 0;
+      let under = 0;
+      let by = null;
+      t.ink.forEach((k, i) => {
+        if (!t.shown[i]) return;
+        const l = Math.max(k.l, t.clip.l, 0);
+        const r = Math.min(k.r, t.clip.r, vw - 1);
+        const y = Math.min(Math.max((k.t + k.b) / 2, 0), vh - 1);
+        if (r - l < 4 || y <= 0 || y >= vh - 1) return;
+        const n = Math.min(16, Math.max(4, Math.round((r - l) / 24)));
+        for (let j = 0; j < n; j++) {
+          const x = l + ((j + 0.5) * (r - l)) / n;
+          const stack = document.elementsFromPoint(x, y);
+          const at = stack.findIndex((e) => e === t.el || t.el.contains(e));
+          if (at < 0) continue;
+          total++;
+          const c = coverOf(stack, at, t.el);
+          if (c) {
+            under++;
+            by ??= c;
+          }
+        }
+      });
+      if (!by || total < 4) continue;
+      const share = under / total;
+      // A canvas is see-through where nothing is drawn, so a line wholly under one still shows, and the object paints
+      // over it wherever it passes (proof run 2026-11-26: a fixed world canvas sat above the page and its lamp hung
+      // across "Lyset er det du kjoper."). Under a canvas no share is hidden on purpose.
+      const canvas = by.tagName === "CANVAS";
+      if (share < 0.12 || (share > 0.92 && !canvas) || sliding(by)) continue;
+      coveredDone.add(t.el);
+      const what = isMedia(by) ? `the ${by.tagName.toLowerCase()} ${path(by)}` : path(by);
+      const fix = canvas
+        ? "the 3D sits above the type and paints over it wherever the object passes: put the world canvas behind the page (-z-10 on a fixed Stage), or raise the type above it (relative z-10)"
+        : "move the type to the calm side of the panel, give it the panel's width, or raise it above (z-index)";
+      add({ kind: "covered", text: t.text, selector: path(t.el), detail: `${Math.round(share * 100)}% of the line sits under ${what}: ${fix}`, key: `covered|${path(t.el)}|${t.text.slice(0, 40)}` });
+    }
+
+    /* --- 3b'. over the object: a line with a canvas UNDER it in the stack (the world behind the page, at -z-10), so
+       covered never sees it (proof run 2026-11-26, Leirvik: the centerpiece sentence sat on the vase). The page only
+       knows the canvas is there; the run hides the glyphs and reads what the canvas draws inside the line's box. */
+    const overs = new Map();
+    const propagated = rgba(cs(document.documentElement).backgroundColor)[3] === 0 && cs(document.documentElement).backgroundImage === "none";
+    for (const t of shown) {
+      if (t.fontSize < 14 || inHeader(t) || chrome(t.el)) continue;
+      t.ink.forEach((k, i) => {
+        if (!t.shown[i]) return;
+        const box = { l: Math.max(k.l, t.clip.l, 0), r: Math.min(k.r, t.clip.r, vw - 1), t: Math.max(k.t, t.clip.t, 0), b: Math.min(k.b, t.clip.b, vh - 1) };
+        if (box.r - box.l < 8 || box.b - box.t < 4) return;
+        const y = (box.t + box.b) / 2;
+        let hits = 0;
+        for (const f of [0.2, 0.5, 0.8]) {
+          const stack = document.elementsFromPoint(box.l + f * (box.r - box.l), y);
+          const at = stack.findIndex((e) => e === t.el || t.el.contains(e));
+          if (at < 0) continue;
+          const c = stack.findIndex((e, j) => j > at && e.tagName === "CANVAS" && opacity(e) >= 0.3);
+          // The body's ground is the viewport's when <html> has none: it is painted under a -z-10 canvas, not over it.
+          if (c < 0) continue;
+          const between = stack.slice(at, c + 1).filter((e) => !(propagated && e === document.body));
+          if (!coveredBetween(between, 0, between.length - 1)) hits++;
+        }
+        if (hits < 2) return;
+        const g = t.el.closest("a,button,h1,h2,h3,h4,h5,h6,p,li,label,figcaption,blockquote") ?? t.el;
+        const text = (g.innerText || t.text).replace(/\s+/g, " ").trim().slice(0, 120);
+        const key = `object|${path(g)}|${text.slice(0, 40)}`;
+        const o = overs.get(key) ?? { key, text, selector: path(g), size: t.fontSize, boxes: [] };
+        o.size = Math.max(o.size, t.fontSize);
+        o.boxes.push(box);
+        overs.set(key, o);
+      });
+    }
+
+    /* --- 3e. the phone: what a thumb and an eye need at 390 wide. Half the visitors read the site here. */
+    if (opts.phone) {
+      const words = (s) => s.split(/\s+/).filter(Boolean).length;
+      const inView = (r) => r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw;
+      // Tap targets: 44 by 44 CSS px. A link inside a running sentence is exempt (it is part of the text). The page's
+      // door and the menu button are how a phone visitor goes anywhere: those fail.
+      const TAPS = 'a[href],button,[role="button"],input[type="submit"],input[type="button"],summary';
+      for (const e of document.querySelectorAll(TAPS)) {
+        const r = e.getBoundingClientRect();
+        if (r.width < 4 || r.height < 4 || !inView(r) || opacity(e) < 0.3 || e.closest('[aria-hidden="true"],[inert]')) continue;
+        if (r.width >= 44 && r.height >= 44) continue;
+        if (cs(e).display === "inline") {
+          const block = e.parentElement?.closest("p,li,dd,td,blockquote,figcaption,label");
+          const own = norm(e.textContent ?? "").length;
+          if (block && norm(block.textContent ?? "").length >= own + 12) continue;
+        }
+        const cx = Math.min(Math.max(r.left + r.width / 2, 0), vw - 1);
+        const cy = Math.min(Math.max(r.top + r.height / 2, 0), vh - 1);
+        const stack = document.elementsFromPoint(cx, cy);
+        const at = stack.findIndex((x) => x === e || e.contains(x));
+        if (at < 0 || coveredBetween(stack, -1, at)) continue;
+        // A hover roll sets its word twice ("MenuMenu"), so the text is read from its start.
+        const menu = e.matches("[data-menu-toggle],[aria-expanded],[aria-haspopup]") || /\bmen(u|y|ü)\b/i.test(e.getAttribute("aria-label") ?? "") || /^\s*men(u|y|ü)/i.test(e.textContent ?? "") || /#men(u|y)$/i.test(e.getAttribute("href") ?? "");
+        const door = e.matches("[data-door],[data-door-placeholder]") || Boolean(e.closest("[data-door],[data-door-placeholder]"));
+        const name = (e.getAttribute("aria-label") || e.textContent || e.getAttribute("href") || "").replace(/\s+/g, " ").trim().slice(0, 60);
+        const what = door ? "the page's door" : menu ? "the menu button" : "a tap target";
+        add({
+          kind: "tap-target",
+          severity: door || menu ? "FAIL" : "WARN",
+          text: name,
+          selector: path(e),
+          detail: `${what} is ${Math.round(r.width)} by ${Math.round(r.height)}px on a phone, under 44 by 44: give it padding or a min-h-11 min-w-11 hit area${door ? ", and set the door large, filled and full width on a phone" : ""}`,
+          key: `tap|${path(e)}|${name.slice(0, 30)}`,
+        });
+      }
+      // Running text under 15px on a phone is read with a squint. Labels and captions of a few words may be small.
+      const small = new Set();
+      for (const t of shown) {
+        if (t.fontSize >= 15 || inHeader(t) || chrome(t.el)) continue;
+        const block = t.el.closest("p,li,dd,blockquote,td");
+        if (!block || small.has(block) || words(t.text) < 4 || words(block.innerText || "") < 10) continue;
+        small.add(block);
+        add({ kind: "small-text", text: (block.innerText || t.text).replace(/\s+/g, " ").trim().slice(0, 120), selector: path(block), detail: `running text at ${Math.round(t.fontSize * 10) / 10}px on a phone: body text is 15px or more (text-body), never a squeezed desktop size`, key: `small|${path(block)}` });
+      }
+      // A field under 16px makes iOS zoom the page in when it is tapped.
+      for (const e of document.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="range"]):not([type="color"]):not([type="file"]),select,textarea')) {
+        const r = e.getBoundingClientRect();
+        const size = parseFloat(cs(e).fontSize) || 16;
+        if (size >= 16 || r.width < 4 || r.height < 4 || !inView(r) || opacity(e) < 0.3) continue;
+        add({ kind: "input-zoom", text: e.getAttribute("name") || e.getAttribute("placeholder") || e.tagName.toLowerCase(), selector: path(e), detail: `a field at ${Math.round(size)}px: iOS zooms the page in when it is tapped; set fields at 16px or more on a phone`, key: `input|${path(e)}` });
+      }
+      // Chrome that rides with the screen (a header, a bar, a banner) and eats more than a quarter of it. A pinned or
+      // sticky scene and a full-screen layer (an open menu, the world) are the page, not chrome.
+      for (const e of document.querySelectorAll("body *")) {
+        const s = cs(e);
+        if (s.position !== "fixed" && s.position !== "sticky") continue;
+        if (s.position === "sticky" && e.closest("main,section,article,[data-scene],[data-beat]")) continue;
+        if (e.parentElement?.classList.contains("pin-spacer") || (e.parentElement && rides(e.parentElement)) || parseInt(s.zIndex, 10) < 0 || opacity(e) < 0.3) continue;
+        const r = e.getBoundingClientRect();
+        const w = Math.min(r.right, vw) - Math.max(r.left, 0);
+        const h = Math.min(r.bottom, vh) - Math.max(r.top, 0);
+        if (w <= 0 || h <= 0 || r.height >= 0.9 * vh) continue;
+        const share = (w * h) / (vw * vh);
+        if (share <= 0.25) continue;
+        add({ kind: "fixed-cover", text: (e.innerText || "").replace(/\s+/g, " ").trim().slice(0, 60), selector: path(e), detail: `a ${s.position} element covers ${Math.round(share * 100)}% of the phone screen on every scroll: keep fixed chrome to a slim bar (under a quarter of the screen) on a phone`, key: `fixed|${path(e)}` });
+      }
+    }
+
+    /* --- 3c. type at display size after the first screen, for the page's scale ladder. A display moment is a block
+       of text at poster scale (at least 72px and 7vw); a wall is one with more than 20 words. */
+    const display = [];
+    {
+      const big = Math.max(72, 0.07 * vw);
+      const blocks = new Map();
+      for (const t of shown) {
+        if (t.fontSize < big || inHeader(t) || chrome(t.el)) continue;
+        if (!t.lines.some((r, i) => t.shown[i] && r.bottom > 0 && r.top < vh)) continue;
+        const g = t.el.closest("h1,h2,h3,h4,h5,h6,p,blockquote,li,figcaption,[data-scene]") ?? t.el;
+        if (g.closest("footer")) continue;
+        const top = Math.min(...t.lines.map((r) => r.top)) + sy;
+        const b = blocks.get(g) ?? { key: path(g), text: (g.innerText || t.text).replace(/\s+/g, " ").trim(), top, size: t.fontSize };
+        b.top = Math.min(b.top, top);
+        b.size = Math.max(b.size, t.fontSize);
+        blocks.set(g, b);
+      }
+      for (const b of blocks.values()) display.push({ ...b, words: b.text.split(/\s+/).filter(Boolean).length, text: b.text.slice(0, 120) });
+    }
+
     /* --- 4b. a number broken over two lines: "3 900.00" wrapping at its group space reads as two numbers. Every token
        (an optional currency, digits with thousands groups, decimals, a percent or a unit) gets its own Range, and the
        centres of its client rects say how many line boxes its glyphs sit on. */
@@ -654,15 +859,6 @@ function measurePage(opts) {
 
     /* --- 5. what holds content on this screen, in document coordinates. Chrome that rides along with the scroll
        (the header, a small fixed button or cursor) is on every screen, so it holds nothing. A pinned scene does. */
-    const chromeCache = new Map();
-    const chrome = (el) => {
-      if (!el || el === document.body) return false;
-      if (chromeCache.has(el)) return chromeCache.get(el);
-      const p = cs(el).position;
-      const v = (header && header.contains(el)) || ((p === "fixed" || p === "sticky") && el.getBoundingClientRect().height < 0.35 * vh) || chrome(el.parentElement);
-      chromeCache.set(el, v);
-      return v;
-    };
     const hold = (e) => {
       const r = e.getBoundingClientRect();
       const w = Math.min(r.right, vw) - Math.max(r.left, 0);
@@ -676,6 +872,53 @@ function measurePage(opts) {
     }
     for (const e of document.querySelectorAll("img,video,canvas,picture,svg,iframe")) hold(e);
     for (const e of document.querySelectorAll("body *")) if (hasImageGround(e)) hold(e);
+
+    /* --- 5b. how full this screen is: the type's own area (each shown line's width at half its size, the band its
+       letters fill) and the media in view (photos, video, canvases, drawings), as a share of the screen. A stop with
+       media in view is never sparse; a stop that is ground with one small line is (proof run 2026-11-26, Oostwerk:
+       three middle screens of cream with one sentence each read as unfinished). */
+    let typeArea = 0;
+    for (const t of shown) {
+      if (inHeader(t) || chrome(t.el)) continue;
+      t.ink.forEach((k, i) => {
+        if (!t.shown[i]) return;
+        const w = Math.min(k.r, vw) - Math.max(k.l, 0);
+        if (w > 0 && k.b > 0 && k.t < vh) typeArea += w * t.fontSize * 0.5;
+      });
+    }
+    let mediaArea = 0;
+    let mediaInView = false;
+    for (const e of document.querySelectorAll("img,video,canvas,picture,svg,iframe")) {
+      if (e.tagName.toLowerCase() === "svg" && e.ownerSVGElement) continue;
+      const r = e.getBoundingClientRect();
+      const a = Math.max(0, Math.min(r.right, vw) - Math.max(r.left, 0)) * Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+      if (a < 48 * 48 || opacity(e) < 0.05 || chrome(e)) continue;
+      mediaArea += a;
+      if (a >= 0.04 * vw * vh) mediaInView = true;
+    }
+    // A drawn panel counts as something to look at: an inset block of its own solid colour (a card, a drawn page, a
+    // poster) a tenth of the screen or more, narrower than the screen, so a section's own ground never counts.
+    if (!mediaInView) {
+      const groundOf = (el) => {
+        for (let a = el.parentElement; a; a = a.parentElement) {
+          const c = rgba(cs(a).backgroundColor);
+          if (c[3] >= 0.9) return c;
+        }
+        return [255, 255, 255, 1];
+      };
+      for (const e of document.querySelectorAll("body *")) {
+        const c = rgba(cs(e).backgroundColor);
+        if (c[3] < 0.9) continue;
+        const r = e.getBoundingClientRect();
+        if (r.width >= 0.9 * vw) continue;
+        const a = Math.max(0, Math.min(r.right, vw) - Math.max(r.left, 0)) * Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+        if (a < 0.1 * vw * vh || opacity(e) < 0.05 || chrome(e) || ratio(c, groundOf(e)) < 1.25) continue;
+        mediaArea += a;
+        mediaInView = true;
+        break;
+      }
+    }
+    const fill = Math.min(1, (typeArea + mediaArea) / (vw * vh));
 
     const footer = [...document.querySelectorAll("footer")].pop();
     const broken = opts.last
@@ -692,9 +935,13 @@ function measurePage(opts) {
       broken,
       next,
       photo,
+      over: [...overs.values()],
       quiet: !seenText,
       mask,
       families,
+      display,
+      fill,
+      mediaInView,
     };
   } finally {
     force.remove();
@@ -856,6 +1103,98 @@ function photoGroups(photo, seen) {
 /** Hide every glyph (color transparent, no transition), screenshot the ground, show them again, and measure. */
 async function behind(page, groups) {
   if (!groups.length) return new Map();
+  const img = await groundShot(page);
+  return img ? groundRatios(img, groups) : new Map();
+}
+
+/**
+ * Over the object: what the canvas draws inside a line's box (padded by a third of the type size), with the glyphs
+ * hidden. The box is read in 4px blocks (grain averages out) and a smooth ground is fitted to them: a quadratic in x
+ * and y per channel, refitted on the closer 60 percent, so a lit wall, a pool of light or a vignette is all ground.
+ * Blocks more than 28 levels off that ground are something drawn there: an object, its edge, its shadow. A tenth of
+ * the box or more is the object under the line.
+ */
+function objectUnder(img, boxes, size) {
+  const B = 4;
+  const pad = Math.round(size / 3);
+  const blocks = [];
+  const seen = new Set();
+  for (const b of boxes) {
+    const l = Math.max(0, Math.floor((b.l - pad) / B));
+    const r = Math.min(Math.floor(img.width / B) - 1, Math.floor((b.r + pad) / B));
+    const t = Math.max(0, Math.floor((b.t - pad) / B));
+    const bt = Math.min(Math.floor(img.height / B) - 1, Math.floor((b.b + pad) / B));
+    for (let by = t; by <= bt; by++) {
+      for (let bx = l; bx <= r; bx++) {
+        if (seen.has(by * 100000 + bx)) continue;
+        seen.add(by * 100000 + bx);
+        const s = [0, 0, 0];
+        for (let y = by * B; y < by * B + B; y++) {
+          for (let x = bx * B; x < bx * B + B; x++) {
+            const p = img.at(x, y);
+            s[0] += p[0];
+            s[1] += p[1];
+            s[2] += p[2];
+          }
+        }
+        blocks.push({ x: bx, y: by, c: s.map((v) => v / (B * B)) });
+      }
+    }
+  }
+  if (blocks.length < 24) return { share: 0 };
+  const xs = blocks.map((k) => k.x);
+  const ys = blocks.map((k) => k.y);
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  const nx = (x) => (x1 > x0 ? (2 * (x - x0)) / (x1 - x0) - 1 : 0);
+  const ny = (y) => (y1 > y0 ? (2 * (y - y0)) / (y1 - y0) - 1 : 0);
+  const feat = (k) => {
+    const [x, y] = [nx(k.x), ny(k.y)];
+    return [1, x, y, x * x, x * y, y * y];
+  };
+  const fit = (set) => {
+    // Normal equations, one solve for the three channels, a touch of ridge so a flat row stays solvable.
+    const A = Array.from({ length: 6 }, () => new Array(9).fill(0));
+    for (const k of set) {
+      const f = feat(k);
+      for (let i = 0; i < 6; i++) {
+        for (let j = 0; j < 6; j++) A[i][j] += f[i] * f[j];
+        for (let c = 0; c < 3; c++) A[i][6 + c] += f[i] * k.c[c];
+      }
+    }
+    for (let i = 0; i < 6; i++) A[i][i] += 1e-6 * set.length;
+    for (let i = 0; i < 6; i++) {
+      let p = i;
+      for (let r = i + 1; r < 6; r++) if (Math.abs(A[r][i]) > Math.abs(A[p][i])) p = r;
+      [A[i], A[p]] = [A[p], A[i]];
+      const d = A[i][i] || 1e-9;
+      for (let j = i; j < 9; j++) A[i][j] /= d;
+      for (let r = 0; r < 6; r++) {
+        if (r === i || !A[r][i]) continue;
+        const m = A[r][i];
+        for (let j = i; j < 9; j++) A[r][j] -= m * A[i][j];
+      }
+    }
+    return [0, 1, 2].map((c) => A.map((row) => row[6 + c]));
+  };
+  const off = (coef, k) => {
+    const f = feat(k);
+    return Math.hypot(...[0, 1, 2].map((c) => k.c[c] - f.reduce((s, v, i) => s + v * coef[c][i], 0)));
+  };
+  let coef = fit(blocks);
+  const kept = blocks.map((k) => [off(coef, k), k]).sort((a, b) => a[0] - b[0]).slice(0, Math.ceil(0.6 * blocks.length)).map((p) => p[1]);
+  coef = fit(kept);
+  const share = blocks.filter((k) => off(coef, k) > 28).length / blocks.length;
+  return { share };
+}
+
+const OBJECT_SHARE = 0.1;
+/** Below this share of the screen in type and media, with no image, canvas or video in view, a stop is sparse. */
+const SPARSE_FILL = 0.1;
+const sparseDetail = (fill, stops) =>
+  `${Math.round(fill * 100)}% of the screen holds type or media and nothing to look at is in view${stops > 1 ? `, for ${stops} scroll stops in a row` : ""}: a flat stretch reads as unfinished. Compose it (scale contrast, a real image or a drawn piece, a pinned or scrubbed moment) or merge the scene into its neighbour`;
+
+/** The page with every glyph hidden (color transparent, no transition), as pixels; the glyphs come back after. */
+async function groundShot(page) {
   let png = null;
   try {
     await page.evaluate(() => {
@@ -871,8 +1210,7 @@ async function behind(page, groups) {
   } finally {
     await page.evaluate(() => document.getElementById("struq-look-hide")?.remove()).catch(() => {});
   }
-  const img = png ? decodePng(png) : null;
-  return img ? groundRatios(img, groups) : new Map();
+  return png ? decodePng(png) : null;
 }
 
 const GENERIC_FACES = new Set(["serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui", "ui-serif", "ui-sans-serif", "ui-monospace", "ui-rounded", "emoji", "math", "fangsong", "inherit", "initial", "unset", "-apple-system", "blinkmacsystemfont"]);
@@ -886,7 +1224,8 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 async function capture(page, opts = {}) {
   for (let i = 0; ; i++) {
     try {
-      return await page.screenshot(opts);
+      // A shared machine with a WebGL page can take longer than the default 30s to hand over a frame.
+      return await page.screenshot({ timeout: 90000, ...opts });
     } catch (err) {
       if (i >= 2 || !/capture|screenshot/i.test(String(err?.message))) throw err;
       await wait(400);
@@ -911,6 +1250,8 @@ async function ready(page) {
   await page.evaluate(() => document.fonts?.ready.then(() => true)).catch(() => {});
   // A preloader keeps <html data-curtain="closed"> while it covers the page.
   await page.waitForFunction(() => document.documentElement.dataset.curtain !== "closed", null, { timeout: 8000 }).catch(() => {});
+  // A hero that holds its line for the backdrop's first beat marks <html data-entrance="held"> until the line is up.
+  await page.waitForFunction(() => document.documentElement.dataset.entrance !== "held", null, { timeout: 5000 }).catch(() => {});
   // The blocks set data-ready once their start state is live; the kit's CSS lets go after three seconds regardless.
   await page
     .waitForFunction(() => {
@@ -968,17 +1309,20 @@ async function lookAt(browser, vp, errors) {
   let docHeight = 0;
   let crops = 0;
   let blankRun = null;
+  let sparseRun = null;
   const faces = new Map();
+  const displays = new Map();
   const measured = new Set();
   const stepPx = Math.round(vp.height * 0.6);
+  const phone = vp.width < 768;
   let extra = 0;
   for (let step = 0; step < MAX_STEPS; step++) {
     const first = step === 0;
-    let m = await page.evaluate(measurePage, { first, last: false, stepPx, known: [...seen] });
+    let m = await page.evaluate(measurePage, { first, last: false, stepPx, phone, known: [...seen] });
     if (m.findings.length) {
       // Measure once more after a pause: only what holds still is a defect, not an animation passing through.
       await wait(1200);
-      const again = await page.evaluate(measurePage, { first, last: false, stepPx, known: [...seen] });
+      const again = await page.evaluate(measurePage, { first, last: false, stepPx, phone, known: [...seen] });
       const before = new Map(m.findings.map((f) => [f.key, f]));
       again.findings = again.findings.filter((f) => before.has(f.key) && (f.x === undefined || Math.abs(f.x - before.get(f.key).x) < 2));
       m = again;
@@ -987,6 +1331,7 @@ async function lookAt(browser, vp, errors) {
     let png = await capture(page, { path: shot });
     steps.push({ step, scrollY: m.scrollY, shot });
     content.push(...m.content);
+    for (const d of m.display) if (!displays.has(d.key)) displays.set(d.key, { ...d, step, shot });
     for (const [face, text] of Object.entries(m.families)) if (!faces.has(face)) faces.set(face, { text, step, scrollY: m.scrollY, shot });
     docHeight = Math.max(docHeight, m.docHeight);
     if (m.footerTop !== null) footerTop = m.footerTop;
@@ -1007,7 +1352,7 @@ async function lookAt(browser, vp, errors) {
     for (const f of m.findings) {
       if (seen.has(f.key)) continue;
       seen.add(f.key);
-      findings.push({ kind: f.kind, viewport: vp.name, step, scrollY: Math.round(f.scrollY), text: f.text.slice(0, 120), selector: f.selector, detail: f.detail, shot });
+      findings.push({ kind: f.kind, ...(f.severity ? { severity: f.severity } : {}), viewport: vp.name, step, scrollY: Math.round(f.scrollY), text: f.text.slice(0, 120), selector: f.selector, detail: f.detail, shot });
     }
 
     // Blank: no text seen on this screen and the pixels one flat colour. Held for a moment longer, so a panel passing
@@ -1019,7 +1364,7 @@ async function lookAt(browser, vp, errors) {
       let flat = flatScreen(decodePng(png) ?? { width: 0, height: 0 }, [...m.mask, cursor]);
       if (flat.blank) {
         await wait(1200);
-        const again = await page.evaluate(measurePage, { first, last: false, stepPx, known: [...seen] });
+        const again = await page.evaluate(measurePage, { first, last: false, stepPx, phone, known: [...seen] });
         png = await capture(page, { path: shot });
         flat = again.quiet ? flatScreen(decodePng(png) ?? { width: 0, height: 0 }, [...again.mask, cursor]) : { blank: false };
       }
@@ -1034,6 +1379,27 @@ async function lookAt(browser, vp, errors) {
       }
     }
 
+    // Sparse: a settled stop between the opening and the footer (the footer not yet in view) that is mostly empty ground
+    // with a line or two on it,
+    // and nothing to look at. Measured again after a pause, so a reveal still on its way in is not counted.
+    if (process.env.STRUQ_LOOK_FILL) console.log(`fill ${vp.name} ${step} ${Math.round(m.scrollY)} ${(m.fill * 100).toFixed(1)}%${m.mediaInView ? " media" : ""}`);
+    const sparseAt = (x) => step > 0 && !x.quiet && !x.mediaInView && x.fill < SPARSE_FILL && (x.footerTop === null || x.footerTop - x.scrollY >= vp.height);
+    if (sparseAt(m)) {
+      await wait(1200);
+      const again = await page.evaluate(measurePage, { first: false, last: false, stepPx, phone, known: [...seen] });
+      if (sparseAt(again)) {
+        if (sparseRun && sparseRun.step === step - 1) {
+          sparseRun.step = step;
+          sparseRun.more++;
+          sparseRun.finding.detail = sparseDetail(again.fill, sparseRun.more + 1);
+        } else {
+          const finding = { kind: "sparse", viewport: vp.name, step, scrollY: Math.round(again.scrollY), text: "", selector: "", detail: sparseDetail(again.fill, 1), shot };
+          findings.push(finding);
+          sparseRun = { step, more: 0, finding };
+        }
+      }
+    }
+
     // Text over a photo, a video or a canvas: hide the glyphs, read the pixels behind each line and hold the worse
     // quartile to the text colour. A fail is read once more after a pause; what cannot be read keeps the old warning.
     const groups = photoGroups(m.photo, seen);
@@ -1043,7 +1409,7 @@ async function lookAt(browser, vp, errors) {
       const unmeasured = groups.filter((g) => !(read.get(g.key)?.n >= MIN_PIXELS));
       if (failing.length) {
         await wait(1200);
-        const again = await page.evaluate(measurePage, { first: false, last: false, stepPx, known: [...seen] });
+        const again = await page.evaluate(measurePage, { first: false, last: false, stepPx, phone, known: [...seen] });
         const regroup = photoGroups(again.photo, seen).filter((g) => failing.some((f) => f.key === g.key));
         const second = await behind(page, regroup);
         failing = regroup.filter((g) => second.get(g.key)?.n >= MIN_PIXELS && second.get(g.key).ratio < g.need).map((g) => ({ ...g, ratio: second.get(g.key).ratio }));
@@ -1063,6 +1429,28 @@ async function lookAt(browser, vp, errors) {
       }
     }
 
+    // Over the object: a line with the world's canvas under it. Hide the glyphs, read what the canvas draws in each
+    // line's box, and read it again after a pause: only an object that holds under the line is a defect.
+    let objects = m.over.filter((o) => !seen.has(o.key));
+    if (objects.length) {
+      let img = await groundShot(page);
+      objects = objects.map((o) => ({ ...o, share: img ? objectUnder(img, o.boxes, o.size).share : 0 })).filter((o) => o.share >= OBJECT_SHARE);
+      if (objects.length) {
+        await wait(1200);
+        const again = await page.evaluate(measurePage, { first: false, last: false, stepPx, phone, known: [...seen] });
+        img = await groundShot(page);
+        objects = again.over
+          .filter((o) => objects.some((x) => x.key === o.key))
+          .map((o) => ({ ...o, share: img ? objectUnder(img, o.boxes, o.size).share : 0 }))
+          .filter((o) => o.share >= OBJECT_SHARE);
+      }
+      for (const o of objects) {
+        seen.add(o.key);
+        const r = o.boxes.reduce((a, b) => ({ l: Math.min(a.l, b.l), t: Math.min(a.t, b.t), r: Math.max(a.r, b.r), b: Math.max(a.b, b.b) }));
+        findings.push({ kind: "over-object", viewport: vp.name, step, scrollY: Math.round(m.scrollY), text: o.text, selector: o.selector, detail: `the line sits over the 3D object (${Math.round(o.share * 100)}% of the ground under it is the object, not the wall): move the type to the side the object leaves free, set Framed's side for this beat away from the type (and its phone framing), or give the line its own band of ground`, shot, crop: await crop({ x: r.l, y: r.t, w: r.r - r.l, h: r.b - r.t }, "object") });
+      }
+    }
+
     const before = m.scrollY;
     if (before + m.viewport.height >= m.docHeight - 2) break;
     // A full step, or less where a word is about to slip under the header.
@@ -1079,9 +1467,25 @@ async function lookAt(browser, vp, errors) {
       if (Math.abs(after - before) < 1) break;
     }
   }
-  const last = await page.evaluate(measurePage, { first: false, last: true, stepPx });
+  const last = await page.evaluate(measurePage, { first: false, last: true, stepPx, phone });
   for (const b of last.broken) errors.add(`image did not load: ${b.src} (${b.selector})`);
   if (overflow) findings.push(overflow);
+  // The widths between the two sizes: a laptop and a small desktop. A canvas or a wide row that fits at 1440 and on a
+  // phone can still push the page sideways at 1024 (proof run 2026-11-26: a 3D machine set past the right edge).
+  if (!overflow && vp.name === "desktop") {
+    for (const width of [1024, 1280]) {
+      await page.setViewportSize({ width, height: vp.height });
+      await settle(page);
+      const wide = await page.evaluate(() => ({ doc: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth), vw: document.documentElement.clientWidth }));
+      if (wide.doc > wide.vw + 1) {
+        const shot = join(outDir, `desktop-${width}.png`);
+        await capture(page, { path: shot });
+        findings.push({ kind: "overflow", viewport: vp.name, step: 0, scrollY: 0, text: "", selector: "html", detail: `the page is ${wide.doc}px wide on a ${wide.vw}px screen (at ${width} wide; it fits at ${vp.width})`, shot });
+        break;
+      }
+    }
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+  }
 
   // A face the visible text asks for first that never loaded: the page reads in a fallback. A loaded face of that
   // family settles it; otherwise the face is missing when text set in it measures exactly as the fallback alone.
@@ -1109,6 +1513,20 @@ async function lookAt(browser, vp, errors) {
     findings.push({ kind: "font-missing", viewport: vp.name, step: at.step, scrollY: Math.round(at.scrollY), text: at.text, selector: "", detail: `the face "${prettyFace(face)}" is asked for first but never loaded, so this text shows a fallback: load it (next/font, or an @font-face that answers) or name a face that does`, shot: at.shot });
   }
 
+  // 4e. The scale ladder: display type (72px and 7vw or more) after the first screen. A paragraph at poster scale is a
+  // wall the visitor scrolls through instead of reading (proof runs 2026-11-25: three of five middle scenes were one
+  // sentence at 10vw); more than two such moments flattens the page into one loud register.
+  if (vp.width >= 1024) {
+    const later = [...displays.values()].filter((d) => d.top >= vp.height * 0.9);
+    for (const d of [...displays.values()].filter((d) => d.words > 20)) {
+      findings.push({ kind: "type-wall", viewport: vp.name, step: d.step, scrollY: Math.round(d.top), text: d.text, selector: d.key, detail: `${d.words} words at ${Math.round(d.size)}px: display size is for a line of up to about twelve words; set this at heading or lead size and give the scene something to look at`, shot: d.shot });
+    }
+    if (later.length > 2) {
+      const d = later[2];
+      findings.push({ kind: "type-scale", viewport: vp.name, step: d.step, scrollY: Math.round(d.top), text: later.map((x) => x.text.slice(0, 40)).join(" / "), selector: d.key, detail: `${later.length} lines at poster scale after the first screen: keep display size for the opening and one or two moments, and set the other scenes a step down (heading size) beside a visual`, shot: d.shot });
+    }
+  }
+
   // 5. Empty stretches: a screen-high window without content, below the first screen and above the footer.
   const start = vp.height;
   const end = footerTop ?? docHeight - vp.height / 2;
@@ -1116,14 +1534,16 @@ async function lookAt(browser, vp, errors) {
   let reach = start;
   const gaps = [];
   for (const [a, b] of spans) {
-    if (a > reach && Math.min(a, end) - reach >= vp.height) gaps.push([reach, Math.min(a, end)]);
+    if (a > reach && Math.min(a, end) - reach >= vp.height * 0.6) gaps.push([reach, Math.min(a, end)]);
     reach = Math.max(reach, b);
     if (reach >= end) break;
   }
-  if (end - reach >= vp.height) gaps.push([reach, end]);
+  if (end - reach >= vp.height * 0.6) gaps.push([reach, end]);
   for (const [a, b] of gaps) {
     const near = steps.reduce((best, s) => (Math.abs(s.scrollY - a) < Math.abs(best.scrollY - a) ? s : best), steps[0]);
-    findings.push({ kind: "empty", viewport: vp.name, step: near.step, scrollY: Math.round(a), text: "", selector: "", detail: `${Math.round(b - a)}px without text or image, from ${Math.round(a)}px down`, shot: near.shot });
+    // A dead stretch of a whole screen is a hole in the film, not a breath: it fails. Six tenths of one warns.
+    const dead = b - a >= vp.height;
+    findings.push({ kind: "empty", severity: dead ? "FAIL" : "WARN", viewport: vp.name, step: near.step, scrollY: Math.round(a), text: "", selector: "", detail: `${Math.round(b - a)}px without text or image, from ${Math.round(a)}px down${dead ? ": every screen of scroll must change something; shorten the pin or the padding, or give the stretch its beat" : ""}`, shot: near.shot });
   }
   await context.close();
   return { findings, steps: steps.length };

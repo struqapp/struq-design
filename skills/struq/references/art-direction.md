@@ -8,20 +8,28 @@ Open every still. Then look for, in this order:
 
 1. **The idea.** From the first screen and the last alone, can you say what this site believes? Name any scene that
    does not serve it.
-2. **The first screen.** Would it stop a juror scrolling a gallery of fifty? If it could open any client's site, say
-   what only this client's would show.
+2. **The first screen, against the bar** (Lusion, Active Theory, Resn, Locomotive, Immersive Garden). Would frame one
+   stop a juror scrolling a gallery of fifty? Is the signature full-bleed and moving within the first second, or a
+   band, a small drawing or type on a plain ground? Does the preloader end on the signature's own first beat, and do
+   the preloader, the transition and the menu curtain share one motion language? If it could open any client's site,
+   say what only this client's would show.
 3. **The subject.** Is what the client makes shown, and drawn with a maker's care: true proportions, the object's real
    anatomy, a document set like the real thing, an app screen that looks used? A diagram, a grey card or an empty
    frame where the subject should be is the first thing to fix.
 4. **Type.** Scale contrast, line length, a widow or orphan, a word or number broken across lines, text fighting a
    photo, a heading off the grid.
-5. **Rhythm.** Two scenes with the same layout, a stretch where nothing new happens, a blank screen, an ending that
-   repeats the opening without adding to it.
+5. **Rhythm and flat stretches.** Name every flat stretch by its still: a scroll stop that is mostly empty ground with
+   one small line on it (a statement alone on cream, a heading waiting for the scene below, the empty half under a
+   close). Each needs composition, not decoration: scale contrast, a real image or a drawn piece, a pinned or scrubbed
+   moment, or the scene merged into its neighbour. Also two scenes with the same layout, a stretch where nothing new
+   happens, a blank screen, an ending that repeats the opening without adding to it.
 6. **Reflexes** a juror has seen a thousand times: one italic word in every headline; a giant sentence right after
    the opening; a glossary of the trade; a labelled anatomy diagram; the name at full width as the close; a dot or
    particle wave as the opening; one-word rows; a photo beside a paragraph.
 7. **Honesty.** A line that invents a fact, invites the visitor to a door the site never gives (an address, a number,
-   a link), speaks of a stock photo as the client's own, or promises something coming.
+   a link), speaks of a stock photo as the client's own, or promises something coming. A price, product, address or
+   number the brief did not give is invented. A site that sells or takes enquiries and does not end on the order close
+   fails too; with no door in the brief that close carries the placeholder door, listed under Assumptions.
 
 Answer with at most five changes, the ones that would raise the site most, worst first, as a numbered list (1. to 5.).
 Each: the still's file name, what is wrong in one sentence, and what to build instead, concrete enough to build without

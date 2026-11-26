@@ -1,22 +1,103 @@
 ---
 name: struq
-description: "Award-tier studio websites for coding agents, built from Struq's catalogue of admitted blocks and directed as one film: one idea, one motion language, one motif and one centerpiece, cast into a storyboard before a block is installed. Preloaders, page transitions, headers, heroes, WebGL backgrounds, showpieces, sections and footers, each with real variants, judged at FWA level and shipped as files. Struq's palettes and type pairings as one token block, art-directed CC0 photos from the Struq beeldbank, Lenis on one GSAP clock, and a self-check against the AI tells. Works offline from its own copy; uses the Struq MCP (struq_richting, struq_blokken, struq_blok, struq_controle) when connected. Use when designing, building, redesigning, animating or auditing a marketing, studio, agency or portfolio site that must feel cinematic and custom instead of templated. Stack: Next.js App Router + Tailwind v4."
+description: "Websites at the level of an Awwwards Site of the Day or an FWA of the Day, for coding agents: one strong idea, confident art direction, choreographed motion and real-time 3D that serves the concept, the bar set by studios like Active Theory, Lusion, Resn, Immersive Garden, Locomotive, Obys and Basement Studio. Built on Struq's catalogue of hardened blocks (preloaders, page transitions, headers, heroes, WebGL backgrounds, showpieces, sections and footers, each with real variants, shipped as files) plus recipes for glass, light, shaders, post-processing and scroll choreography. Struq's palettes and type pairings as one token block, art-directed CC0 photos from the Struq beeldbank, Lenis on one GSAP clock, and a self-check against the AI tells. Works offline from its own copy; uses the Struq MCP (struq_direction, struq_blocks, struq_block, struq_check) when connected. Use when designing, building, redesigning, animating or auditing a marketing, studio, agency or portfolio site that must feel cinematic and custom instead of templated. Stack: Next.js App Router + Tailwind v4."
 argument-hint: "[brief] | redesign <path> | audit <path-or-url> | direct <brief>"
 ---
 
 # Struq
 
-You are the director. Struq gives you a catalogue of studio-grade blocks ([blocks/CATALOG.md](blocks/CATALOG.md)),
-a canon of palettes and pairings, a photo library and a self-check. They are a toolbox, not a menu: the site should
-look like it could only belong to this one client, and like nothing Struq built before. `<skill-dir>` is this file's
-folder. Worked treatments: [references/film.md](references/film.md); craft: [references/craft.md](references/craft.md).
+## The bar
+
+Design and build this site at the level of an Awwwards Site of the Day or an FWA of the Day winner. Think of the work
+of studios like Active Theory, Lusion, Resn, Immersive Garden, Locomotive, Obys and Basement Studio: one strong idea,
+confident art direction, choreographed motion, and real-time 3D that serves the concept. Those studios are a quality
+bar only. Copy no existing site's layout, name, assets or signature effect; the concept must be original.
+
+You are creative director, designer and creative developer in one. Sites at this level do not win on effects. They
+win because every element, from the typeface to the easing curve, serves a single idea. Hold yourself to that
+standard: make decisive choices instead of safe ones, and know when to hold back.
+
+**And it sells.** This is a client's site, not a showreel. A visitor knows within the first screen what this is, who it
+is for and what to do next; every scene after it moves them closer to that door. The copy reads like a senior
+copywriter wrote it: concrete, in the client's own words, a headline with a point of view and a line under it that
+says plainly what they make or do ([references/copy.md](references/copy.md)). Professional, never gimmicky: an effect
+earns its place by showing the product, the craft or the idea better than a still would. If it only shows off, cut
+it.
+
+**One world, one scale ladder.** A studio site feels whole because the middle is the same film as the opening, not
+a stack of type cards after it. Poster-scale type is for the opening and at most two other moments; every other
+scene sets its heading a clear step down (about 2.5 to 4.5rem on a desktop) and its body at reading size, and leads
+with something to look at: the object closer or in another light, the material, the subject piece, a photo of this
+client's world, a drawing at scale, the way to buy. A sentence of more than about twelve words never runs at display
+size, and a scene that is only a sentence is a breath, at most one per page. When the brief is thin, the middle shows
+rather than tells: the craft, the form in detail, the place, never more sentences at a larger size. With a real-time
+signature the scene carries on down the page ([references/realtime.md](references/realtime.md), "One world"). Every
+screen of scroll changes something: no stretch of a screen sits empty.
+
+Work in this order:
+
+1. **The idea**: a point of view on this client that a visitor leaves believing, not a description of the business.
+2. **The signature element**: the one moment a juror remembers tomorrow. Everything else makes room for it. It
+   lives on the first screen or starts there: the opening is where a visitor decides to stay, so never hide the best
+   moment halfway down a page of type. **The first screen is the signature, full-bleed and moving from the first
+   second** (a band of drawing above a line of type is not it), with display type on or beside it, arriving after a
+   preloader whose ending is the signature's own first beat (the lights come on, the door opens), and one page
+   transition and one menu curtain in the same motion language and eases. On a one-page site the transition is the
+   handover between scenes. The test: would a juror stop scrolling on frame one; is the signature full-bleed and
+   moving within the first second; are the preloader, the transition and the menu curtain one motion language? A
+   calm editorial page of small serif lines on a pale ground is what every agent makes; it is the reflex to beat.
+3. **The system**: type, palette, motion language, easing curves and grid, each chosen because of the idea.
+4. **The build**: Struq's blocks first, because they are hardened and already at this level. **3D is a choice, never
+   a default.** Use it only when the subject is an object that real-time light makes more beautiful (glass, metal,
+   ceramic, a product) and the render can stand beside a studio's; a scene that looks like a game (blocky tiles,
+   toy houses, procedural props, flat plastic) is worse than none. A roofer, a lawyer, a restaurant or a portfolio
+   mostly wins on type, photography, a drawn piece and motion. When 3D is unsure, the one stop asks. For a real-time
+   signature start from the 3D kit (`kit/gl`: a Stage with studio light and post-processing, real glass,
+   ceramic and metal, an inner light, a scroll camera). Adapt or fork any of it, or write your own scenes and shaders,
+   wherever the idea needs a moment the kit does not have.
+
+**Speak the craft and use it.** Art direction, editorial grid, display typography, kinetic typography, signature
+element, motion language, easing curve, stagger, mask reveal, split text, scroll-driven animation, scrubbing, pinning,
+smooth scroll, lerp, inertia, scroll velocity, parallax, page transition, preloader, micro-interaction, magnetic
+button, custom cursor, marquee, theme shift; GLSL, vertex and fragment shaders, simplex noise, FBM, curl noise,
+displacement, fresnel, iridescence, matcap, PBR, environment map, post-processing (bloom, chromatic aberration, film
+grain, tone mapping), particles, GPGPU, instancing, SDF, raymarching, DOM-to-WebGL sync, glTF with Draco, WebGPU.
+These are the tools of the studios above; reach for the one the idea needs, by name, in the plan and in the code.
+
+**Hard lines and defaults.** The rules that never bend, below, are hard lines: they protect the client's trust, not
+taste. Everything else in this skill is a strong default from studio practice: the dealt hand, the budgets (quiet
+share, pins, one centerpiece, one cursor, one marquee), `feel()` easing, the motif list, "display runs light". Override
+any default when the idea demands it and write one line in STRUQ.md under `Overrides:` saying which and why. The checks
+then report it as a WARN, which is advice; only a hard line or a broken page FAILs.
+
+## The toolbox
+
+Struq gives you a catalogue of studio-grade blocks ([blocks/CATALOG.md](blocks/CATALOG.md)), a canon of palettes and
+pairings, a photo library, a real-time 3D kit with its recipes ([references/realtime.md](references/realtime.md)),
+the copy craft ([references/copy.md](references/copy.md)) and a self-check. They are a toolbox, not a menu: the site should look like it could only belong to this one client, and
+like nothing Struq built before. `<skill-dir>` is this file's folder. Worked treatments:
+[references/film.md](references/film.md); craft: [references/craft.md](references/craft.md).
+
+**Start from a reference build.** [examples/](examples/README.md) holds finished sites, one per kind of business, each
+on one skeleton: `lib/site.ts` for every fact and line, `app/page.tsx` composing one file per scene, one signature, an
+ending that asks for the visitor's action. Before the treatment, read the README of the reference nearest this brief and
+its screenshots; build on its skeleton and patterns, then change everything that belongs to the business. Never its
+copy, name or claims.
 
 | Invocation | Mode |
 |---|---|
 | `/struq <brief>` | **Build**: the checklist below. |
 | `/struq redesign <path>` | Keep brand, copy and components ([references/triage.md](references/triage.md)); write the treatment of the page as it will be, stop once, then swap in blocks where it is weakest and run the checklist from step 3. |
-| `/struq audit <path-or-url>` | Change nothing. Run `check.mjs` (or `struq_controle`), report every FAIL and WARN and the three fixes with the most payoff. Never a score. |
+| `/struq audit <path-or-url>` | Change nothing. Run `check.mjs` (or `struq_check`), report every FAIL and WARN and the three fixes with the most payoff. Never a score. |
 | `/struq direct <brief>` | One continuous WebGL experience: steps 1 to 4, then [cinematic/README.md](cinematic/README.md). |
+
+**Every site ships finished.** Design the client's mark by [references/identity.md](references/identity.md) (three
+constructions from the site's idea, rendered at 16 to 512 on light and dark, one kept) and put it in `lib/site.ts`
+as `brand: { symbol, colors, face }`. Then `node <skill-dir>/scripts/blocks.mjs finish` writes, from `lib/site.ts`, the
+favicon and app icons, the link preview, the metadata and JSON-LD in the layout, the sitemap, robots, manifest,
+llms.txt and the 404. Pass `mark={<Mark symbol={site.brand.symbol} />}` to the header and keep the footer's quiet
+"Made with Struq" line (`credit: false` in site.ts removes it). Functional icons come from Struq Icons, which init
+installs ([references/iconography.md](references/iconography.md)). `check.mjs` fails a site missing any of these.
 
 ## Rules that never bend
 
@@ -27,18 +108,23 @@ folder. Worked treatments: [references/film.md](references/film.md); craft: [ref
    stop. A caption is copy you write for this client, never the alt read back.
 2. **Never invent, never stand in.** No testimonials, logos, stats, awards, prices, addresses, hours, bios, quotes,
    product features, programme, process, equipment (a wood oven) or name the brief did not give. A missing fact
-   leaves no trace: no "to follow", "to be announced", "Your Name", example.com, and no button for an action with no
-   real destination (shop, booking, contact, sign-up), no "come by" without the address. Drop the line, the field or
-   the button and list it under
-   Assumptions in STRUQ.md. With no door (no address, phone, mail, booking or shop link from the brief or the stop) the
-   site ends on the idea, never on an invitation: no "Schuif aan", "Pick up a mug", "Book a class" or "Shop the
-   collection", and Assumptions names the door the client must add. With no name in the brief the header shows no
+   leaves no trace: no "to follow", "to be announced", "Your Name", example.com in the copy, no button with no
+   destination (the placeholder door below is the one exception), and no "come by" without
+   the address. Drop the line or the field and list it under Assumptions in STRUQ.md. A site that sells or takes
+   enquiries ends on the order close (`Close` shape `order`): what it sells or takes on, the prices the brief gives,
+   and the one way to buy or ask. With no door (no address, phone, mail, booking, shop or quote link from the brief or
+   the one stop) it uses the placeholder door, `door: { kind: "email", href: "mailto:post@example.com", label: "...",
+   placeholder: true }` in lib/site.ts, listed under Assumptions; the self-check warns until the client replaces it. The
+   placeholder is the only stand-in allowed, and only as that door. A site that neither sells nor takes enquiries,
+   with no door, ends on the idea, never on an invitation. With no name in the brief the header shows no
    wordmark and the opener and the close carry none (or ask for the name at the one stop); the trade word ("Yoga",
-   "Bakery") is never a name. The self-check fails stand-ins, links to anchors that do not exist, calls with no door
-   and a trade word as the name.
-3. **Never the tells** ([references/tells.md](references/tells.md)): no eyebrows, pills, gradients or gradient text,
-   glow, mono on marketing, Inter or the other generator faces, default purple or blue, numbered steps, icon grids,
-   stat banners, generic CTAs, em or en dashes.
+   "Bakery") is never a name. The self-check fails stand-ins, links to anchors that do not exist, calls with no door,
+   a selling site with no way to buy, and a trade word as the name.
+3. **Never the tells** ([references/tells.md](references/tells.md)): no eyebrows, pills, CSS gradients or gradient
+   text, glow shadows behind cards or words, mono on marketing, Inter or the other generator faces, default purple or
+   blue, numbered steps, icon grids, stat banners, generic CTAs, em or en dashes. Light inside a WebGL scene (bloom,
+   fresnel, iridescence, an emissive filament, a falloff in a shader) is not a tell: it is how the studios light a
+   scene.
 4. **Copy in the client's market language**, which may differ from the brief's (a plumber in Utrecht reads Dutch).
    Say which on the Brief line and under Assumptions. Write it as a native copywriter would, never a translation.
 
@@ -46,12 +132,13 @@ folder. Worked treatments: [references/film.md](references/film.md); craft: [ref
 
 | Need | MCP connected | Offline |
 |---|---|---|
-| Palette, pairing, photo pack as tokens and fonts | `struq_richting(brief)` | `canon.mjs draw` (this site's hand), `canon.mjs palette <id>`, `canon.mjs type <id>`; `images.mjs --brief` |
-| What blocks exist | `struq_blokken(kind?, query?)` | `blocks.mjs list [kind]` |
-| A block as files | `struq_blok(slug, variant?)` | `blocks.mjs add <slug>` |
-| The self-check | `struq_controle()` | `check.mjs` |
+| Palette, pairing, photo pack as tokens and fonts | `struq_direction(brief)` | `canon.mjs draw` (this site's hand), `canon.mjs palette <id>`, `canon.mjs type <id>`; `images.mjs --brief` |
+| What blocks exist | `struq_blocks(kind?, query?)` | `blocks.mjs list [kind]` |
+| A block as files | `struq_block(slug, variant?)` | `blocks.mjs add <slug>` |
+| The self-check | `struq_check()` | `check.mjs` |
 
-Log each MCP call: `node <skill-dir>/scripts/log.mjs mcp <tool> --note "<what you took>"`.
+An older Struq server names these tools `struq_richting`, `struq_blokken`, `struq_blok` and `struq_controle`; they do
+the same. Log each MCP call: `node <skill-dir>/scripts/log.mjs mcp <tool> --note "<what you took>"`.
 
 ## Build checklist
 
@@ -63,7 +150,7 @@ while a line is open or a ticked step has no entry.
 ## Build checklist
 - [ ] 1 Project: Next.js App Router + Tailwind v4; blocks.mjs init printed OK
 - [ ] 2 Treatment and approval: the treatment in STRUQ.md, the plan check at PLAN: PASS; the one stop sent and answered
-- [ ] 3 Canon: the token block and fonts written (canon.mjs palette and type, or struq_richting)
+- [ ] 3 Canon: the token block and fonts written (canon.mjs palette and type, or struq_direction)
 - [ ] 4 Images: images.mjs --brief printed OK; only photos whose alt fits the client
 - [ ] 5 Scenes: frames and the centerpiece installed, every other scene built as the storyboard says, composed in app/page.tsx with real copy
 - [ ] 6 Build: npm run build passes
@@ -75,12 +162,15 @@ while a line is open or a ticked step has no entry.
 `node <skill-dir>/scripts/blocks.mjs init` (the kit, layout, tokens, fonts, gsap and lenis; it never overwrites your
 files, merge from `recipes/app/`).
 
-**2 Treatment, then stop once.** Think like a studio pitching this client. First run
+**2 Treatment, then stop once.** Think like a studio pitching this client for a Site of the Day. First run
 `node <skill-dir>/scripts/canon.mjs draw`: it deals this site a hand, two languages, two type pairings, two
-palettes (one light, one dark) and three lenses, the way a creative director hands a team its constraints. Every site gets a different hand,
-so no two start from the same place; your craft is choosing well within it. Write three ideas, one from each lens
-(each a point of view on this client, not a description), take the one a rival studio would least expect that still
-fits this client, and note the other two as Passed over. Name the Subject: what the brief is about
+palettes (one light, one dark) and three lenses, so no two sites start from the same place. The hand is a spark, not
+a fence: start from it, and cast outside it when the idea earns it, with the reason under `Overrides:`. Write three
+ideas, one from each lens (each a point of view on this client, not a description), take the one a rival studio would
+least expect that still fits this client, and note the other two as Passed over. Then name the Signature: the one
+moment a juror remembers (the glass cools as you scroll, the menu is set like a departure board), and how it is built:
+a block, a block you fork, or your own scene or shader ([references/realtime.md](references/realtime.md)). Write its
+beats against the scroll, 0 to 1, so the camera, the object, the type and the ground move as one. Name the Subject: what the brief is about
 that a visitor must see (the app, the event, the garment, the cup, the bread); the site shows it (step 5). Then
 the Unlike line: the site any agent would build, and Struq's own reflexes, which you must also avoid (a framed photo
 with the name small beside it; one italic word in every headline; a middle of one-word rows, a sentence with a small
@@ -97,6 +187,7 @@ Brief: <one line: what, for whom, where, in which language>
 Hand: <the id canon.mjs draw printed>
 Idea: <lens>: <a point of view in one sentence: what a visitor believes when they leave>
 Passed over: <your two other ideas, one line>
+Signature: <the one moment> -> <how it is built: block, forked block, own scene or shader> -> <its beats, 0 to 1>
 Subject: <what the visitor must see> -> <shown by: the client's photo, a pack photo that shows it, or drawn in code>
 Unlike: <the likeliest site, and Struq's reflexes> -> <what this one does instead>
 Language: <weight | cut | curtain> (<the tempo the idea needs>; not <each of the other two>, because <why not>; temperament: <the language's default, or its neighbour and why>)
@@ -108,15 +199,18 @@ Images: pack <slug> (or the client's photos, then pack <slug>)
 Centerpiece: <block>: <why this is this site's one moment>
 Tone arc: <as blocks.mjs arc printed it>
 Storyboard: <as blocks.mjs arc printed it, every line cast>
+Overrides: <each default you broke and why, one line each; or none>
 Assumptions: <every drafted line, every fact left out, the copy language>
 Verify: <filled in at step 7>
 ```
 
-Run `node <skill-dir>/scripts/check.mjs --plan` until `PLAN: PASS` with no `quiet-is-quiet`, `loud-adjacent` or
-`quiet-share` warning. Then stop once, in the user's language: the treatment in plain words (never slugs), the
+Run `node <skill-dir>/scripts/check.mjs --plan` until `PLAN: PASS`; answer each WARN by fixing it or by a line under
+`Overrides:`. Then stop once, in the user's language: the treatment in plain words (never slugs), the
 storyboard as one sentence per scene, palette, type and pack on one line, and ask for what only the client has and
 the page needs: their name if the brief gave none, how visitors reach them (address, phone or mail; the shop, booking
-or sign-up link), their own photos when the work is the product. End with "Akkoord?" or "Approve?". The build request
+or sign-up link), their own photos when the work is the product. Name the signature's medium in one plain line (3D, film, photography,
+a drawing, type in motion); when the plan uses 3D and the brief did not ask for it, offer the version without as the
+other choice. End with "Akkoord?" or "Approve?". The build request
 is not the approval. Log the reply word for word: `log.mjs "Step 2 Approval" "Asked: ..." "Reply: \"<their words>\""`.
 Any yes builds it; what they send replaces the matching pick; whatever stays unanswered is left out. Never ask twice.
 
@@ -132,22 +226,38 @@ one). Never widen the brief to
 make a pack fit; the other photos serve the middle only where they show this client's world, never under a
 first-person claim.
 
-**5 Scenes.** Install the frames, the opening, the centerpiece and the footer (`blocks.mjs add <slug>:<variant>`):
-these are the signatures, hardened blocks. The middle is yours. Compose each middle scene for this client from the
+**5 Scenes.** Install the frames and the footer, and the opening and the centerpiece where a block carries them
+(`blocks.mjs add <slug>:<variant>`): hardened blocks, already at the bar. Where the Signature is your own scene, build
+it here as carefully as a block: a poster first, the reduced-motion still frame, then the choreography. The middle is
+yours. Compose each middle scene for this client from the
 primitives (`SplitHeadline` for fitted type, `Reveal`, `MediaFrame`, the grid and the tokens), from what only this
 trade has: a price board for a bakery, a tide table for a guesthouse, a joint drawn to scale for a plumber, a menu set
 like a chalkboard for a restaurant. No two middle scenes share a layout, and none is a one-word list, a big sentence
-with a small photo, or a photo beside text unless the idea truly asks for it.
+with a small photo, or a photo beside text unless the idea truly asks for it. Hold the scale ladder (the bar,
+above): each middle scene is a heading a step below display, a line or two at reading size, and the thing itself,
+large; never a paragraph at poster scale. Where text and a canvas or photo panel share a screen, the type keeps to
+its own column and never runs under the panel; check every split at 1440 and 390.
 
-When no photo shows the Subject, design it in code as a scene of its own, often the centerpiece's neighbour: the
-app's real screen or document (the invoice of an invoicing app) built in HTML with the tokens, the event's identity (a
+**The phone is half the build.** Every site works at once on a phone and a desktop, at every common width. Design the
+390 layout on purpose, never a squeezed desktop: its own type scale (body 15px and up), the object framed for it
+(Framed's `phoneSize`, BeatCamera's `phone` poses, the type below the object), and the door within a thumb's reach,
+filled and full width, every tap target 44px. look.mjs holds the phone to this.
+
+When no photo shows the Subject and the client makes a physical object (a lamp, a machine, a bottle, a chair), show
+the object itself in real-time 3D with the kit (`kit/gl`: a lathe form or a few turned and machined parts in real
+glass, metal or ceramic, lit by the Stage), on the first screen when it is the signature. A line drawing or a
+technical section is a supporting scene, never the way a visitor first meets the product. For everything else, design
+the subject in code as a scene of its own, often the centerpiece's neighbour: the app's real screen or document (the invoice of an invoicing app) built in HTML with the tokens, the event's identity (a
 poster system, a badge, a programme grid with only the slots the brief gives), the label's lookbook frame, a menu
 board. Sample content inside it reads as an example of the trade (an invoice for "Studio Noord, identity, round 2"),
 never as a fact about the client: no customer names, no figures they would quote, no feature the brief did not give.
 Start from the kit's designed pieces in `@/components/struq/kit/subject` before drawing your own: `Document` (an
 invoice, quote, receipt, menu or label), `AppScreen` (a window or phone with the app's real screen), `Ticket` (a
 ticket, badge or poster), `PatternPaper` (a sewing pattern) and `SectionDrawing` (a technical section). Fill them with
-this client's content and palette; read each file header for its props and its scroll motion.
+this client's content and palette; read each file header for its props and its scroll motion. Where a trade's own
+construction is the signature (a roofer, a builder), `@/components/struq/kit/drawn` holds drawings that build with
+the scroll at illustration quality: `RoofSection` (a roof in section, tile, slate, metal or flat, built layer by layer
+and named as each lands; examples/van-rijn shows it).
 
 For the middle of the page, start from the designed scenes in `@/components/struq/kit/middle` before composing your
 own: `ServicesList` (what the business does, as rows, photo panels or a pair; never an icon grid), `ProcessStrip` (how
@@ -165,11 +275,16 @@ Own scenes may move. Give at least two of them a motion of their own, tied to th
 draws as you read, a document that assembles, a grid that sorts itself), never a pin over one screen; mark the root
 `data-scene="<name>" data-energy="2"`, tag it (loud) in the storyboard, and keep the budgets. Compose them from
 `@/components/struq/kit/motion` first (`RevealText`, `MaskWipe`, `ImageCurtain`, `ScrubLine`, `HoverLink`,
-`Pressable`); write `gsap` from `@/components/struq/kit/gsap` only for what they cannot do, timed by `feel()` from
-`@/components/struq/kit/feel`, never a literal ease or duration. A still own scene is `data-scene="<name>"` alone.
+`Pressable`), and write your own `gsap`, `SplitText`, shaders or R3F scenes from `@/components/struq/kit/gsap` for
+everything they cannot do. Time it by `feel()` from `@/components/struq/kit/feel` by default; a custom easing curve
+is welcome when the idea has its own (a glass that sags, a press that snaps), named in the plan. The signature is
+usually your own code: build it with [references/realtime.md](references/realtime.md), choreographed on one scroll
+value, never a model that sits still while text scrolls past. A still own scene is `data-scene="<name>"` alone.
 The kit's `Statement`, `PhotoText` and `Rows` (`@/components/struq/kit/quiet`) remain for a plain moment, at most one
 per page. Build the close with `Close`: shape `idea` (the idea's last line and the motif drawn), `echo` (the opening
-returns smaller) or `door` (the brief's real address, phone, mail or booking link, set large). The name at full width
+returns smaller), `door` (the brief's real address, phone, mail or booking link, set large) or `order` (the things
+or services for sale, prices only from the brief, and the door; always the close of a site that sells or takes
+enquiries). The name at full width
 is never the close; a wordmark there stays at text size. Read each file header for its props. Wrap ink or field scenes in
 `scene-inverse` or `scene-field`. Every section, the hero too, says its ground with `data-bar-tone` ("photo" only
 where the bar sits over the photo); the bar never repeats a name the hero sets at poster scale.
@@ -180,8 +295,11 @@ leave it running, and run `node <skill-dir>/scripts/look.mjs` (the first run ins
 Never stop a server you did not start. It scrolls the page at 390 and 1440 with motion on, saves every step to
 `.struq/look/`, and fails on text under the header, the site name twice on the first screen, letters cut by a mask
 or the screen edge, a page wider than the screen, low contrast on a solid ground or measured over a photo, a blank
-screen, a number broken across lines, a font that never loaded, and console or image errors; it warns on a
-screen-high empty stretch. Open the screenshots and crops it names and read
+screen, a number broken across lines, a font that never loaded, a line partly under a canvas or panel that holds
+still, a paragraph at poster scale, an empty stretch of a whole screen, and console or image errors; it warns on more
+than two poster-scale lines after the first screen, on an empty stretch of six tenths of a screen and on a sparse stop
+(type and media under a tenth of the screen, nothing to look at in view): fill it with composition or merge the scene
+into its neighbour, never with decoration. Open the screenshots and crops it names and read
 them as a studio's art director would: the preloader lands, every pin engages and lets go, the first screen is bold
 enough to stop a visitor. Fix, rebuild, restart the server and run it again until `LOOK: PASS`. A centerpiece that
 fails the look is fixed or swapped for another centerpiece from the hand (or an own loud scene), with the Centerpiece
@@ -218,10 +336,10 @@ neighbour (weighted beside crisp or slow) with the reason on the Language line. 
 Pick by the tempo the idea needs, never by trade; calm and the held reveal are both reflexes. The Opening and the
 Centerpiece may come from anywhere in the catalogue: choose the pair that could only be this client's.
 
-Budgets the plan check enforces: exactly one centerpiece and nothing pinned after it; never two loud scenes side by
+Defaults the plan check warns on (override with a reason under `Overrides:`): exactly one centerpiece and nothing pinned after it; never two loud scenes side by
 side; at least four in ten scenes quiet; pins together about 4.5 screens; every frame from the language; at most two
 full-bleed photo reveals, one marquee, one custom cursor, one accent device (an italic word, a weight shift, a
-coloured word, a jump in scale, or none); two or three type moments at poster scale; no eyebrows, mono, uppercase
+coloured word, a jump in scale, or none); the opening plus at most two type moments at poster scale; no eyebrows, mono, uppercase
 labels or numbered steps.
 
 ## What makes it feel high end

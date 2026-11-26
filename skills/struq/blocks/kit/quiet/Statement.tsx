@@ -18,6 +18,8 @@
 // - label: small, sentence case, body face. Beside the first line (wide screens), under the sentence (phones).
 // - image: a StruqImage, shown upright (4/5) and small: two columns wide, five on a phone.
 // - as: "h2" (default) or "p" when the page already has its heading here.
+// - scale: "moment" (default), poster scale, the page's breath, at most once; "heading", a step down (about 2.5 to
+//   5rem), for a sentence that sits in the middle of the page among other scenes (PlaceHours line uses it).
 // - className: on the root, for example "scene-inverse" or "scene-field"; the tokens turn inside it.
 //
 // Mounting: a page section of its own, between two blocks. The root carries data-scene="statement" and
@@ -48,6 +50,7 @@ type Props = {
   label?: string;
   image?: StruqImage;
   as?: "h2" | "p";
+  scale?: "moment" | "heading";
   className?: string;
 };
 
@@ -66,7 +69,7 @@ function lastLineEnd(head: HTMLElement) {
   return { right: end.right, top: mask.getBoundingClientRect().top + (parseFloat(getComputedStyle(mask).paddingTop) || 0) };
 }
 
-export function Statement({ children, accent, label, image, as = "h2", className = "" }: Props) {
+export function Statement({ children, accent, label, image, as = "h2", scale = "moment", className = "" }: Props) {
   const grid = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -135,7 +138,7 @@ export function Statement({ children, accent, label, image, as = "h2", className
   return (
     <section data-scene="statement" data-energy="1" className={`text-ink ${SCENE_SPACE} ${className}`}>
       <div ref={grid} className={`relative items-start gap-y-10 md:items-baseline md:gap-y-12 ${SHEET_GRID}`}>
-        <SplitHeadline as={as} on="scroll" className="col-span-12 m-0 text-sheet-moment md:col-span-10">
+        <SplitHeadline as={as} on="scroll" className={`col-span-12 m-0 ${scale === "heading" ? "text-sheet-heading md:col-span-8" : "text-sheet-moment md:col-span-10"}`}>
           {withAccent(children, accent)}
         </SplitHeadline>
         {label ? (

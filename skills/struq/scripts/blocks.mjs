@@ -1,11 +1,15 @@
 #!/usr/bin/env node
 // Struq blocks, offline: the skill's own copy of Struq's admitted blocks (blocks/, catalog.json), installed into a
-// Next.js App Router project. The same files the MCP's struq_blok returns.
+// Next.js App Router project. The same files the MCP's struq_block returns.
 //
 //   node <skill-dir>/scripts/blocks.mjs list [kind]          the catalogue, one line per block with its variants
 //   node <skill-dir>/scripts/blocks.mjs init                 the kit, the app shell (on a starter) and the base packages
 //   node <skill-dir>/scripts/blocks.mjs add <slug>[:<variant>] [...]  a block and every file it imports, plus its packages
 //   node <skill-dir>/scripts/blocks.mjs arc [language]      a language's storyboard skeleton (film.json); none: the three
+//   node <skill-dir>/scripts/blocks.mjs finish               the files every site ships, from lib/site.ts: favicon and app
+//                                                            icons, link preview, metadata and JSON-LD in the layout,
+//                                                            sitemap, robots, manifest, llms.txt, the 404 (never replaces
+//                                                            a file of the same convention the site already has)
 //   flags: --dir <project>, --force (replace files you already have), --no-install
 //
 // add refuses, installing nothing, until STRUQ.md passes the plan check and STRUQ-LOG.md holds the user's reply to the
@@ -71,6 +75,90 @@ function temperament(value, id) {
   const tag = body[0].replace(/^<body\b/, `<body ${want}`).replace(/^<body (data-temperament="[^"]*") (data-blocks=(?:"[^"]*"|'[^']*'|\{[^}]*\}))/, "<body $2 $1");
   writeFileSync(file, text.replace(body[0], tag));
   return `Temperament of ${id}: wrote ${want} on <body> in ${where}. A neighbour goes there instead only with its reason on the Language line.`;
+}
+
+/** create-next-app's favicon.ico, by size: 15086 (2025 on) and 25931 (before). Neither is a site's own icon. */
+const DEFAULT_FAVICONS = new Set([15086, 25931]);
+
+/**
+ * finish, in app/layout.tsx: the metadata from site.ts (metadataBase, title template, description, Open Graph, X,
+ * canonical), the theme colour, html lang from site.lang and the JSON-LD script in <body>. Each is a small, exact edit;
+ * one that does not fit the file's shape is left to the agent with a note saying what to add. Returns the notes.
+ */
+function finishLayout(appDir) {
+  const file = ["layout.tsx", "layout.jsx"].map((n) => join(appDir, n)).find((p) => existsSync(p));
+  if (!file) return ["No app/layout.tsx: write it from recipes/app/layout.tsx."];
+  const out = [];
+  let text = readFileSync(file, "utf8");
+  const before = text;
+  const imports = [];
+  if (!/siteMetadata\(/.test(text)) {
+    const m = text.match(/export const metadata(?:\s*:\s*Metadata)?\s*=\s*\{[\s\S]*?\n?\};?\n/);
+    if (m && !/\{[\s\S]*\{[\s\S]*\{/.test(m[0])) {
+      text = text.replace(m[0], "export const metadata: Metadata = siteMetadata(site);\nexport const viewport: Viewport = siteViewport(site);\n");
+      imports.push("siteMetadata", "siteViewport");
+    } else if (!m) {
+      text = text.replace(/(\nexport default function)/, "\nexport const metadata: Metadata = siteMetadata(site);\nexport const viewport: Viewport = siteViewport(site);\n$1");
+      imports.push("siteMetadata", "siteViewport");
+    } else out.push("app/layout.tsx: set export const metadata = siteMetadata(site) and export const viewport = siteViewport(site) (components/struq/kit/brand).");
+  }
+  if (imports.length) {
+    if (/import type \{ Metadata \} from "next";/.test(text)) text = text.replace('import type { Metadata } from "next";', 'import type { Metadata, Viewport } from "next";');
+    else if (!/\bViewport\b.*from "next"/.test(text)) text = `import type { Metadata, Viewport } from "next";\n${text}`;
+  }
+  if (!/<JsonLd\b/.test(text)) {
+    const body = inCode(text, /<body\b[^>]*>/g);
+    if (body) {
+      const end = body.index + body[0].length;
+      const indent = text.slice(0, body.index).split("\n").pop().match(/^\s*/)[0];
+      text = `${text.slice(0, end)}\n${indent}  <JsonLd site={site} />${text.slice(end)}`;
+      imports.push("JsonLd");
+    } else out.push("app/layout.tsx: put <JsonLd site={site} /> inside <body>.");
+  }
+  const html = inCode(text, /<html\b[^>]*>/g);
+  if (html) {
+    const tag = /\blang=/.test(html[0]) ? html[0].replace(/\blang="[^"]*"/, "lang={site.lang}") : html[0].replace(/^<html\b/, "<html lang={site.lang}");
+    text = text.slice(0, html.index) + tag + text.slice(html.index + html[0].length);
+  }
+  if (imports.length) {
+    // After the last import that binds a name, so the stylesheet imports stay last.
+    const line = `import { ${imports.join(", ")} } from "@/components/struq/kit/brand";\n`;
+    const binds = [...text.matchAll(/^import\s+(?!["'])[\s\S]*?\sfrom\s+["'][^"']+["'];?[^\S\n]*\n/gm)].pop();
+    text = binds ? text.slice(0, binds.index + binds[0].length) + line + text.slice(binds.index + binds[0].length) : line + text;
+  }
+  if (!/from "@\/lib\/site"/.test(text) && /\bsite\./.test(text)) text = text.replace(/((?:^import[^\n]*\n)+)/m, `$1import { site } from "@/lib/site";\n`);
+  if (text !== before) {
+    writeFileSync(file, text);
+    copied.push(`${relative(root, file).split("\\").join("/")} (metadata, viewport, JSON-LD, lang)`);
+  }
+  return out;
+}
+
+/** The first match of a global pattern that does not stand on a comment line. */
+function inCode(text, re) {
+  for (const m of text.matchAll(re)) {
+    const line = text.slice(text.lastIndexOf("\n", m.index) + 1, m.index);
+    if (!/^\s*(?:\/\/|\*|\/\*)/.test(line)) return m;
+  }
+  return null;
+}
+
+/** init: Struq Icons' three stylesheets before globals.css in the layout, and the accent wiring in globals.css. */
+function wireIcons(appDir) {
+  const layout = join(appDir, "layout.tsx");
+  if (existsSync(layout)) {
+    const text = readFileSync(layout, "utf8");
+    if (!text.includes("@struq/icons/") && text.includes('import "./globals.css";')) {
+      writeFileSync(layout, text.replace('import "./globals.css";', 'import "@struq/icons/tokens.css";\nimport "@struq/icons/icons.css";\nimport "@struq/icons/states.css";\nimport "./globals.css";'));
+    } else if (!text.includes("@struq/icons/")) notes.push('app/layout.tsx: import "@struq/icons/tokens.css", "@struq/icons/icons.css" and "@struq/icons/states.css" before globals.css (references/iconography.md).');
+  }
+  const css = join(appDir, "globals.css");
+  if (existsSync(css)) {
+    const text = readFileSync(css, "utf8");
+    if (!text.includes("--icon-accent")) {
+      writeFileSync(css, `${text.trimEnd()}\n\n/* Struq Icons: the set's accent follows the palette (references/iconography.md). */\nbody {\n  --icon-base: currentColor;\n  --icon-accent: var(--accent);\n  --icon-accent-live: var(--accent);\n}\n`);
+    }
+  }
 }
 
 const args = process.argv.slice(2);
@@ -215,10 +303,11 @@ const commands = {
 
   init() {
     const deps = project();
-    // The kit, minus the WebGL hero layer: HeroCanvas and its scenes need three, so they come with hero-opener.
+    // The kit, minus what needs three: HeroCanvas and its scenes come with hero-opener, the real-time kit (gl/) with
+    // `blocks.mjs add gl`, so a site without 3D never installs three.
     for (const f of walk(join(BLOCKS, "kit"))) {
       const r = relative(join(BLOCKS, "kit"), f).split("\\").join("/");
-      if (r === "HeroCanvas.tsx" || r.startsWith("scenes/")) continue;
+      if (r === "HeroCanvas.tsx" || r.startsWith("scenes/") || r.startsWith("gl/")) continue;
       place(f, target("kit", r));
     }
     const appDir = join(root, src, "app");
@@ -234,9 +323,50 @@ const commands = {
     } else if (!css.includes("STRUQ TOKENS")) notes.push("app/globals.css is your own: add the kit import and the STRUQ TOKENS block from recipes/app/globals.css.");
     place(join(RECIPES, "app", "fonts.ts"), join(appDir, "fonts.ts"));
     for (const starter of ["next.svg", "vercel.svg", "file.svg", "globe.svg", "window.svg"]) rmSync(join(root, "public", starter), { force: true });
-    installMissing(deps, ["gsap", "@gsap/react", "lenis"]);
+    wireIcons(appDir);
+    installMissing(deps, ["gsap", "@gsap/react", "lenis", "@struq/icons"]);
     report("Step 1 Project", `blocks.mjs init copied the kit and ${copied.length} file(s) in all, kept ${kept.length}.`);
     console.log("OK init ready");
+  },
+
+  finish() {
+    project();
+    const appDir = join(root, src, "app");
+    const siteFile = ["lib/site.ts", "src/lib/site.ts", "lib/site.tsx"].map((p) => join(root, p)).find((p) => existsSync(p));
+    if (!siteFile) {
+      console.error("FAIL no lib/site.ts. Every fact and line of the site lives there; finish reads it (fields: components/struq/kit/brand/facts.ts).");
+      process.exitCode = 1;
+      return;
+    }
+    // The brand kit first: the finishing files import it.
+    for (const f of walk(join(BLOCKS, "kit", "brand"))) place(f, target("kit", relative(join(BLOCKS, "kit"), f).split("\\").join("/")));
+    // Each finishing file once; a file of the same convention the site already has (any extension) is kept.
+    const FINISH = join(RECIPES, "app", "finish");
+    for (const f of walk(FINISH)) {
+      const r = relative(FINISH, f).split("\\").join("/");
+      const stem = r.replace(/\.(tsx?|jsx?)$/, "");
+      const has = ["tsx", "ts", "jsx", "js", "png", "jpg", "svg", "ico", "xml", "txt", "json", "webmanifest"].some((ext) => existsSync(join(appDir, `${stem}.${ext}`)));
+      const other = stem === "llms.txt/route" && existsSync(join(root, "public", "llms.txt"));
+      if (has || other) kept.push(`app/${r}`);
+      else place(f, join(appDir, r), false);
+    }
+    // create-next-app's favicon is no favicon of this site: app/icon.tsx draws the real one.
+    for (const ico of [join(appDir, "favicon.ico"), join(root, "public", "favicon.ico")]) {
+      if (existsSync(ico) && DEFAULT_FAVICONS.has(statSync(ico).size)) {
+        rmSync(ico);
+        notes.push(`Removed the starter ${relative(root, ico).split("\\").join("/")}: app/icon.tsx is the favicon now.`);
+      }
+    }
+    notes.push(...finishLayout(appDir));
+    const siteText = readFileSync(siteFile, "utf8");
+    const missing = ["brand", "lang", "meta"].filter((k) => !new RegExp(`\\b${k}\\s*:`).test(siteText));
+    if (missing.length) {
+      notes.push(`lib/site.ts lacks ${missing.join(", ")}: the finishing files read them. brand is { symbol, colors: { ground, ink, accent } } (references/identity.md designs the symbol; components/struq/kit/brand/facts.ts lists every field).`);
+    }
+    if (!/\burl\s*:/.test(siteText)) notes.push("lib/site.ts has no url: set it, or NEXT_PUBLIC_SITE_URL on the host, so the canonical, the sitemap and the link preview carry the real address.");
+    report("Finish", `blocks.mjs finish wrote ${copied.length} file(s) and kept ${kept.length}: icons, link preview, metadata, JSON-LD, sitemap, robots, manifest, llms.txt, 404.`);
+    console.log("Put the logo in the header: <HeaderBar ... mark={<Mark symbol={site.brand.symbol} />} /> or <Logo> in your own bar, and the credit on the footer's last line (<Credit lang={site.lang} off={site.credit === false} />, or credit= on a footer block).");
+    console.log("OK finish ready");
   },
 
   arc() {
@@ -278,6 +408,17 @@ const commands = {
           ` Fill its props from the brief (the file header lists them and what renders when one is empty); never rewrite it.`,
       );
     }
+    // The real-time kit: Stage, TurnedObject, ScrollCamera, Backdrop and the scroll signals, with three and the React
+    // Three packages. It is kit, not a block, so it needs no storyboard line of its own; the scene built with it does.
+    if (rest.some((arg) => arg.toLowerCase() === "gl")) {
+      const deps = project();
+      for (const f of walk(join(BLOCKS, "kit", "gl"))) place(f, target("kit", relative(join(BLOCKS, "kit"), f).split("\\").join("/")));
+      installMissing(deps, ["three", "@react-three/fiber", "@react-three/drei", "@react-three/postprocessing", "postprocessing", "@types/three"]);
+      console.log('\ngl: import { World, BeatCamera, Framed, useBeats, Pendant, LeverMachine, Vessel, TurnedObject, Stage } from "@/components/struq/kit/gl";');
+      console.log("  Load your scene file with next/dynamic and ssr: false. The craft and a worked example: references/realtime.md.");
+      report("Step 5 Blocks", "blocks.mjs added the real-time kit (kit/gl).");
+      rest.splice(0, rest.length, ...rest.filter((arg) => arg.toLowerCase() !== "gl"));
+    }
     rest.splice(0, rest.length, ...rest.filter((arg) => !kitScene(arg) && !middleScene(arg)));
     if (!rest.length) return;
     const requests = rest.map((arg) => {
@@ -314,7 +455,7 @@ const commands = {
 
 const run = commands[cmd];
 if (!run) {
-  console.error("Usage: blocks.mjs list [kind] | init | add <slug>[:<variant>] [...] | arc [language]   [--dir <project>] [--force] [--no-install]");
+  console.error("Usage: blocks.mjs list [kind] | init | add <slug>[:<variant>] [...] | arc [language] | finish   [--dir <project>] [--force] [--no-install]");
   process.exit(2);
 }
 try {

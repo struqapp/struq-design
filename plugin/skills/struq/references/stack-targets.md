@@ -4,7 +4,7 @@ The blocks are written for Next.js App Router. Only four things tie them to it; 
 kit, the CSS, the tokens) is plain React and Tailwind v4. Detect the stack first: `next` in package.json and an `app/`
 folder is Next; `vite.config.*` with `src/main.tsx` is Vite.
 
-Put the files `struq_blok` returns under `src/components/struq/` instead of `components/struq/`, keeping their
+Put the files `struq_block` returns under `src/components/struq/` instead of `components/struq/`, keeping their
 paths so the relative imports hold.
 
 | Next.js | Vite |
@@ -17,10 +17,10 @@ paths so the relative imports hold.
 The shell, in Vite terms:
 
 - `index.html`: in `<head>`, the gate script `<script>document.documentElement.classList.add('sq-js')</script>` before
-  any stylesheet, and one `<link rel="stylesheet">` per font URL `struq_richting` returns;
+  any stylesheet, and one `<link rel="stylesheet">` per font URL `struq_direction` returns;
   `<body data-blocks>`.
 - `src/index.css`: `@import "tailwindcss";`, the kit import (`src/components/struq/kit/blocks.css`) and the token block from
-  `struq_richting`.
+  `struq_direction`.
 - `src/main.tsx`: wrap the app in `SmoothScroll` from the kit.
 
 On Vite the gate lives in `index.html`: check it by eye and note it under Verify in STRUQ.md.

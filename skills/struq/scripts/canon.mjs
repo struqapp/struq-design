@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Struq canon, offline: Struq's palettes and type pairings, written into the project as the one token block the
-// blocks read. The same block, derivation and font requests as Struq's block lab and the MCP's struq_richting
+// blocks read. The same block, derivation and font requests as Struq's block lab and the MCP's struq_direction
 // (scripts/tokens.mjs), from the snapshot in canon/canon.json that the skill's release copies from Struq.
 //
 //   node <skill-dir>/scripts/canon.mjs draw                       this site's hand: 2 languages, 3 pairings, 4 palettes
@@ -45,7 +45,7 @@ const shuffled = (list) => list.map((x) => [Math.random(), x]).sort((p, q) => p[
 
 export function tokenBlock(p, t) {
   const lines = paletteTokens(p, t).map(([k, v]) => `  ${k}: ${v};`);
-  return `/* STRUQ TOKENS: palette ${p.id}, type ${t.id}. Written by canon.mjs, the block Struq's lab and struq_richting give. */\n[data-blocks] {\n${lines.join("\n")}\n}`;
+  return `/* STRUQ TOKENS: palette ${p.id}, type ${t.id}. Written by canon.mjs, the block Struq's lab and struq_direction give. */\n[data-blocks] {\n${lines.join("\n")}\n}`;
 }
 
 const BLOCK = /\/\* STRUQ TOKENS[^*]*\*\/\s*\[data-blocks\]\s*\{[\s\S]*?\n\}/;

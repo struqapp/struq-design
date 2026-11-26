@@ -196,10 +196,10 @@ VS Code, Windsurf, Antigravity and the Claude app each want a slightly different
 
 | Tool | What it does |
 |---|---|
-| `struq_richting` | The direction: one palette, one type pairing and one photo pack, as the token block the blocks read |
-| `struq_blokken` | Lists the blocks, by kind or by words |
-| `struq_blok` | One block as real files, with its packages, props and a usage example |
-| `struq_controle` | The check your agent runs against its own files before it calls the work done |
+| `struq_direction` | The direction: one palette, one type pairing and one photo pack, as the token block the blocks read |
+| `struq_blocks` | Lists the blocks, by kind or by words |
+| `struq_block` | One block as real files, with its packages, props and a usage example |
+| `struq_check` | The check your agent runs against its own files before it calls the work done |
 | `struq_list_assets` | Pages through the library: palettes, typography, design systems, sections and imagery |
 | `struq_search_assets` | Searches the library by mood, sector or name |
 | `struq_get_asset` | One asset with its prompt and its exact colours and fonts |

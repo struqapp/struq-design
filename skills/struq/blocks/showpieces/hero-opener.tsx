@@ -30,7 +30,8 @@
 //
 // The entrance (the line rising through its masks, the split words, the lead and the CTA) waits for
 // any preloader or page transition to start leaving (whenUncovered, from the helper the frames share),
-// and plays at once when nothing covers the page.
+// and plays at once when nothing covers the page, or `delay` seconds later when the backdrop has a first beat of its
+// own (a drawn street whose lights come on as the gate opens).
 import { useRef, type ReactNode } from "react";
 import { findAccent, withAccent } from "../kit/accent";
 import { feel } from "../kit/feel";
@@ -74,6 +75,11 @@ type Props = {
   backdrop?: ReactNode;
   /** The ground the header bar reads here, when a className turns it to one the block cannot tell from its classes. */
   barTone?: "ground" | "photo" | "inverse";
+  /**
+   * Seconds between the page being uncovered and the entrance: room for the backdrop's own first beat (the street's
+   * lights coming on, a field settling) before the line rises. 0 by default; keep it under 1.5.
+   */
+  delay?: number;
   className?: string;
 };
 
@@ -90,6 +96,7 @@ export function HeroOpener({
   scene = "dots",
   backdrop,
   barTone,
+  delay = 0,
   className = "",
 }: Props) {
   const tone = barTone ?? (image ? "photo" : /(^|\s)bg-surface-\d(\s|$)/.test(className) ? "ground" : "inverse");
@@ -146,13 +153,28 @@ export function HeroOpener({
             })
           : null;
         if (title) title.dataset.ready = "1";
+        // A held entrance says so on <html data-entrance="held"> until its line is up, so a screenshot (look.mjs) waits
+        // for the first frame a visitor is meant to read instead of the beat before it.
+        const root = document.documentElement;
+        if (delay > 0) root.dataset.entrance = "held";
+        const release = () => {
+          if (delay > 0) delete root.dataset.entrance;
+        };
+        let wait: gsap.core.Tween | null = null;
+        let done: gsap.core.Tween | null = null;
         const stop = whenUncovered(() => {
-          uncovered = true;
-          intro.play();
-          lines?.play();
+          wait = gsap.delayedCall(Math.max(0, delay), () => {
+            uncovered = true;
+            intro.play();
+            lines?.play();
+            done = gsap.delayedCall(f.duration.line + 0.4, release);
+          });
         });
         return () => {
           stop();
+          wait?.kill();
+          done?.kill();
+          release();
           cut?.revert();
         };
       });

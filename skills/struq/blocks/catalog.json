@@ -2,7 +2,7 @@
   "source": {
     "repo": "Struq blocks/",
     "ref": "origin/main",
-    "commit": "d6e1e9eb"
+    "commit": "d0df7a45"
   },
   "blocks": [
     {
@@ -338,6 +338,7 @@
       },
       "packages": [
         "@gsap/react",
+        "@struq/icons",
         "gsap"
       ],
       "exports": [
@@ -1994,6 +1995,7 @@
         "footers/footer-reveal.tsx",
         "kit/SmoothScroll.tsx",
         "kit/blocks.css",
+        "kit/brand/Credit.tsx",
         "kit/feel.ts",
         "kit/gsap.ts",
         "kit/tempo.ts"
@@ -2052,6 +2054,7 @@
       "files": [
         "footers/footer-contact.tsx",
         "kit/blocks.css",
+        "kit/brand/Credit.tsx",
         "kit/feel.ts",
         "kit/gsap.ts",
         "kit/middle/hours.ts"

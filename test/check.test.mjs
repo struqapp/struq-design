@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -94,6 +94,7 @@ function fixture({ log = LOG_OK, page = PAGE_OK, extra = {} } = {}) {
   };
   if (log !== null) files['STRUQ-LOG.md'] = log;
   for (const [rel, text] of Object.entries(files)) {
+    if (text === null) continue;
     mkdirSync(dirname(join(dir, rel)), { recursive: true });
     writeFileSync(join(dir, rel), text);
   }
@@ -147,15 +148,17 @@ test('the blocks need the gate in the layout and at least one block on the page'
   assert.ok(fails(run(fixture({ page: handBuilt })), 'No Struq block'));
 });
 
-test('a photo hero gets its photo, and a hand-built hero shows one at poster size', () => {
+// The photo and poster-size rules for a hand-built hero are defaults (WARN): a real-time scene is a subject too.
+test('a photo hero gets its photo; a hand-built hero warns without a photo, a scene or poster size', () => {
   assert.ok(!fails(run(fixture()), 'without its photo'));
   const bare = PAGE_OK.replace(' image={images.hero[0]}', '');
   assert.ok(fails(run(fixture({ page: bare })), 'without its photo'));
   const hand = 'import { MediaFrame } from "@/components/struq/kit/MediaFrame";\nexport default function Page() { return <section><h1 className="text-[16vw]">Zout</h1><MediaFrame image={images.hero[0]} /></section>; }\n';
   assert.ok(!fails(run(fixture({ page: hand })), 'Hero without a photo'));
   assert.ok(!fails(run(fixture({ page: hand })), 'under 10vw'));
-  assert.ok(fails(run(fixture({ page: hand.replace('<MediaFrame image={images.hero[0]} />', '') })), 'Hero without a photo'));
-  assert.ok(fails(run(fixture({ page: hand.replace('text-[16vw]', 'font-display text-display') })), 'under 10vw'));
+  assert.ok(warns(run(fixture({ page: hand.replace('<MediaFrame image={images.hero[0]} />', '') })), 'Hero without a photo'));
+  assert.ok(!warns(run(fixture({ page: hand.replace('<MediaFrame image={images.hero[0]} />', '<Canvas />') })), 'Hero without a photo'));
+  assert.ok(warns(run(fixture({ page: hand.replace('text-[16vw]', 'font-display text-display') })), 'under 10vw'));
 });
 
 test('every page has a header', () => {
@@ -166,11 +169,14 @@ test('every page has a header', () => {
   assert.ok(!fails(run(fixture({ page: own })), 'No header'));
 });
 
-test('the product is never modelled from primitives, also not in a scene beside the kit', () => {
-  assert.ok(!fails(run(fixture()), 'Hand-built product geometry'));
+// Real-time 3D is welcome; bare primitives with no physical material, environment or shader warn that they read as plastic.
+test('3D from bare primitives warns, and passes once it has a physical material or shader', () => {
+  assert.ok(!warns(run(fixture()), 'bare primitives'));
   const bike = 'import * as THREE from "three";\nexport const frame = new THREE.Mesh(new THREE.BoxGeometry(2, 0.2, 0.2));\nexport const wheel = new THREE.TorusGeometry(1, 0.1);\n';
-  assert.ok(fails(run(fixture({ extra: { 'components/Bike.tsx': bike } })), 'Hand-built product geometry'));
-  assert.ok(fails(run(fixture({ extra: { 'components/struq/kit/scenes/bakfiets.ts': bike } })), 'Hand-built product geometry'));
+  assert.ok(warns(run(fixture({ extra: { 'components/Bike.tsx': bike } })), '3D from bare primitives'));
+  assert.ok(warns(run(fixture({ extra: { 'components/struq/kit/scenes/bakfiets.ts': bike } })), '3D from bare primitives'));
+  const glass = `${bike}export const m = new THREE.MeshPhysicalMaterial({ transmission: 1 });\n`;
+  assert.ok(!warns(run(fixture({ extra: { 'components/Bike.tsx': glass } })), '3D from bare primitives'));
 });
 
 test('generic CTAs and stat banners fail', () => {
@@ -190,14 +196,14 @@ test('glow fails; the shipped blocks are not scanned for tells', () => {
   assert.ok(!fails(run(fixture({ extra: { 'components/struq/headers/header-bar.tsx': shipped } })), 'Eyebrows'));
 });
 
-test('a page without a contrast scene warns, more than two still fail', () => {
+test('a page without a contrast scene warns, and so do more than two', () => {
   assert.ok(!fails(run(fixture()), 'contrast scene'));
   const none = PAGE_OK.replace(' className="scene-inverse"', '');
   const out = run(fixture({ page: none }));
   assert.ok(!fails(out, 'contrast scene'));
   assert.ok(warns(out, 'No contrast scene'));
   const three = 'export const S = () => <><section className="scene-inverse" /><section className="scene-field" /></>;\n';
-  assert.ok(fails(run(fixture({ extra: { 'components/Scene.tsx': three } })), 'contrast scene'));
+  assert.ok(warns(run(fixture({ extra: { 'components/Scene.tsx': three } })), 'contrast scenes'));
 });
 
 test('a heavy display weight passes only at its poster pairing', () => {
@@ -372,6 +378,53 @@ test('an imperative call to act fails without a door, in English and in Dutch', 
   assert.ok(!fails(run(fixture()), 'Invitation without a door'));
 });
 
+// why: the Halden build (2026-11-26) sold glass pendants and ended on its idea with no price, no product and no way to
+// buy, because the rule said a brief with no door renders no door. A selling site now ends on the order close; with no
+// door from the brief it carries a placeholder door, which counts as a door but warns until the client replaces it.
+const withBrief = (brief) => PLAN.replace('# STRUQ.md: fixture\n', `# STRUQ.md: b\nBrief: ${brief}\n`);
+const PLACEHOLDER_SITE = 'export const site = {\n  name: "Halden",\n  door: { kind: "email", href: "mailto:post@example.com", label: "Bestill på e-post", placeholder: true },\n} as const;\n';
+
+test('a placeholder door counts as a door but warns until it is replaced', () => {
+  const page = (site) => run(fixture({ extra: { 'components/C.tsx': 'export const C = () => <section><h2>Shop the collection</h2></section>;\n', 'lib/site.ts': site } }));
+  const out = page(PLACEHOLDER_SITE);
+  assert.ok(!fails(out, 'Invitation without a door'), out);
+  assert.ok(!fails(out, 'Notes to the client'), out);
+  // The flag the rule prescribes is not an empty image frame (the Halden reference failed on it).
+  assert.ok(!fails(out, 'Placeholder or empty frames'), out);
+  assert.ok(warns(out, 'Placeholder door:'), out);
+  assert.match(out, /replace before launch \(Assumptions\)/);
+  assert.match(out, /lib\/site\.ts:3 /);
+  // An example.no or example.nl address is a placeholder too, with or without the flag.
+  for (const addr of ['post@example.no', 'hallo@example.nl']) {
+    const o = page(`export const site = { door: { kind: "email", href: "mailto:${addr}", label: "Mail" } } as const;\n`);
+    assert.ok(warns(o, 'Placeholder door:'), addr);
+    assert.ok(!fails(o, 'Invitation without a door'), addr);
+  }
+  // A real door does not warn.
+  assert.ok(!warns(page('export const site = { door: { kind: "email", href: "mailto:post@halden.no", label: "Mail" } } as const;\n'), 'Placeholder door:'));
+  assert.ok(!warns(run(fixture()), 'Placeholder door:'));
+});
+
+test('a site the brief says sells fails with no order close, no shop door and no door at all', () => {
+  const sells = (brief, extra = {}) => run(fixture({ extra: { 'STRUQ.md': withBrief(brief), ...extra } }));
+  for (const brief of ['Halden, a glass studio in Bergen that sells pendant lamps', 'een webshop voor keramiek', 'Halden lager og selger glasslamper', 'Kiln, mugs to order', 'Vuur verkoopt houtovens']) {
+    assert.ok(fails(sells(brief), 'The site sells but has no way to buy'), brief);
+  }
+  const out = sells('Halden sells pendant lamps');
+  assert.match(out, /Close shape="order"/);
+  // The order close, a ProductRow with a shop door, a door of any kind, or the placeholder door settles it.
+  const settled = [
+    { 'components/O.tsx': 'export const O = () => <Close shape="order" items={[{ name: "Dråpe" }]} doors={site.doors} />;\n' },
+    { 'components/O.tsx': 'export const O = () => <ProductRow items={items} shop={{ label: "Nettbutikk", href: "https://halden.no/butikk" }} />;\n' },
+    { 'components/O.tsx': 'export const O = () => <a href="mailto:post@halden.no">post@halden.no</a>;\n' },
+    { 'lib/site.ts': PLACEHOLDER_SITE },
+  ];
+  for (const extra of settled) assert.ok(!fails(sells('Halden sells pendant lamps', extra), 'The site sells but has no way to buy'), JSON.stringify(extra));
+  // A brief that sells nothing, or no brief, is not held to it.
+  assert.ok(!fails(sells('a yoga studio in Deventer'), 'The site sells'));
+  assert.ok(!fails(run(fixture()), 'The site sells'));
+});
+
 // why: proof round 6 shipped a yoga studio called "Yoga" (header, opener, finale): the trade word standing in for a name
 // the brief never gave, and no check read it.
 test('a site named only by the trade word fails, unless the brief gives that name', () => {
@@ -497,12 +550,13 @@ test('--plan passes a good storyboard with nothing but STRUQ.md and app/', () =>
   assert.ok(!/^FAIL /m.test(r.stdout), r.stdout);
 });
 
-test('--plan fails a storyboard with two centerpieces, naming the rule and the fix', () => {
+// The budgets are defaults: two centerpieces warn with the rule and the fix, and the plan still passes.
+test('--plan warns on a storyboard with two centerpieces, naming the rule and the fix', () => {
   const two = GOOD_BOARD.map((s) => (s.startsWith('Approach') ? 'Approach (loud) film-strip | on screen: the four seasons' : s));
   const r = planOnly(planWith(two));
-  assert.equal(r.status, 1, r.stdout);
-  assert.match(r.stdout, /^FAIL one-centerpiece: 2 centerpieces: film-strip, image-to-fullbleed\. Fix: Keep one centerpiece/m);
-  assert.match(r.stdout, /^PLAN: FAIL$/m);
+  assert.equal(r.status, 0, r.stdout);
+  assert.match(r.stdout, /^WARN one-centerpiece: 2 centerpieces: film-strip, image-to-fullbleed\. Fix: Keep one centerpiece/m);
+  assert.match(r.stdout, /^PLAN: PASS$/m);
 });
 
 test('the FILM group fails a page transition on a site with one route', () => {
@@ -538,16 +592,16 @@ test('the LOOK group fails without a look, on a failing look and on a look older
 // why: proof round 6 found most own scenes written in raw GSAP (hand-rolled SplitText, clip-path wipes, dash-offset
 // draws, literal eases) and six of eight sites closing on the name at full width. The kit's motion primitives, the
 // feel's temperaments and the kit's Close replace each.
-test('MOTION: SplitText outside the kit fails; own wipes, drawn strokes and literal timing warn; the kit is not scanned', () => {
+test('MOTION: own SplitText, wipes, drawn strokes and literal timing warn; the kit is not scanned', () => {
   const scene = (body) => ({
     'components/scenes/Cut.tsx': `"use client";\nimport { gsap } from "gsap";\nexport function Cut() {\n  ${body}\n  return null;\n}\n`,
   });
   const clean = run(fixture());
-  assert.ok(!fails(clean, 'SplitText outside the kit'));
+  assert.ok(!warns(clean, 'SplitText of your own'));
   assert.ok(!warns(clean, 'clip-path tween'));
   assert.ok(!warns(clean, 'Ease or duration'));
   const split = run(fixture({ extra: scene('const s = SplitText.create("h2", { type: "lines" });') }));
-  assert.ok(fails(split, 'SplitText outside the kit'), split);
+  assert.ok(warns(split, 'SplitText of your own'), split);
   assert.match(split, /components\/scenes\/Cut\.tsx:4 {2}const s = SplitText/);
   assert.ok(warns(run(fixture({ extra: scene('gsap.to(el, { clipPath: "inset(0% 0% 0% 0%)" });') })), 'clip-path tween'));
   assert.ok(warns(run(fixture({ extra: scene('gsap.to(path, { strokeDashoffset: 0 });') })), 'stroke drawn by hand'));
@@ -562,7 +616,7 @@ test('MOTION: SplitText outside the kit fails; own wipes, drawn strokes and lite
   // The kit itself is never scanned.
   const kit = { 'components/struq/kit/motion/RevealText.tsx': 'import { gsap, SplitText } from "../gsap";\ngsap.to(el, { clipPath: "inset(0%)", ease: "expo.out", duration: 1 });\n' };
   const kitOut = run(fixture({ extra: kit }));
-  assert.ok(!fails(kitOut, 'SplitText outside the kit'));
+  assert.ok(!warns(kitOut, 'SplitText of your own'));
   assert.ok(!warns(kitOut, 'clip-path tween'));
 });
 
@@ -609,4 +663,86 @@ test('MOTION: the close is never the site name at full width', () => {
   const finale = '<WordmarkFinale name="Zout" />';
   assert.ok(name(run(fixture({ page: page('      <PanelWipe left="Vis" right="Zee" />', finale) }))));
   assert.ok(!name(run(fixture({ page: page('      <PanelWipe left="Vis" right="Zee" />\n      <Close shape="idea" line="Vis van het getij." />', finale) }))));
+});
+
+// why: a build shipped with Next's starter favicon, no logo, no link preview and no sitemap although nothing stopped it.
+// The FINISH group fails each missing piece on its own line, and warns when the site never imports Struq Icons.
+const FINISHED = {
+  'app/layout.tsx': LAYOUT_OK.replace('import { SmoothScroll }', 'import { siteMetadata } from "@/components/struq/kit/brand";\nimport { site } from "@/lib/site";\nexport const metadata = siteMetadata(site);\nimport { SmoothScroll }'),
+  'app/page.tsx': PAGE_OK.replace('<HeaderBar name="Zout" />', '<HeaderBar name="Zout" mark={<Mark symbol={site.brand.symbol} />} />'),
+  'app/icon.tsx': 'export default function Icon() { return null; }\n',
+  'app/opengraph-image.tsx': 'export default function Og() { return null; }\n',
+  'app/sitemap.ts': 'export default function sitemap() { return []; }\n',
+  'app/robots.ts': 'export default function robots() { return {}; }\n',
+  'app/manifest.ts': 'export default function manifest() { return {}; }\n',
+  'app/llms.txt/route.ts': 'export function GET() { return new Response("# Zout"); }\n',
+  'app/not-found.tsx': 'export default function NotFound() { return <a href="/">Naar de voorpagina</a>; }\n',
+  'components/Menu.tsx': 'import { Menu } from "@struq/icons";\nexport const M = () => <Menu size={20} />;\n',
+};
+const finishFails = (out) => out.split('\n').filter((l) => /^\s+No .*\. Fix:/.test(l)).map((l) => l.trim());
+const finish = (extra) => {
+  const dir = fixture({ extra: { ...FINISHED, ...extra } });
+  return run(dir);
+};
+
+test('FINISH passes a finished site: favicon, logo, link preview, description, sitemap, robots, llms.txt, manifest, lang, 404', () => {
+  const out = finish({});
+  assert.ok(out.includes('PASS  Finished: favicon'), out);
+  assert.deepEqual(finishFails(out), []);
+  assert.ok(!warns(out, 'No @struq/icons import'));
+});
+
+test('FINISH fails a site with only the starter favicon.ico, and passes its own favicon.ico', () => {
+  const starter = finish({ 'app/icon.tsx': null });
+  assert.ok(finishFails(starter).some((l) => l.startsWith('No favicon')), starter);
+  const dir = fixture({ extra: { ...FINISHED } });
+  rmSync(join(dir, 'app/icon.tsx'));
+  writeFileSync(join(dir, 'app/favicon.ico'), Buffer.alloc(15086));
+  assert.ok(finishFails(run(dir)).some((l) => l.startsWith('No favicon')));
+  writeFileSync(join(dir, 'app/favicon.ico'), Buffer.alloc(4286));
+  assert.ok(!finishFails(run(dir)).some((l) => l.startsWith('No favicon')));
+});
+
+test('FINISH fails a header with the name alone, and passes a HeaderBar with a mark, a <Logo> or an svg in a <header>', () => {
+  assert.ok(finishFails(finish({ 'app/page.tsx': PAGE_OK })).some((l) => l.startsWith('No logo in the header')));
+  const own = PAGE_OK.replace('<HeaderBar name="Zout" />', '<header><a href="/"><svg viewBox="0 0 48 48" /> Zout</a></header>');
+  assert.ok(!finishFails(finish({ 'app/page.tsx': own })).some((l) => l.startsWith('No logo')));
+  const logo = PAGE_OK.replace('<HeaderBar name="Zout" />', '<header><Logo name="Zout" symbol={site.brand.symbol} /></header>');
+  assert.ok(!finishFails(finish({ 'app/page.tsx': logo })).some((l) => l.startsWith('No logo')));
+});
+
+for (const [file, start] of [
+  ['app/opengraph-image.tsx', 'No link preview image'],
+  ['app/sitemap.ts', 'No sitemap'],
+  ['app/robots.ts', 'No robots'],
+  ['app/llms.txt/route.ts', 'No llms.txt'],
+  ['app/manifest.ts', 'No web app manifest'],
+  ['app/not-found.tsx', 'No 404 page'],
+]) {
+  test(`FINISH fails without ${file} (${start})`, () => {
+    const out = finish({ [file]: null });
+    assert.ok(fails(out, 'finishing piece(s) missing'), out);
+    const lines = finishFails(out);
+    assert.equal(lines.length, 1, lines.join(' | '));
+    assert.ok(lines[0].startsWith(start), lines[0]);
+  });
+}
+
+test('FINISH takes the static files in public/ for sitemap, robots, llms.txt and manifest', () => {
+  const out = finish({ 'app/sitemap.ts': null, 'app/robots.ts': null, 'app/llms.txt/route.ts': null, 'app/manifest.ts': null, 'public/sitemap.xml': '<urlset/>', 'public/robots.txt': 'User-agent: *', 'public/llms.txt': '# Zout', 'public/manifest.json': '{}' });
+  assert.deepEqual(finishFails(out), []);
+});
+
+test('FINISH fails a layout without a description or without html lang', () => {
+  const noDesc = finish({ 'app/layout.tsx': LAYOUT_OK });
+  assert.ok(finishFails(noDesc).some((l) => l.startsWith('No meta description')));
+  const described = LAYOUT_OK.replace('export default', 'export const metadata = { title: "Zout", description: "Vis van het getij." };\nexport default');
+  assert.ok(!finishFails(finish({ 'app/layout.tsx': described })).some((l) => l.startsWith('No meta description')));
+  const noLang = finish({ 'app/layout.tsx': described.replace(' lang="nl"', '') });
+  assert.ok(finishFails(noLang).some((l) => l.startsWith('No lang on <html>')));
+});
+
+test('FINISH warns when the site never imports @struq/icons', () => {
+  assert.ok(warns(finish({ 'components/Menu.tsx': null }), 'No @struq/icons import'));
+  assert.ok(!warns(finish({ 'components/Menu.tsx': 'import "@struq/icons/icons.css";\n' }), 'No @struq/icons import'));
 });

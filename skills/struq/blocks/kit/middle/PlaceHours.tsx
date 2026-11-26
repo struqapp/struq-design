@@ -9,7 +9,7 @@
 //   the hours logic is ./hours, shared with that footer).
 // - "plate": a full-width photo of the street or the room opens out of the page margins to the edges, the place line
 //   large under it and the given ways in beside it. From the plaat variant of sections/about-studio.
-// - "line": type only: one sentence about the place at moment size, the city as its accent word, a small upright photo
+// - "line": type only: one sentence about the place at heading size, the city as its accent word, a small upright photo
 //   hanging off the last line. From kit/quiet/Statement (rendered by it).
 //
 // <PlaceHours variant="timetable" city="Utrecht" area="Lombok, by the canal" line="Bread from four in the morning."
@@ -233,7 +233,7 @@ function Line(props: Props & { tone: SceneTone; className: string; lang: HoursLa
   const facts = Boolean(props.address || props.phone || props.hours?.length);
   return (
     <section ref={ref} data-scene="place" data-variant="line" data-energy="1" data-middle="" className={`py-28 text-ink md:py-40 ${TONE_CLASS[tone]} ${className}`}>
-      <Statement accent={city} label={area} image={image} className="py-0! md:py-0!">
+      <Statement accent={city} label={area} image={image} scale="heading" className="py-0! md:py-0!">
         {line}
       </Statement>
       {facts ? (

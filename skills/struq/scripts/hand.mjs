@@ -24,7 +24,7 @@
 // newcomer outranks a card in it, never the whole hand.
 //
 // `checkHand` holds a plan's Idea, Language, Palette, Type, Opening and Centerpiece lines to a hand: anything else is
-// `off-draw`, except the client's own brand colours or faces, marked (brand), and a block or language the client
+// `off-draw` (a WARN: the hand is a spark, not a fence; one line of reason in STRUQ.md answers it), except the client's own brand colours or faces, marked (brand), and a block or language the client
 // named, marked (named).
 //
 // A plain ES module with no imports at all, like film-check.mjs: the skill copies it verbatim on release and the MCP
@@ -182,13 +182,13 @@ const NAMED = /\(named\b|\bnamed\)/i;
  * A line not written yet is no finding here: the film check reports a missing treatment. A hand without a list (an
  * older .struq/draw.json) skips that list.
  *
- * @returns {Array<{ severity: 'fail', id: 'off-draw', detail: string, fix: string }>}
+ * @returns {Array<{ severity: 'warn', id: 'off-draw', detail: string, fix: string }>}
  */
 export function checkHand(plan, hand) {
   const text = String(plan ?? '');
   const findings = [];
   const off = (field, name, ids, fix) =>
-    findings.push({ severity: 'fail', id: 'off-draw', detail: `${field} ${name} is not in this site's hand (${ids.join(', ')})`, fix });
+    findings.push({ severity: 'warn', id: 'off-draw', detail: `${field} ${name} is not in this site's hand (${ids.join(', ')})`, fix });
   if (hand?.lenses) {
     const idea = headLine(text, 'Idea');
     const lens = idea.match(/^([a-z][\w-]*)\s*:/)?.[1];
