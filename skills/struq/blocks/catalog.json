@@ -338,6 +338,7 @@
       },
       "packages": [
         "@gsap/react",
+        "@struq/icons",
         "gsap"
       ],
       "exports": [
@@ -1996,7 +1997,8 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
-        "kit/tempo.ts"
+        "kit/tempo.ts",
+        "kit/brand/Credit.tsx"
       ]
     },
     {
@@ -2054,7 +2056,8 @@
         "kit/blocks.css",
         "kit/feel.ts",
         "kit/gsap.ts",
-        "kit/middle/hours.ts"
+        "kit/middle/hours.ts",
+        "kit/brand/Credit.tsx"
       ]
     }
   ]

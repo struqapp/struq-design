@@ -32,7 +32,9 @@
 //
 // Mount it once at the top of the page, right before the first section; it is fixed and needs no wrapper:
 //   <HeaderBar variant="quiet" name="Noord" links={[{ label: "Werk", href: "/werk" }]}
-//     action={{ label: "Plan een gesprek", href: "/contact" }} menuHref="#menu" />
+//     action={{ label: "Plan een gesprek", href: "/contact" }} menuHref="#menu" mark={<Mark symbol={site.brand.symbol} />} />
+// mark is the client's logo symbol (kit/brand, references/identity.md), set before the wordmark in the bar's ink; the
+// phone's menu control carries Struq Icons' Menu beside its label (npm i @struq/icons, blocks.mjs init installs it).
 // Keep the hero's type below var(--hb-top) (set on the nearest [data-blocks]: the bar's height, or for settle the
 // bottom of the large wordmark). On phones the bar is the wordmark and one "Menu" link: pass onMenu to open a menu
 // (the menu curtain's job) or menuHref to go to one.
@@ -40,7 +42,8 @@
 // Lenis is never driven, only read: the bar follows the scroll the page already has. Reduced motion: no hiding and no
 // travel (settle starts as the plain bar), the scrolled ground cuts in, and a hover underlines instead of rolling.
 // Without JavaScript the plain bar stands in the start tone's ink, and nothing waits.
-import { useEffect, useRef, useState, type CSSProperties, type FocusEvent, type HTMLAttributes, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type FocusEvent, type HTMLAttributes, type PointerEvent, type ReactNode } from "react";
+import { Menu as MenuIcon } from "@struq/icons";
 import { feel } from "../kit/feel";
 import { gsap, ScrollTrigger, useGSAP } from "../kit/gsap";
 import { photoLuminances } from "../kit/photo-read";
@@ -122,6 +125,7 @@ type FaceProps = {
   real?: boolean;
   variant: HeaderBarVariant;
   name: string;
+  mark?: ReactNode;
   homeHref: string;
   links: HeaderLink[];
   action?: HeaderLink;
@@ -155,7 +159,7 @@ function Letters({ text }: { text: string }) {
  * The bar's face. Drawn once for real (links, transparent text once the copies show) and as aria-hidden copies in every
  * ink, so all of them lay out alike to the pixel.
  */
-function Face({ real = false, tone = "ground", variant, name, homeHref, links, action, menuHref, menuLabel, navLabel, onMenu, place, clock, time, bind }: FaceProps) {
+function Face({ real = false, tone = "ground", variant, name, mark, homeHref, links, action, menuHref, menuLabel, navLabel, onMenu, place, clock, time, bind }: FaceProps) {
   const n = links.length;
   const split = variant === "split";
   // Where the full bar starts: split needs the room for three parts.
@@ -175,16 +179,18 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
       <span data-hb-label="">{text}</span>
     );
 
-  const link = (i: number, item: HeaderLink, isAction = false) => {
-    const cls = `relative inline-flex whitespace-nowrap py-2 text-small leading-none ${isAction ? "ml-3" : ""}`;
+  const link = (i: number, item: HeaderLink, isAction = false, icon: ReactNode = null) => {
+    const cls = `relative inline-flex items-center gap-2 whitespace-nowrap py-2 text-small leading-none ${isAction ? "ml-3" : ""}`;
     const flag = isAction ? { "data-hb-action": "" } : {};
     return real ? (
       <a href={item.href} data-hb-link={i} {...flag} className={cls} {...on(i)}>
         {label(item.label)}
+        {icon}
       </a>
     ) : (
       <span data-hb-link={i} {...flag} className={cls}>
         {label(item.label)}
+        {icon}
       </span>
     );
   };
@@ -199,6 +205,15 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
       </span>
     </span>
   );
+  // The client's mark (kit/brand Mark) before the wordmark, in the same ink: outside the word's roll mask, so it stands.
+  const lockup = mark ? (
+    <span className="inline-flex items-center gap-[0.4em]">
+      <span data-hb-mark-logo="" className="inline-flex">{mark}</span>
+      {word}
+    </span>
+  ) : (
+    word
+  );
   const wordCls = "relative block origin-top-left font-display text-[1.375rem] leading-none tracking-[-0.02em] [justify-self:start]";
 
   const list = (
@@ -211,12 +226,15 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
   );
   const act = action ? link(n, action, true) : null;
 
+  // The phone's menu control: its label and Struq Icons' Menu, one size with the bar's type.
+  const menuIcon = <MenuIcon size={18} strokeWidth={1.5} />;
   const menu = onMenu && real ? (
-    <button type="button" data-hb-link={n + 1} onClick={onMenu} className="relative inline-flex cursor-pointer bg-transparent py-2 text-small leading-none" {...on(n + 1)}>
+    <button type="button" data-hb-link={n + 1} onClick={onMenu} className="relative inline-flex cursor-pointer items-center gap-2 bg-transparent py-2 text-small leading-none" {...on(n + 1)}>
       {label(menuLabel)}
+      {menuIcon}
     </button>
   ) : (
-    link(n + 1, { label: menuLabel, href: menuHref })
+    link(n + 1, { label: menuLabel, href: menuHref }, false, menuIcon)
   );
 
   const Nav = real ? "nav" : "div";
@@ -229,11 +247,11 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
       {real ? null : <div data-hb-ground="" aria-hidden="true" className={`absolute inset-0 ${TONE_GROUND[tone]}`} />}
       {real ? (
         <a href={homeHref} data-hb-word="" data-hb-link="w" className={wordCls} {...on(-1)}>
-          {word}
+          {lockup}
         </a>
       ) : (
         <span data-hb-word="" data-hb-link="w" className={wordCls}>
-          {word}
+          {lockup}
         </span>
       )}
 
@@ -307,6 +325,7 @@ function useWallTime(on: boolean, timeZone: string) {
 export function HeaderBar({
   variant = "quiet",
   name,
+  mark,
   homeHref = "/",
   links,
   action,
@@ -321,6 +340,8 @@ export function HeaderBar({
   variant?: HeaderBarVariant;
   /** The wordmark. */
   name: string;
+  /** The client's mark beside the wordmark: <Mark symbol={site.brand.symbol} /> from kit/brand. */
+  mark?: ReactNode;
   homeHref?: string;
   /** Three or four links. */
   links: HeaderLink[];
@@ -761,7 +782,7 @@ export function HeaderBar({
     { scope: root, dependencies: [variant, links.length] },
   );
 
-  const face = { variant, name, homeHref, links, action, menuHref, menuLabel, navLabel, onMenu, place, clock, time };
+  const face = { variant, name, mark, homeHref, links, action, menuHref, menuLabel, navLabel, onMenu, place, clock, time };
 
   return (
     <div ref={root} data-header-bar={variant} style={{ "--hb-adv": advanceEm(name).toFixed(3) } as CSSProperties}>

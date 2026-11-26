@@ -33,6 +33,7 @@
 import { useId, useRef, type ReactNode } from "react";
 import { feel } from "../kit/feel";
 import { gsap, ScrollTrigger, useGSAP } from "../kit/gsap";
+import { Credit } from "../kit/brand/Credit";
 import { getLenis } from "../kit/SmoothScroll";
 import { timeIn } from "../kit/tempo";
 
@@ -61,6 +62,8 @@ type Props = {
   /** Three or four plain links. */
   links: FooterLink[];
   year?: number;
+  /** The "Made with Struq" line on the foot, in this language (site.lang); false removes it (site.credit === false). */
+  credit?: string | false;
   className?: string;
 };
 
@@ -99,6 +102,7 @@ export function FooterReveal({
   address,
   links,
   year = new Date().getFullYear(),
+  credit = "nl",
   className = "",
 }: Props) {
   const root = useRef<HTMLDivElement>(null);
@@ -306,8 +310,11 @@ export function FooterReveal({
             </nav>
           </div>
 
-          <p className="m-0 mt-10 text-small text-ink-muted">
-            © {year} {name}
+          <p className="m-0 mt-10 flex flex-wrap justify-between gap-x-6 gap-y-1 text-small text-ink-muted">
+            <span>
+              © {year} {name}
+            </span>
+            <Credit lang={credit || undefined} off={credit === false} />
           </p>
         </div>
       </footer>
