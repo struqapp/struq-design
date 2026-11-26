@@ -24,27 +24,33 @@ an agent can, on Opus and on Haiku.
    screenshots beside the build, and answers "where is this below the reference".
 4. **Selling at the source.** The one stop asks for products, prices and a door. With none, the page still ends on
    the order close with a placeholder door from `lib/site.ts`; check.mjs warns until it is replaced.
-   **The reference set covers every kind of business at the same bar** (Roy, 2026-11-26: portfolios, agencies,
-   restaurants, real companies and constructors alike). Six references, each a different archetype and a different
-   signature, all on one skeleton (content in `lib/site.ts`, one page composing scenes, one signature, one close),
-   so a model learns the structure and swaps the business:
-
-   | Reference | Archetype | Signature | Close |
-   | --- | --- | --- | --- |
-   | Halden, glass pendants | maker or product shop | a modelled object in one world (Pendant) | order |
-   | a restaurant | a place people visit | photo-led cinematic: full-bleed stills, image transitions, the room at night | book a table |
-   | a construction company | real company, trade, B2B | the building assembles: a 3D massing model or a blueprint that draws and fills | request a quote |
-   | a design or creative agency | agency or studio | kinetic type and a work index with WebGL image distortion | start a project |
-   | a photographer or designer | portfolio | the work full screen: a gallery with directed transitions | enquire or commission |
-   | a law firm or consultancy | professional services | type-led trust: editorial type, a drawn diagram of how they work | book a call |
-
-   Each README names the structure, the signature, and the swaps for other businesses of that archetype (the
-   restaurant reference also serves a hotel or a bakery; the construction one a plumber or an architect). The kit
-   grows with each signature (Massing or Blueprint for construction, image transitions for the restaurant and the
-   portfolio, kinetic type for the agency), always finished code with props, never only prose. The 12 standing
-   briefs (struq-showcases `proof/phase-1/BRIEFS.md`) already span these archetypes and stay the measure.
+   The reference set covers every kind of business at the same bar: one reference per group below, all on one
+   skeleton (content in lib/site.ts, one page composing scenes, one signature, one close). Each README names the
+   neighbours it also serves, and each signature becomes a finished kit piece with props.
 5. **Trim SKILL.md.** Core moves only; detail moves into references and the examples.
 6. **Measure on the fixed set.** The 12 one-line briefs of the main plan, once, on Haiku and on Opus medium.
+
+## The ten groups (Roy, 2026-11-26)
+
+Grouped by what the site must get a visitor to do, not by industry. One reference per group, built in this order:
+1. Product brands and shops (Halden): buy. 2. Local trades and home services: call or quote. 3. Food and
+hospitality: book or visit. 4. Agencies and studios: start a project. Then, in the order the 12-brief run shows is
+weakest: health, beauty and wellness practices (book an appointment); professional services (book a call);
+established companies and B2B (enquire, tender); personal portfolios (commission); software and apps (sign up);
+events, venues, causes and education (tickets, donate, join, enrol). Brief set version 2 adds a practice brief and a
+construction or engineering brief so every group is measured.
+
+## Spending it well
+
+- One agent per reference, and that agent also builds the reference's signature kit piece: no separate kit and
+  reference runs for the same group. At most two at once.
+- Halden is not rebuilt from scratch: the existing Opus build is moved onto the new kit parts and cleaned up.
+- Every reference after the first starts from the shared skeleton of the one before, so agents adjust instead of
+  inventing.
+- Opus at medium for the reference builds only; Sonnet for ports, READMEs and wording; Haiku for proof runs.
+- Agents report in a few lines; the orchestrator reviews from look screenshots at half scale and one Chrome pass,
+  never from transcripts.
+- A reference is done when it passes look and check and one review round; no open-ended polishing.
 
 ## Working rules
 
