@@ -83,48 +83,66 @@ when the idea needs more; the rest of this file is how.
 ## One world: the scene carries the page
 
 The studios at the bar rarely end the 3D at the first screen. The object the visitor met keeps them company: it
-drifts aside as the craft is told, returns closer when the material is the point, changes its light when the day or
-the use changes, and settles where the door opens. That is what makes a page feel like one film instead of a hero and
-a stack of type cards. Build it as one canvas behind the whole page that reads one page progress; each chapter of the
-page takes a span of it.
+drifts aside as the craft is told, comes back closer when the material is the point, lights up for the centerpiece and
+settles where the door opens. That is what makes a page feel like one film instead of a hero and a stack of type
+cards. Build it from the kit's world pieces, never a hand-rolled canvas:
+
+- **`World`**: the one fixed canvas, always behind the type (`fixed inset-0 -z-10`), with a lit wall whose pool of
+  light stays behind the object. It measures the page's beats for everything inside it.
+- **`data-beat`** on each section of `<main>`, and **`useBeats()`** inside the world: `page` (the whole scroll),
+  `beat(name)` (0 to 1 across one section), `on(name)` (1 while that section holds the screen: a light for one
+  scene), `range(name)` for your own `span`.
+- **`BeatCamera`**: a pose per beat (`position`, `target`, an optional `phone` pose); it holds each pose while its
+  section has the screen and moves in the half screen where one section hands over to the next.
+- **`Framed`**: keeps the object whole, sized to a share of the screen and on the side the type leaves free, per beat;
+  on a phone it moves to the upper centre and shrinks above the type.
 
 ```tsx
-// app/World.tsx: one fixed canvas behind <main>; the sections over it are see-through where the world shows.
+// app/PageWorld.tsx: the world, in its own chunk.
 "use client";
-import { Backdrop, ScrollCamera, Stage, TurnedObject, span, useScrollProgress } from "@/components/struq/kit/gl";
-import { useRef, type ReactNode } from "react";
+import { BeatCamera, Framed, TurnedObject, World, useBeats } from "@/components/struq/kit/gl";
 
-export function World({ children }: { children: ReactNode }) {
-  const main = useRef<HTMLElement>(null);
-  const page = useScrollProgress(main, { start: "top top", end: "bottom bottom" });
+function Pendant() {
+  const { on } = useBeats();
+  return <TurnedObject profile="pendant-globe" material="glass" tint="#f3d2a8" hang glow={on("centerpiece")} />;
+}
+
+export default function PageWorld() {
   return (
-    <main ref={main} className="relative">
-      <Stage className="fixed inset-0 -z-10" light="night" post={{ bloom: 1.4, grain: 0.04 }}
-        camera={{ fov: 30, position: [0, 0.3, 8] }} label="The pendant, lit, as the page goes on">
-        <Backdrop ground="#0d0b0a" glow="#9c5a2c" light={span(page, 0, 0.2)} center={[2, 0.6]} />
-        <TurnedObject profile="pendant-drop" material="glass" tint="#f3d2a8" glow={span(page, 0.02, 0.2)} hang position={[2, 0.3, 0]} />
-        <ScrollCamera progress={page} path={[
-          { at: 0, position: [0, 0.3, 8], target: [0.8, 0.2, 0] },      // opening: the lamp on the calm side
-          { at: 0.3, position: [3.6, 0.2, 5.4], target: [2, 0.1, 0] },  // the craft: closer, the lip and the wall
-          { at: 0.6, position: [-1.5, -0.6, 6.5], target: [1.6, 0.5, 0] }, // the range: lower, looking up into the glow
-          { at: 1, position: [0.4, 0.2, 9], target: [1.2, 0.2, 0] },    // the door: it settles small beside the address
-        ]} />
-      </Stage>
-      {children}
-    </main>
+    <World light="night" label="A blown glass pendant that follows the page and lights up for the centerpiece">
+      <BeatCamera keys={{
+        opening: { position: [0, 0.3, 8], target: [0, 0.1, 0] },                                   // eye level
+        craft: { position: [2.6, 1.4, 7.4], target: [0, 0, 0], phone: { position: [0, 1.2, 8.6] } }, // from above: the cap and the lip
+        range: { position: [-2.2, -0.8, 7.6], target: [0, 0.2, 0] },                                // from below
+        centerpiece: { position: [0.6, -1.4, 7.2], target: [0, 0.3, 0] },                          // looking up into the light
+        close: { position: [0, 0.4, 9], target: [0, 0.1, 0] },
+      }} />
+      <Framed side={{ opening: "right", craft: "left", range: "right", centerpiece: "left", close: "right" }}
+        size={{ centerpiece: 0.72, close: 0.5 }}>
+        <Pendant />
+      </Framed>
+    </World>
   );
 }
+
+// app/page.tsx (a client component): each section a screen tall, its type centred on the free side; on a phone,
+// in the lower half under the object.
+const PageWorld = dynamic(() => import("./PageWorld"), { ssr: false });
+<main className="relative">
+  <PageWorld />
+  <section data-beat="opening" className="flex min-h-[100svh] flex-col justify-end px-sheet-margin pb-[10svh] pt-[50svh] md:items-start md:justify-center md:py-[18vh]">
+    <div className="max-w-[34rem] md:w-[42%]"><h1 className="font-display text-display">...</h1><p className="text-lead mt-6">...</p></div>
+  </section>
+  <section data-beat="craft" className="... md:items-end">...</section>
+  ...
+</main>
 ```
 
-Each section over the world says what the visitor learns there and leaves the side the object is on free; a section
-that wants the page to itself has its own ground, and the world waits behind it. Put a key on the camera path at
-each section's share of the page (measure it once, from `offsetTop` against the scroll height, when the beats must
-land exactly), and check every key at 1440 and 390 with the type in place. Between the keys matters as much: the
-object travels while the visitor scrolls, and a lamp that swings through the headline on its way in reads as a
-mistake, even with the type above it. Let the object arrive before the section's line is on screen (its key a little
-ahead of the section's share), or keep its path on the side the type leaves free, and scroll through each beat slowly
-at 1024 as well, where a shorter screen brings the line up into the object's path. The opening's own pin can still run inside
-it: give that section `span(page, a, b)` beats rather than a second canvas. One canvas for the whole page is also
+The camera's keys choose the angle (from above, from below, looking up into the glow); `Framed` owns where the object
+sits and how big it is, so no key can push it off the frame or under a headline, at 390, 1024 or 1440 wide. The type
+side and the object side are one decision: write them together in STRUQ.md, one line per beat. A section that wants
+the page to itself has its own ground, and the world waits behind it. The opening's own pin can still run inside the
+world: give that section `span(page, a, b)` beats rather than a second canvas. One canvas for the whole page is also
 cheaper than one per section.
 
 Writing your own canvas instead: load it in its own chunk, keep a poster until the first frame, cap the DPR, pause off

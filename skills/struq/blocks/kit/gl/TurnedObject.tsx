@@ -212,7 +212,8 @@ export function TurnedObject({
               <cylinderGeometry args={[0.2, 0.22, 0.16, 64]} />
               <meshStandardMaterial color="#9c7a4a" metalness={1} roughness={0.32} />
             </mesh>
-            <mesh position={[0, 4, 0]}>
+            {/* The cord runs out of the top of the frame on purpose: Framed leaves it out when it measures. */}
+            <mesh position={[0, 4, 0]} userData={{ unframed: true }}>
               <cylinderGeometry args={[0.008, 0.008, 8, 8]} />
               <meshStandardMaterial color="#111111" roughness={0.6} />
             </mesh>

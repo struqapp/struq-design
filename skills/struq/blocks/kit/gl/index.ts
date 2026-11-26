@@ -7,3 +7,9 @@ export { ScrollCamera, type CameraKey } from "./ScrollCamera";
 export { Backdrop } from "./Backdrop";
 export { PROFILES, type Profile, type ProfileName } from "./profiles";
 export { useScrollProgress, useScrollVelocity, usePointer, useTokenColor, prefersReducedMotion, span, type Signal } from "./signals";
+// One world behind the whole page: World (the fixed canvas, behind the type), the beats of the page's data-beat
+// sections, a camera keyed by them and Framed, which keeps the object whole and on the free side.
+export { World } from "./world/World";
+export { BeatsProvider, useBeats, type Beats, type BeatRange } from "./world/beats";
+export { BeatCamera, type BeatPose } from "./world/BeatCamera";
+export { Framed, type FrameSide } from "./world/Framed";
