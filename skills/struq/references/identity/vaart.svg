@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="512" height="512">
+  <title>Vaart</title>
+  <rect x="0" y="0" width="48" height="48" fill="#efede7"/>
+  <path d="M7 7H26.5L14.48 41H7Z" fill="#16181b"/>
+  <path d="M29.5 7H41V41H17.48Z" fill="#16181b"/>
+</svg>

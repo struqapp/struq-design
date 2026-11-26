@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="1.5 1 48 48" width="512" height="512">
+  <title>Halden</title>
+  <rect x="1.5" y="1" width="48" height="48" fill="#002323"/>
+  <path d="M23 5h2v11.25h-2z" fill="#f3eee1"/>
+  <path d="M24 44.75A14.25 14.25 0 0 1 24 16.25" fill="none" stroke="#f3eee1" stroke-width="2"/>
+  <path d="M24 15.25A15.25 15.25 0 0 1 24 45.75Z" fill="#eba941"/>
+</svg>
