@@ -57,3 +57,21 @@ construction or engineering brief so every group is measured.
 - One branch per piece off `feat/bar-first`, each in its own worktree on D:, merged back with `--no-ff`.
 - Each kit piece is proven in a lab app (D:\StruqRuns\lab\<piece>) with look.mjs screenshots at 390 and 1440.
 - Every kit change is mirrored into StruqVisual (`blocks/kit`) so the MCP hands out the same parts.
+
+## Where the 2026-11-26 slice ended
+
+Shipped in 0.6.0: three references (Halden for shops, Van Rijn for trades without 3D, Oostwerk for agencies), the
+one-world kit and ready-made objects, the order close, the finishing step (logo method, favicon, link previews,
+sitemap, robots, llms.txt, JSON-LD, not-found, Struq Icons, the removable credit), phone checks, type over the
+object, sparse stops, and 3D as a choice that the one stop offers.
+
+Open, in order:
+1. Photos for the references come from the stock library only. Van Rijn has none because no pack shows roofs; new
+   packs for the new groups (trades, practices, hospitality, agencies) are Roy's next imagery work.
+2. The remaining six groups get a reference each: hospitality first, then practices, professional services, B2B,
+   portfolios, software, events and causes.
+3. A proof run on Haiku with the references, to see the floor; then the 12 fixed briefs (brief set version 2).
+4. The MCP has the brand kit files but not `blocks.mjs finish`; MCP clients need the same finishing step.
+5. Kit gaps found on the way: cheap glass for many Pendants, a World wall colour per beat, Framed dolly-in and
+   per-beat margins, `finish` writing a second viewport export, SiteFacts reading a placeholder phone.
+6. The reviewer still sees settled frames only; mid-scroll frames and the reference shots beside the build (step 3).
