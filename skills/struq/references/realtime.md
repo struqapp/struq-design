@@ -96,6 +96,12 @@ cards. Build it from the kit's world pieces, never a hand-rolled canvas:
 - **`Framed`**: keeps the object whole, sized to a share of the screen and on the side the type leaves free, per beat;
   on a phone it moves to the upper centre and shrinks above the type.
 
+The world shows only where a world beat owns the screen. A section without a ground of its own (no background, or
+`data-world="on"`) is open and lets the world through; a section with its own ground (`bg-surface-0`, an inverse
+scene, or `data-world="off"`) covers it, and `World` fades its canvas out while such sections hold the screen, so no
+grey band of wall and no object cut off at a seam shows above, below or around them (`fade={false}` turns that off).
+Keep the type off the object too: the look check fails a line with the object drawn under it (over-object).
+
 ```tsx
 // app/PageWorld.tsx: the world, in its own chunk.
 "use client";
