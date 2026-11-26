@@ -9,3 +9,6 @@ brief. The kit itself is not here: install it with `blocks.mjs`, as for any site
 
 - [halden](halden/README.md): product brands and shops. A glass pendant maker in Bergen; one lamp in a 3D world
   carries the page from the first screen to an order close.
+- [van-rijn](van-rijn/README.md): trades and their neighbours (construction, garden and landscaping, removals). A
+  family roofer in Utrecht; no 3D: poster type beside a roof drawn in section that builds layer by layer, the phone a
+  thumb away.
