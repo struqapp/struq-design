@@ -1,6 +1,7 @@
 "use client";
 // menu-curtain (Struq header recipe): the bar, and the full-screen menu it opens as a curtain
-// A minimal bar: the wordmark on the left, one button on the right that reads "Menu" and rolls to "Sluiten". The menu
+// A minimal bar: the wordmark on the left, one button on the right that reads "Menu" and rolls to "Sluiten" (`labels`
+// sets them in the site's language, `mark` puts the client's mark beside the name). The menu
 // opens as a curtain in the language of one of the page transitions, the links rise in a stagger through their masks,
 // the hovered or focused link shows its photo on the menu's calm side, and a foot line carries the contact line and
 // the studio's place (with `clock`, its live local time; off unless asked, one live clock per site at most). It closes the same way, reversed: every part moves from where it is to where it is going,
@@ -51,6 +52,9 @@ export const MENU_CURTAIN_VARIANTS = [
 export type MenuCurtainVariant = (typeof MENU_CURTAIN_VARIANTS)[number]["id"];
 
 export type MenuItem = { label: string; href: string; image?: StruqImage };
+/** The bar's words in the site's language: the button's two states and the menu's name for screen readers. */
+export type MenuLabels = { menu: string; close: string; nav: string };
+const DUTCH: MenuLabels = { menu: "Menu", close: "Sluiten", nav: "Menu" };
 export type BarTone = "ground" | "photo" | "inverse";
 
 const TONES: BarTone[] = ["ground", "photo", "inverse"];
@@ -109,6 +113,8 @@ function BarFace({
   name,
   homeHref,
   items,
+  labels,
+  mark,
   open = false,
   controls,
   toggleRef,
@@ -120,6 +126,8 @@ function BarFace({
   name: string;
   homeHref: string;
   items: MenuItem[];
+  labels: MenuLabels;
+  mark?: ReactNode;
   open?: boolean;
   controls?: string;
   toggleRef?: Ref<HTMLButtonElement>;
@@ -131,8 +139,8 @@ function BarFace({
     <>
       <span aria-hidden="true" className="block h-[1.25em] overflow-hidden leading-[1.25em]">
         <span data-roll="" className="flex flex-col items-end">
-          <span>Menu</span>
-          <span>Sluiten</span>
+          <span>{labels.menu}</span>
+          <span>{labels.close}</span>
         </span>
       </span>
       <span aria-hidden="true" className="relative block h-2 w-6">
@@ -150,11 +158,15 @@ function BarFace({
         </>
       ) : null}
       {real ? (
-        <a href={homeHref} className={`relative ${word}`}>
+        <a href={homeHref} className={`relative -my-3 inline-flex min-h-11 items-center gap-2.5 ${word}`}>
+          {mark ? <span aria-hidden="true" className="block h-[1.1em] w-[1.1em]">{mark}</span> : null}
           {name}
         </a>
       ) : (
-        <span className={`relative ${word}`}>{name}</span>
+        <span className={`relative inline-flex items-center gap-2.5 ${word}`}>
+          {mark ? <span aria-hidden="true" className="block h-[1.1em] w-[1.1em]">{mark}</span> : null}
+          {name}
+        </span>
       )}
       <div className="relative grid justify-items-end">
         <ul data-menu-fallback="" className="m-0 flex list-none flex-wrap justify-end gap-x-4 gap-y-1 p-0 text-small [grid-area:1/1]">
@@ -172,7 +184,7 @@ function BarFace({
             onClick={onToggle}
             className={`${toggle} bg-transparent`}
           >
-            <span className="sr-only">{open ? "Sluiten" : "Menu"}</span>
+            <span className="sr-only">{open ? labels.close : labels.menu}</span>
             {inner}
           </button>
         ) : (
@@ -194,6 +206,8 @@ export function MenuCurtain({
   place = "Rotterdam",
   clock = false,
   timeZone = "Europe/Amsterdam",
+  labels = DUTCH,
+  mark,
 }: {
   variant?: MenuCurtainVariant;
   /** The wordmark. */
@@ -209,6 +223,10 @@ export function MenuCurtain({
   clock?: boolean;
   /** IANA zone for the clock. */
   timeZone?: string;
+  /** The button's words and the menu's name in the site's language. Dutch when left out. */
+  labels?: MenuLabels;
+  /** The client's mark beside the wordmark (the kit's brand Mark), in every ink. */
+  mark?: ReactNode;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -693,7 +711,7 @@ export function MenuCurtain({
   );
 
   const bar = (children: ReactNode) => <div className="absolute inset-x-0 top-0">{children}</div>;
-  const face = { name, homeHref, items };
+  const face = { name, homeHref, items, labels, mark };
   const frameBox =
     variant === "gate"
       ? "right-sheet-margin top-1/2 aspect-[4/5] h-[min(58svh,40vw)] -translate-y-1/2"
@@ -770,7 +788,7 @@ export function MenuCurtain({
             ))
           : null}
 
-        <nav aria-label="Menu" className="absolute inset-0">
+        <nav aria-label={labels.nav} className="absolute inset-0">
           <ul
             data-menu-list=""
             // sheet-allow: the list's right bound at 45vw leaves the frame its side, a composition offset
