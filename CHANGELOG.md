@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.6.0 (2026-11-26)
+
+The skill shows instead of tells: finished reference builds to copy, and every site ships complete.
+
+- `examples/`: three reference builds on one skeleton (`lib/site.ts`, one page of scenes, one signature, one close).
+  Halden for shops, Van Rijn for trades (no 3D: a roof drawn in section), Oostwerk for agencies (a canal at night
+  fills the first screen). A build reads the nearest one first.
+- Every site ships finished: `blocks.mjs finish` writes the favicon, app icons, link previews, metadata, JSON-LD,
+  sitemap, robots, manifest, llms.txt and a styled not-found page; `references/identity.md` is the method for a real
+  logo; `init` installs Struq Icons; the footers carry a small, removable "Made with Struq" line.
+- The first screen is a hard default: the signature full screen and moving within a second, with a preloader, a
+  transition and a menu curtain in one motion language.
+- 3D is a choice, never a default; the one stop names the signature's medium and offers the version without.
+- Kit: `World`, `BeatCamera`, `Framed`, `useBeats` for one world behind the page; `Pendant`, `LeverMachine`, `Vessel`;
+  `kit/drawn` `RoofSection`; `Close` shape `order` as a finished ending; 44px doors and menus.
+- Checks: look fails type over the 3D object and phone doors under 44px, warns on sparse stops and small phone text;
+  check fails a site without its finishing files and a selling site with no way to buy.
+- The phone is half the build; the art-direction review names every flat stretch.
+
 ## 0.5.5 (2026-11-18)
 
 The centrepiece lands and the run ends at RESULT: PASS. Blocks and canon come from Struq main d6e1e9eb.
