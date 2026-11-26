@@ -131,7 +131,18 @@ screen, render one frame under reduced motion, and run on the page's one GSAP cl
 - **Turned objects** (a lamp, a vase, a bottle, a cup): `LatheGeometry` from a profile of 20 to 40 points, then
   `geometry.computeVertexNormals()`. Draw the profile from the real object's silhouette, with a lip and a wall
   thickness, never a sphere on a stick.
-- **Anything you cannot turn**: a glTF compressed with Draco (`npx gltfjsx model.glb --transform`), loaded with
+- **A machine or a device** (an espresso machine, a camera, a radio, a tool) with no model to load: build every
+  part as what it is. Every round part is turned (`LatheGeometry`: the boiler with its domed cap and its bands, the
+  group head, the knobs, the feet); every housing is a `RoundedBox` from drei with a radius, never a sharp box (real
+  metal has a radius, and the highlight on it is what reads as metal); levers, pipes and wands are a `TubeGeometry`
+  along a curve, ending in a turned handle. Then add the details at the scale of a hand: a knurled ring, a gauge
+  face with its needle, a badge, a seam, a screw head. Three of those carry more than the size of the whole. Draw
+  the proportions from the real thing, measured from a reference, and look at it from the camera's every beat.
+- **Framing.** The object stands whole in the frame at every beat, with air around it, unless the crop is the idea
+  and is written as such in the Signature line. An object cut by the screen edge at the opening reads as a mistake,
+  not as drama. Check the first, middle and last beat at 1024, 1440 and 390 wide; on a narrow screen move or scale
+  the object (read the size from `useThree((s) => s.viewport)`), never let it push past the edge.
+- **Anything you cannot turn or assemble**: a glTF compressed with Draco (`npx gltfjsx model.glb --transform`), loaded with
   `useGLTF`. A primitive (box, sphere, torus) is a placeholder, never the subject.
 - **Soft organic forms**: displace a high-segment sphere in the vertex shader with FBM or curl noise; morph between
   two shapes by mixing positions on a uniform the scroll drives.

@@ -839,7 +839,12 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   // for its removal: a physical material, an environment and light, or a glTF of the real object.
   const crafted = own.some((f) => /meshPhysicalMaterial|MeshPhysicalMaterial|MeshTransmissionMaterial|<Environment\b|RoomEnvironment|PMREMGenerator|useGLTF|GLTFLoader|ShaderMaterial|shaderMaterial/.test(f.text));
   if (geometry.length && !crafted) add(G, "WARN", "3D from bare primitives with no physical material, environment or shader: it will read as plastic. Use a lathe or a glTF for the form, MeshPhysicalMaterial (transmission, ior, thickness) or MeshTransmissionMaterial, an environment map, and post-processing (references/realtime.md).", geometry);
-  else if (geometry.length) add(G, "PASS", "Real-time 3D with a physical material or shader");
+  else if (geometry.length) {
+    // Sharp boxes read as a toy even in good metal (proof run 2026-11-26: a lever machine of boxes and cylinders).
+    const boxes = hits(/new\s+THREE\.BoxGeometry\b|<boxGeometry\b/, { scope: own });
+    if (boxes.length >= 2) add(G, "WARN", `${boxes.length} sharp boxes in the 3D: a housing is a RoundedBox with a radius (the highlight on the edge is what reads as metal), a round part is turned, a lever is a tube along a curve (references/realtime.md, Form).`, boxes);
+    else add(G, "PASS", "Real-time 3D with a physical material or shader");
+  }
   else add(G, "PASS", "No 3D built from bare primitives");
 }
 

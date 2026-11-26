@@ -43,13 +43,17 @@
   --text-small: 0.875rem;
   --text-small--line-height: 1.5;
   /* The sheet (the film grammar's type and grid), prefixed so it never meets struq.nl's own --step-*, --space-* or
-     --gutter. text-sheet-moment: poster-scale type, two or three per page, about 20vw on a phone easing to 12.5vw
+     --gutter. text-sheet-moment: poster-scale type, the opening and at most two more per page, about 20vw on a phone easing to 12.5vw
      at 1920 (3.5rem floor, 15rem cap). text-sheet-label: the small label in the margin column or under a photo,
      body face, sentence case. px-sheet-margin (and mx-, pl-, ...): the page margin, the header wordmark's and the
      heroes' left edge. gap-x-sheet-gutter: the gutter of the 12 column grid. */
   --text-sheet-moment: clamp(3.5rem, 1.7rem + 12vw, 15rem);
   --text-sheet-moment--line-height: 0.9;
   --text-sheet-moment--letter-spacing: -0.03em;
+  /* text-sheet-heading: a step below the moment, for a sentence among the middle scenes (Statement scale="heading"). */
+  --text-sheet-heading: clamp(2.25rem, 1.5rem + 3.4vw, 5rem);
+  --text-sheet-heading--line-height: 1.02;
+  --text-sheet-heading--letter-spacing: -0.02em;
   --text-sheet-label: clamp(0.8125rem, 0.78rem + 0.12vw, 0.9375rem);
   --text-sheet-label--line-height: 1.45;
   --spacing-sheet-margin: clamp(1.5rem, 4vw, 5rem);

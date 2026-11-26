@@ -11,7 +11,7 @@
 //
 //   collision  the fixed header's text over other text; the site name twice on the first screen       FAIL
 //   clipped    glyphs cut by an overflow mask (descenders under a line mask, a word past the edge)     FAIL
-//   overflow   the document wider than the screen                                                        FAIL
+//   overflow   the document wider than the screen (also measured at 1024 and 1280 wide)                 FAIL
 //   contrast   text against its solid ground under 4.5 (3 from 24px)                                    FAIL
 //   unreadable text over a photo, video or canvas: the glyphs hidden, the worse quartile of the pixels  FAIL
 //              behind them under 3 (24px, 18.66px bold, a wordmark in the header or nav) or 4.5; WARN as
@@ -1163,6 +1163,22 @@ async function lookAt(browser, vp, errors) {
   const last = await page.evaluate(measurePage, { first: false, last: true, stepPx });
   for (const b of last.broken) errors.add(`image did not load: ${b.src} (${b.selector})`);
   if (overflow) findings.push(overflow);
+  // The widths between the two sizes: a laptop and a small desktop. A canvas or a wide row that fits at 1440 and on a
+  // phone can still push the page sideways at 1024 (proof run 2026-11-26: a 3D machine set past the right edge).
+  if (!overflow && vp.name === "desktop") {
+    for (const width of [1024, 1280]) {
+      await page.setViewportSize({ width, height: vp.height });
+      await settle(page);
+      const wide = await page.evaluate(() => ({ doc: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth), vw: document.documentElement.clientWidth }));
+      if (wide.doc > wide.vw + 1) {
+        const shot = join(outDir, `desktop-${width}.png`);
+        await capture(page, { path: shot });
+        findings.push({ kind: "overflow", viewport: vp.name, step: 0, scrollY: 0, text: "", selector: "html", detail: `the page is ${wide.doc}px wide on a ${wide.vw}px screen (at ${width} wide; it fits at ${vp.width})`, shot });
+        break;
+      }
+    }
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+  }
 
   // A face the visible text asks for first that never loaded: the page reads in a fallback. A loaded face of that
   // family settles it; otherwise the face is missing when text set in it measures exactly as the fallback alone.

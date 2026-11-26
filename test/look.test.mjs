@@ -81,6 +81,8 @@ const PAGES = {
   covered: page(`${HEADER}<main>${HERO}<section style="position:relative;height:100vh;padding:0"><h2 style="position:absolute;left:24px;top:40%;margin:0;font-size:64px;white-space:nowrap">Lyset er i glasset hele kvelden</h2><canvas style="position:absolute;right:0;top:0;width:50%;height:100%;background:#2b2b2b"></canvas></section>${FILL}</main>${FOOTER}`),
   // The same panel sliding in over the headline, moved by a script: a transition in progress, not a defect.
   coverslide: page(`${HEADER}<main>${HERO}<section style="position:relative;height:100vh;padding:0;overflow:hidden"><h2 style="position:absolute;left:24px;top:40%;margin:0;font-size:64px;white-space:nowrap">Lyset er i glasset hele kvelden</h2><div style="position:absolute;right:0;top:0;width:50%;height:100%;background:#2b2b2b;transform:translateX(30%)"></div></section>${FILL}</main>${FOOTER}`),
+  // A scene that fits at 1440 and on a phone and pushes the page sideways on a laptop (proof run 2026-11-26).
+  midwide: page(`${HEADER}<main>${HERO}<section><div class="w" style="height:200px;background:#cfc6b4"></div></section>${FILL}</main>${FOOTER}`, '@media (min-width: 1000px) and (max-width: 1300px) { .w { width: 1400px; } }'),
   // A middle scene that is one long paragraph at poster scale, and three display lines after the first screen.
   wall: page(`${HEADER}<main>${HERO}<section><p style="font-size:min(120px,12vw);line-height:1.05;max-width:none">Vi tegner og blåser hver lampe for hånd i Bergen, én om gangen, og den er ikke ferdig før den henger over bordet og lyser om kvelden for dem som bor der.</p></section>${FILL}</main>${FOOTER}`),
   ladder: page(`${HEADER}<main>${HERO}<section><h2 style="font-size:min(128px,13vw)">Lyset først.</h2></section><section><h2 style="font-size:min(128px,13vw)">Så formen.</h2></section><section><h2 style="font-size:min(128px,13vw)">Så glasset.</h2></section><section><h2 style="font-size:min(128px,13vw)">Så rommet.</h2></section>${FILL}</main>${FOOTER}`),
@@ -256,6 +258,13 @@ test('look: a paragraph at poster scale fails as a wall; three display lines war
   const l = ladder.json.findings.find((x) => x.kind === 'type-scale');
   assert.ok(l && l.severity === 'WARN' && /3 lines at poster scale/.test(l.detail), ladder.out);
   assert.ok(!kinds(ladder).includes('type-wall'), ladder.out);
+});
+
+test('look: a page wider than a laptop screen fails as overflow, though it fits at 1440 and 390', async (t) => {
+  if (skip) return t.skip(skip);
+  const r = await result('midwide');
+  const f = r.json.findings.find((x) => x.kind === 'overflow');
+  assert.ok(f && f.severity === 'FAIL' && /at 1024 wide/.test(f.detail), r.out);
 });
 
 test('look: a stretch of nothing is empty, and fails from a whole screen', async (t) => {
