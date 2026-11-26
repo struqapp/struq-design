@@ -80,6 +80,8 @@ const PAGES = {
   // A split screen whose headline runs under its own 3D panel (proof run 2026-11-25, Halden: "Lyset er i gl").
   covered: page(`${HEADER}<main>${HERO}<section style="position:relative;height:100vh;padding:0"><h2 style="position:absolute;left:24px;top:40%;margin:0;font-size:64px;white-space:nowrap">Lyset er i glasset hele kvelden</h2><canvas style="position:absolute;right:0;top:0;width:50%;height:100%;background:#2b2b2b"></canvas></section>${FILL}</main>${FOOTER}`),
   // The same panel sliding in over the headline, moved by a script: a transition in progress, not a defect.
+  worldover: page(`${HEADER}<main>${HERO}<section style="height:100vh;display:grid;place-items:center"><h2 style="margin:0;font-size:64px">Lyset er det du kjoper.</h2></section>${FILL}</main><canvas style="position:fixed;inset:0;width:100%;height:100%"></canvas>${FOOTER}`),
+  worldunder: page(`${HEADER}<main style="position:relative">${HERO}<section style="height:100vh;display:grid;place-items:center"><h2 style="margin:0;font-size:64px">Lyset er det du kjoper.</h2></section>${FILL}</main><canvas style="position:fixed;inset:0;width:100%;height:100%;z-index:-10"></canvas>${FOOTER}`),
   coverslide: page(`${HEADER}<main>${HERO}<section style="position:relative;height:100vh;padding:0;overflow:hidden"><h2 style="position:absolute;left:24px;top:40%;margin:0;font-size:64px;white-space:nowrap">Lyset er i glasset hele kvelden</h2><div style="position:absolute;right:0;top:0;width:50%;height:100%;background:#2b2b2b;transform:translateX(30%)"></div></section>${FILL}</main>${FOOTER}`),
   // A scene that fits at 1440 and on a phone and pushes the page sideways on a laptop (proof run 2026-11-26).
   midwide: page(`${HEADER}<main>${HERO}<section><div class="w" style="height:200px;background:#cfc6b4"></div></section>${FILL}</main>${FOOTER}`, '@media (min-width: 1000px) and (max-width: 1300px) { .w { width: 1400px; } }'),
@@ -248,6 +250,14 @@ test('look: a line partly under a canvas that holds still fails as covered; a pa
   assert.equal(hit.code, 1, hit.out);
   assert.ok(!kinds(slide).includes('covered'), slide.out);
   assert.ok(!kinds(await result('clean')).includes('covered'));
+});
+
+test('look: a line wholly under a fixed world canvas fails as covered; the same canvas behind the page does not', async (t) => {
+  if (skip) return t.skip(skip);
+  const [over, under] = await Promise.all([result('worldover'), result('worldunder')]);
+  const f = over.json.findings.find((x) => x.kind === 'covered' && /det du kjoper/.test(x.text));
+  assert.ok(f && f.severity === 'FAIL' && /-z-10/.test(f.detail), over.out);
+  assert.ok(!under.json.findings.some((x) => x.kind === 'covered' && /det du kjoper/.test(x.text)), under.out);
 });
 
 test('look: a paragraph at poster scale fails as a wall; three display lines warn on the scale ladder', async (t) => {

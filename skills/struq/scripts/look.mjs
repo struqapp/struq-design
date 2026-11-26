@@ -659,10 +659,17 @@ function measurePage(opts) {
       });
       if (!by || total < 4) continue;
       const share = under / total;
-      if (share < 0.12 || share > 0.92 || sliding(by)) continue;
+      // A canvas is see-through where nothing is drawn, so a line wholly under one still shows, and the object paints
+      // over it wherever it passes (proof run 2026-11-26: a fixed world canvas sat above the page and its lamp hung
+      // across "Lyset er det du kjoper."). Under a canvas no share is hidden on purpose.
+      const canvas = by.tagName === "CANVAS";
+      if (share < 0.12 || (share > 0.92 && !canvas) || sliding(by)) continue;
       coveredDone.add(t.el);
       const what = isMedia(by) ? `the ${by.tagName.toLowerCase()} ${path(by)}` : path(by);
-      add({ kind: "covered", text: t.text, selector: path(t.el), detail: `${Math.round(share * 100)}% of the line sits under ${what}: move the type to the calm side of the panel, give it the panel's width, or raise it above (z-index)`, key: `covered|${path(t.el)}|${t.text.slice(0, 40)}` });
+      const fix = canvas
+        ? "the 3D sits above the type and paints over it wherever the object passes: put the world canvas behind the page (-z-10 on a fixed Stage), or raise the type above it (relative z-10)"
+        : "move the type to the calm side of the panel, give it the panel's width, or raise it above (z-index)";
+      add({ kind: "covered", text: t.text, selector: path(t.el), detail: `${Math.round(share * 100)}% of the line sits under ${what}: ${fix}`, key: `covered|${path(t.el)}|${t.text.slice(0, 40)}` });
     }
 
     /* --- 3c. type at display size after the first screen, for the page's scale ladder. A display moment is a block
