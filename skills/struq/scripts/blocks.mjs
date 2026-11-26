@@ -285,7 +285,7 @@ const commands = {
       const deps = project();
       for (const f of walk(join(BLOCKS, "kit", "gl"))) place(f, target("kit", relative(join(BLOCKS, "kit"), f).split("\\").join("/")));
       installMissing(deps, ["three", "@react-three/fiber", "@react-three/drei", "@react-three/postprocessing", "postprocessing", "@types/three"]);
-      console.log('\ngl: import { World, BeatCamera, Framed, useBeats, TurnedObject, Stage, ScrollCamera, Backdrop } from "@/components/struq/kit/gl";');
+      console.log('\ngl: import { World, BeatCamera, Framed, useBeats, Pendant, LeverMachine, Vessel, TurnedObject, Stage } from "@/components/struq/kit/gl";');
       console.log("  Load your scene file with next/dynamic and ssr: false. The craft and a worked example: references/realtime.md.");
       report("Step 5 Blocks", "blocks.mjs added the real-time kit (kit/gl).");
       rest.splice(0, rest.length, ...rest.filter((arg) => arg.toLowerCase() !== "gl"));
