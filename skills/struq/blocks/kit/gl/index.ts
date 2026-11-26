@@ -5,5 +5,6 @@ export { Stage, type StageLight, type StagePost } from "./Stage";
 export { TurnedObject } from "./TurnedObject";
 export { ScrollCamera, type CameraKey } from "./ScrollCamera";
 export { Backdrop } from "./Backdrop";
+export { Pendant, LeverMachine, Vessel, FORM_FOOT, METALS, type PendantShape, type PendantCap, type VesselForm, type VesselFinish, type MetalName } from "./objects";
 export { PROFILES, type Profile, type ProfileName } from "./profiles";
 export { useScrollProgress, useScrollVelocity, usePointer, useTokenColor, prefersReducedMotion, span, type Signal } from "./signals";
