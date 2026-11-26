@@ -29,6 +29,8 @@
 //   fixed-cover phone: fixed or sticky chrome covering more than a quarter of the screen              WARN
 //   type-wall  desktop: more than 20 words in one block at display size (72px and 7vw)              FAIL
 //   type-scale desktop: more than two blocks at display size after the first screen                  WARN
+//   sparse     a settled stop where type and media cover under a tenth of the screen and no image,    WARN
+//              canvas or video is in view: mostly empty ground with one small line
 //   empty      six tenths of a screen without text or image between the hero and the footer          WARN
 //              (a whole screen or more                                                                FAIL)
 //   error      console errors, page errors and images that did not load                                 FAIL
@@ -53,7 +55,7 @@ const VIEWPORTS = [
   { name: "desktop", width: 1440, height: 900 },
 ];
 const MAX_STEPS = 60;
-const SEVERITY = { collision: "FAIL", clipped: "FAIL", overflow: "FAIL", contrast: "FAIL", unreadable: "FAIL", blank: "FAIL", "broken-number": "FAIL", "font-missing": "FAIL", error: "FAIL", "self-link": "FAIL", covered: "FAIL", "over-object": "FAIL", "type-wall": "FAIL", "type-scale": "WARN", empty: "WARN", "tap-target": "WARN", "small-text": "FAIL", "input-zoom": "WARN", "fixed-cover": "WARN" };
+const SEVERITY = { collision: "FAIL", clipped: "FAIL", overflow: "FAIL", contrast: "FAIL", unreadable: "FAIL", blank: "FAIL", "broken-number": "FAIL", "font-missing": "FAIL", error: "FAIL", "self-link": "FAIL", covered: "FAIL", "over-object": "FAIL", "type-wall": "FAIL", "type-scale": "WARN", empty: "WARN", "tap-target": "WARN", "small-text": "FAIL", "input-zoom": "WARN", "fixed-cover": "WARN", sparse: "WARN" };
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -871,6 +873,53 @@ function measurePage(opts) {
     for (const e of document.querySelectorAll("img,video,canvas,picture,svg,iframe")) hold(e);
     for (const e of document.querySelectorAll("body *")) if (hasImageGround(e)) hold(e);
 
+    /* --- 5b. how full this screen is: the type's own area (each shown line's width at half its size, the band its
+       letters fill) and the media in view (photos, video, canvases, drawings), as a share of the screen. A stop with
+       media in view is never sparse; a stop that is ground with one small line is (proof run 2026-11-26, Oostwerk:
+       three middle screens of cream with one sentence each read as unfinished). */
+    let typeArea = 0;
+    for (const t of shown) {
+      if (inHeader(t) || chrome(t.el)) continue;
+      t.ink.forEach((k, i) => {
+        if (!t.shown[i]) return;
+        const w = Math.min(k.r, vw) - Math.max(k.l, 0);
+        if (w > 0 && k.b > 0 && k.t < vh) typeArea += w * t.fontSize * 0.5;
+      });
+    }
+    let mediaArea = 0;
+    let mediaInView = false;
+    for (const e of document.querySelectorAll("img,video,canvas,picture,svg,iframe")) {
+      if (e.tagName.toLowerCase() === "svg" && e.ownerSVGElement) continue;
+      const r = e.getBoundingClientRect();
+      const a = Math.max(0, Math.min(r.right, vw) - Math.max(r.left, 0)) * Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+      if (a < 48 * 48 || opacity(e) < 0.05 || chrome(e)) continue;
+      mediaArea += a;
+      if (a >= 0.04 * vw * vh) mediaInView = true;
+    }
+    // A drawn panel counts as something to look at: an inset block of its own solid colour (a card, a drawn page, a
+    // poster) a tenth of the screen or more, narrower than the screen, so a section's own ground never counts.
+    if (!mediaInView) {
+      const groundOf = (el) => {
+        for (let a = el.parentElement; a; a = a.parentElement) {
+          const c = rgba(cs(a).backgroundColor);
+          if (c[3] >= 0.9) return c;
+        }
+        return [255, 255, 255, 1];
+      };
+      for (const e of document.querySelectorAll("body *")) {
+        const c = rgba(cs(e).backgroundColor);
+        if (c[3] < 0.9) continue;
+        const r = e.getBoundingClientRect();
+        if (r.width >= 0.9 * vw) continue;
+        const a = Math.max(0, Math.min(r.right, vw) - Math.max(r.left, 0)) * Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+        if (a < 0.1 * vw * vh || opacity(e) < 0.05 || chrome(e) || ratio(c, groundOf(e)) < 1.25) continue;
+        mediaArea += a;
+        mediaInView = true;
+        break;
+      }
+    }
+    const fill = Math.min(1, (typeArea + mediaArea) / (vw * vh));
+
     const footer = [...document.querySelectorAll("footer")].pop();
     const broken = opts.last
       ? [...document.images].filter((i) => i.complete && i.naturalWidth === 0 && (i.currentSrc || i.src)).map((i) => ({ src: i.currentSrc || i.src, selector: path(i) }))
@@ -891,6 +940,8 @@ function measurePage(opts) {
       mask,
       families,
       display,
+      fill,
+      mediaInView,
     };
   } finally {
     force.remove();
@@ -1137,6 +1188,10 @@ function objectUnder(img, boxes, size) {
 }
 
 const OBJECT_SHARE = 0.1;
+/** Below this share of the screen in type and media, with no image, canvas or video in view, a stop is sparse. */
+const SPARSE_FILL = 0.1;
+const sparseDetail = (fill, stops) =>
+  `${Math.round(fill * 100)}% of the screen holds type or media and nothing to look at is in view${stops > 1 ? `, for ${stops} scroll stops in a row` : ""}: a flat stretch reads as unfinished. Compose it (scale contrast, a real image or a drawn piece, a pinned or scrubbed moment) or merge the scene into its neighbour`;
 
 /** The page with every glyph hidden (color transparent, no transition), as pixels; the glyphs come back after. */
 async function groundShot(page) {
@@ -1195,6 +1250,8 @@ async function ready(page) {
   await page.evaluate(() => document.fonts?.ready.then(() => true)).catch(() => {});
   // A preloader keeps <html data-curtain="closed"> while it covers the page.
   await page.waitForFunction(() => document.documentElement.dataset.curtain !== "closed", null, { timeout: 8000 }).catch(() => {});
+  // A hero that holds its line for the backdrop's first beat marks <html data-entrance="held"> until the line is up.
+  await page.waitForFunction(() => document.documentElement.dataset.entrance !== "held", null, { timeout: 5000 }).catch(() => {});
   // The blocks set data-ready once their start state is live; the kit's CSS lets go after three seconds regardless.
   await page
     .waitForFunction(() => {
@@ -1252,6 +1309,7 @@ async function lookAt(browser, vp, errors) {
   let docHeight = 0;
   let crops = 0;
   let blankRun = null;
+  let sparseRun = null;
   const faces = new Map();
   const displays = new Map();
   const measured = new Set();
@@ -1318,6 +1376,27 @@ async function lookAt(browser, vp, errors) {
         const finding = { kind: "blank", viewport: vp.name, step, scrollY: Math.round(m.scrollY), text: "", selector: "", detail: `the whole screen is one flat colour (${flat.color}), with nothing to read or see`, shot };
         findings.push(finding);
         blankRun = { step, more: 0, finding };
+      }
+    }
+
+    // Sparse: a settled stop between the opening and the footer (the footer not yet in view) that is mostly empty ground
+    // with a line or two on it,
+    // and nothing to look at. Measured again after a pause, so a reveal still on its way in is not counted.
+    if (process.env.STRUQ_LOOK_FILL) console.log(`fill ${vp.name} ${step} ${Math.round(m.scrollY)} ${(m.fill * 100).toFixed(1)}%${m.mediaInView ? " media" : ""}`);
+    const sparseAt = (x) => step > 0 && !x.quiet && !x.mediaInView && x.fill < SPARSE_FILL && (x.footerTop === null || x.footerTop - x.scrollY >= vp.height);
+    if (sparseAt(m)) {
+      await wait(1200);
+      const again = await page.evaluate(measurePage, { first: false, last: false, stepPx, phone, known: [...seen] });
+      if (sparseAt(again)) {
+        if (sparseRun && sparseRun.step === step - 1) {
+          sparseRun.step = step;
+          sparseRun.more++;
+          sparseRun.finding.detail = sparseDetail(again.fill, sparseRun.more + 1);
+        } else {
+          const finding = { kind: "sparse", viewport: vp.name, step, scrollY: Math.round(again.scrollY), text: "", selector: "", detail: sparseDetail(again.fill, 1), shot };
+          findings.push(finding);
+          sparseRun = { step, more: 0, finding };
+        }
       }
     }
 
