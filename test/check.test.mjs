@@ -388,6 +388,8 @@ test('a placeholder door counts as a door but warns until it is replaced', () =>
   const out = page(PLACEHOLDER_SITE);
   assert.ok(!fails(out, 'Invitation without a door'), out);
   assert.ok(!fails(out, 'Notes to the client'), out);
+  // The flag the rule prescribes is not an empty image frame (the Halden reference failed on it).
+  assert.ok(!fails(out, 'Placeholder or empty frames'), out);
   assert.ok(warns(out, 'Placeholder door:'), out);
   assert.match(out, /replace before launch \(Assumptions\)/);
   assert.match(out, /lib\/site\.ts:3 /);

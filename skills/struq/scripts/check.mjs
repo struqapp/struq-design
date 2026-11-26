@@ -278,7 +278,8 @@ function namedInBrief(name) {
 
   const placeholders = hits(
     /\b(Image|Media|Photo|Img)?Placeholder\b|Planned image|placehold\.co|via\.placeholder|picsum\.photos|source\.unsplash|nog te fotograferen|te maken:|foto volgt|beeld volgt|to be shot|image coming soon|photo coming soon/i,
-    { scope: own, exclude: /placeholder=["'{]/ },
+    // An input's placeholder attribute and the placeholder door flag are not image frames.
+    { scope: own, exclude: /placeholder=["'{]|\bplaceholder\??\s*:\s*(?:true\b|boolean\b)|data-door-placeholder/ },
   );
   const emptyFrames = hits(/<(div|figure|span)\b[^>]*(aspect-|aspectRatio)[^>]*(\/>|>\s*<\/(div|figure|span)>)/, { scope: own });
   // Both domains: struq.app is home, and struq.nl still serves the media for older installs.
