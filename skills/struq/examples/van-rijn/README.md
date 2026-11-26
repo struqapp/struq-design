@@ -65,7 +65,9 @@ height, so the drawing never moves.
 
 No pack photo shows a roof, so the four stills are generated on the local GPU (deck-image, FLUX 3 Klein, three
 variants each, the best kept, WebP). They are the trade's world, never the client's work: the captions say what is in
-the frame ("Leien na een bui"), never "our roof". Ask the client for photos of their own roofs; they replace these.
+the frame ("Leien na een bui"), never "our roof". Ask the client for photos of their own roofs; they replace these. In this snapshot the stills are not rendered yet (the
+GPU run waited on free memory), so `Daken` is switched off with `PHOTOS` in `app/page.tsx` and the shots show the page
+without it; the prompts are the four scenes named above.
 
 ## The close
 
