@@ -10,6 +10,9 @@
 //   spotlight.
 // - useTokenColor(name): a palette token (--accent, --surface-0 ...) as a THREE.Color, so the scene follows the palette.
 // - prefersReducedMotion(): true when the visitor asked for less motion; the Stage then renders one still frame.
+// - span(signal, from, to): the part of a progress between two beats, again 0 to 1, eased if you like. One world
+//   across the page reads one page progress and gives each chapter its span: span(page, 0.2, 0.35) lights the lamp
+//   while the second scene crosses the screen.
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { Color } from "three";
 import { ScrollTrigger } from "../gsap";
@@ -50,6 +53,19 @@ export function useScrollProgress(target: RefObject<HTMLElement | null>, { start
     return () => st.kill();
   }, [target, start, end, pin]);
   return progress;
+}
+
+/**
+ * The part of `signal` between `from` and `to`, as its own 0 to 1 signal (read live, so it never goes stale).
+ * Pass `ease` for a shaped beat, for example (t) => t * t * (3 - 2 * t).
+ */
+export function span(signal: Signal, from: number, to: number, ease: (t: number) => number = (t) => t): Signal {
+  return {
+    get current() {
+      const t = (signal.current - from) / (to - from || 1);
+      return ease(Math.max(0, Math.min(1, t)));
+    },
+  };
 }
 
 /** The scroll speed, damped, about -1..1 (positive scrolling down). Zero under reduced motion. */

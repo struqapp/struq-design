@@ -77,6 +77,13 @@ const PAGES = {
   // 2026-11-18 measured 1.39 to 3.70): judged at the colours they settle to. The same opacity from a class is pale.
   midfade: page(`${HEADER}<main>${HERO}<section><p style="opacity:0.25">Een tekst die nog binnenkomt.</p></section>${FILL}</main>${FOOTER}`),
   faint: page(`${HEADER}<main>${HERO}<section><p class="faint">Een tekst die altijd vaag blijft.</p></section>${FILL}</main>${FOOTER}`, '.faint { opacity: 0.25; }'),
+  // A split screen whose headline runs under its own 3D panel (proof run 2026-11-25, Halden: "Lyset er i gl").
+  covered: page(`${HEADER}<main>${HERO}<section style="position:relative;height:100vh;padding:0"><h2 style="position:absolute;left:24px;top:40%;margin:0;font-size:64px;white-space:nowrap">Lyset er i glasset hele kvelden</h2><canvas style="position:absolute;right:0;top:0;width:50%;height:100%;background:#2b2b2b"></canvas></section>${FILL}</main>${FOOTER}`),
+  // The same panel sliding in over the headline, moved by a script: a transition in progress, not a defect.
+  coverslide: page(`${HEADER}<main>${HERO}<section style="position:relative;height:100vh;padding:0;overflow:hidden"><h2 style="position:absolute;left:24px;top:40%;margin:0;font-size:64px;white-space:nowrap">Lyset er i glasset hele kvelden</h2><div style="position:absolute;right:0;top:0;width:50%;height:100%;background:#2b2b2b;transform:translateX(30%)"></div></section>${FILL}</main>${FOOTER}`),
+  // A middle scene that is one long paragraph at poster scale, and three display lines after the first screen.
+  wall: page(`${HEADER}<main>${HERO}<section><p style="font-size:min(120px,12vw);line-height:1.05;max-width:none">Vi tegner og blåser hver lampe for hånd i Bergen, én om gangen, og den er ikke ferdig før den henger over bordet og lyser om kvelden for dem som bor der.</p></section>${FILL}</main>${FOOTER}`),
+  ladder: page(`${HEADER}<main>${HERO}<section><h2 style="font-size:min(128px,13vw)">Lyset først.</h2></section><section><h2 style="font-size:min(128px,13vw)">Så formen.</h2></section><section><h2 style="font-size:min(128px,13vw)">Så glasset.</h2></section><section><h2 style="font-size:min(128px,13vw)">Så rommet.</h2></section>${FILL}</main>${FOOTER}`),
   // None of the four may fire here: a quiet pinned scene with one sentence on its flat ground, white text over a dark
   // photo, a total kept whole by a no-break space beside running text with numbers that wrap between them, and a face
   // that loads.
@@ -231,12 +238,32 @@ test('look: text a script is fading in is judged at its settled colours; a faint
   assert.ok(faint.json.findings.some((f) => f.kind === 'contrast' && /vaag/.test(f.text)), faint.out);
 });
 
-test('look: a stretch of nothing is empty, and fails from a screen and a half', async (t) => {
+test('look: a line partly under a canvas that holds still fails as covered; a panel a script slides in does not', async (t) => {
+  if (skip) return t.skip(skip);
+  const [hit, slide] = await Promise.all([result('covered'), result('coverslide')]);
+  const f = hit.json.findings.find((x) => x.kind === 'covered');
+  assert.ok(f && f.severity === 'FAIL' && /canvas/.test(f.detail) && /Lyset er i glasset/.test(f.text), hit.out);
+  assert.equal(hit.code, 1, hit.out);
+  assert.ok(!kinds(slide).includes('covered'), slide.out);
+  assert.ok(!kinds(await result('clean')).includes('covered'));
+});
+
+test('look: a paragraph at poster scale fails as a wall; three display lines warn on the scale ladder', async (t) => {
+  if (skip) return t.skip(skip);
+  const [wall, ladder] = await Promise.all([result('wall'), result('ladder')]);
+  const w = wall.json.findings.find((x) => x.kind === 'type-wall');
+  assert.ok(w && w.severity === 'FAIL' && w.viewport === 'desktop' && /words at 120px/.test(w.detail), wall.out);
+  const l = ladder.json.findings.find((x) => x.kind === 'type-scale');
+  assert.ok(l && l.severity === 'WARN' && /3 lines at poster scale/.test(l.detail), ladder.out);
+  assert.ok(!kinds(ladder).includes('type-wall'), ladder.out);
+});
+
+test('look: a stretch of nothing is empty, and fails from a whole screen', async (t) => {
   if (skip) return t.skip(skip);
   const r = await result('empty');
   // Two and a half screens of nothing also hold a scroll stop that is one flat colour: that stop fails as blank.
   assert.deepEqual([...new Set(kinds(r))].sort(), ['blank', 'empty'], r.out);
-  // Dead stretches were the most common hole in the proof builds of 2026-11-25: past a screen and a half it fails.
+  // Dead stretches were the most common hole in the proof builds of 2026-11-25: from a whole screen it fails.
   assert.ok(r.json.findings.filter((f) => f.kind === 'empty').every((f) => f.severity === 'FAIL'));
   assert.match(r.out, /FAIL empty/);
 });

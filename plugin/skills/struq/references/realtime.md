@@ -26,7 +26,7 @@ packages):
   scroll speed and leans toward the pointer.
 - **`ScrollCamera`**: keyframes on one progress value, eased between beats and damped so it moves with weight.
 - **`Backdrop`**: a lit wall behind the object, a pool of light in the palette that opens with `light`.
-- **Signals**: `useScrollProgress(ref, { start, end, pin })`, `useScrollVelocity()`, `usePointer()`,
+- **Signals**: `useScrollProgress(ref, { start, end, pin })`, `span(progress, from, to)` (a beat of it), `useScrollVelocity()`, `usePointer()`,
   `useTokenColor("--accent")`.
 
 A worked signature, the opening of a glass studio's site. The pin is 2.2 screens and each screen changes something:
@@ -79,6 +79,49 @@ beat: no half-cut object at the screen edge unless the crop is the idea. The cam
 a flight into the glass. Check the first, middle and last beat at 1440 and 390 wide before you call it done: on a
 phone, move the object above or behind the type rather than off the edge. The type stays readable at every beat. Take the colours from the palette tokens (`useTokenColor`) rather than hex. Fork any kit file into your own
 when the idea needs more; the rest of this file is how.
+
+## One world: the scene carries the page
+
+The studios at the bar rarely end the 3D at the first screen. The object the visitor met keeps them company: it
+drifts aside as the craft is told, returns closer when the material is the point, changes its light when the day or
+the use changes, and settles where the door opens. That is what makes a page feel like one film instead of a hero and
+a stack of type cards. Build it as one canvas behind the whole page that reads one page progress; each chapter of the
+page takes a span of it.
+
+```tsx
+// app/World.tsx: one fixed canvas behind <main>; the sections over it are see-through where the world shows.
+"use client";
+import { Backdrop, ScrollCamera, Stage, TurnedObject, span, useScrollProgress } from "@/components/struq/kit/gl";
+import { useRef, type ReactNode } from "react";
+
+export function World({ children }: { children: ReactNode }) {
+  const main = useRef<HTMLElement>(null);
+  const page = useScrollProgress(main, { start: "top top", end: "bottom bottom" });
+  return (
+    <main ref={main} className="relative">
+      <Stage className="fixed inset-0 -z-10" light="night" post={{ bloom: 1.4, grain: 0.04 }}
+        camera={{ fov: 30, position: [0, 0.3, 8] }} label="The pendant, lit, as the page goes on">
+        <Backdrop ground="#0d0b0a" glow="#9c5a2c" light={span(page, 0, 0.2)} center={[2, 0.6]} />
+        <TurnedObject profile="pendant-drop" material="glass" tint="#f3d2a8" glow={span(page, 0.02, 0.2)} hang position={[2, 0.3, 0]} />
+        <ScrollCamera progress={page} path={[
+          { at: 0, position: [0, 0.3, 8], target: [0.8, 0.2, 0] },      // opening: the lamp on the calm side
+          { at: 0.3, position: [3.6, 0.2, 5.4], target: [2, 0.1, 0] },  // the craft: closer, the lip and the wall
+          { at: 0.6, position: [-1.5, -0.6, 6.5], target: [1.6, 0.5, 0] }, // the range: lower, looking up into the glow
+          { at: 1, position: [0.4, 0.2, 9], target: [1.2, 0.2, 0] },    // the door: it settles small beside the address
+        ]} />
+      </Stage>
+      {children}
+    </main>
+  );
+}
+```
+
+Each section over the world says what the visitor learns there and leaves the side the object is on free; a section
+that wants the page to itself has its own ground, and the world waits behind it. Put a key on the camera path at
+each section's share of the page (measure it once, from `offsetTop` against the scroll height, when the beats must
+land exactly), and check every key at 1440 and 390 with the type in place. The opening's own pin can still run inside
+it: give that section `span(page, a, b)` beats rather than a second canvas. One canvas for the whole page is also
+cheaper than one per section.
 
 Writing your own canvas instead: load it in its own chunk, keep a poster until the first frame, cap the DPR, pause off
 screen, render one frame under reduced motion, and run on the page's one GSAP clock, as `Stage` does.

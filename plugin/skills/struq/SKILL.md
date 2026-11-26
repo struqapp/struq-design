@@ -24,6 +24,16 @@ says plainly what they make or do ([references/copy.md](references/copy.md)). Pr
 earns its place by showing the product, the craft or the idea better than a still would. If it only shows off, cut
 it.
 
+**One world, one scale ladder.** A studio site feels whole because the middle is the same film as the opening, not
+a stack of type cards after it. Poster-scale type is for the opening and at most two other moments; every other
+scene sets its heading a clear step down (about 2.5 to 4.5rem on a desktop) and its body at reading size, and leads
+with something to look at: the object closer or in another light, the material, the subject piece, a photo of this
+client's world, a drawing at scale, the way to buy. A sentence of more than about twelve words never runs at display
+size, and a scene that is only a sentence is a breath, at most one per page. When the brief is thin, the middle shows
+rather than tells: the craft, the form in detail, the place, never more sentences at a larger size. With a real-time
+signature the scene carries on down the page ([references/realtime.md](references/realtime.md), "One world"). Every
+screen of scroll changes something: no stretch of a screen sits empty.
+
 Work in this order:
 
 1. **The idea**: a point of view on this client that a visitor leaves believing, not a description of the business.
@@ -208,7 +218,7 @@ Centerpiece may come from anywhere in the catalogue: choose the pair that could 
 Defaults the plan check warns on (override with a reason under `Overrides:`): exactly one centerpiece and nothing pinned after it; never two loud scenes side by
 side; at least four in ten scenes quiet; pins together about 4.5 screens; every frame from the language; at most two
 full-bleed photo reveals, one marquee, one custom cursor, one accent device (an italic word, a weight shift, a
-coloured word, a jump in scale, or none); two or three type moments at poster scale; no eyebrows, mono, uppercase
+coloured word, a jump in scale, or none); the opening plus at most two type moments at poster scale; no eyebrows, mono, uppercase
 labels or numbered steps.
 
 ## What makes it feel high end

@@ -19,8 +19,11 @@
 //   blank      a scroll stop with no text seen and the screen one flat colour (header and cursor aside) FAIL
 //   broken-number  a number ("3 900.00", "EUR 1.250,00", "12%") whose glyphs sit on two lines           FAIL
 //   font-missing   a face the visible text asks for first that never loaded (a fallback shows)          FAIL
-//   empty      a screen-high stretch without text or image between the hero and the footer            WARN
-//              (a screen and a half or more                                                           FAIL)
+//   covered    a line partly under a canvas, photo or opaque panel above it that holds still          FAIL
+//   type-wall  desktop: more than 20 words in one block at display size (72px and 7vw)              FAIL
+//   type-scale desktop: more than two blocks at display size after the first screen                  WARN
+//   empty      six tenths of a screen without text or image between the hero and the footer          WARN
+//              (a whole screen or more                                                                FAIL)
 //   error      console errors, page errors and images that did not load                                 FAIL
 //
 // Screenshots go to .struq/look/ (desktop-NN.png, phone-NN.png): open the ones a finding names and look. The findings
@@ -43,7 +46,7 @@ const VIEWPORTS = [
   { name: "desktop", width: 1440, height: 900 },
 ];
 const MAX_STEPS = 60;
-const SEVERITY = { collision: "FAIL", clipped: "FAIL", overflow: "FAIL", contrast: "FAIL", unreadable: "FAIL", blank: "FAIL", "broken-number": "FAIL", "font-missing": "FAIL", error: "FAIL", "self-link": "FAIL", empty: "WARN" };
+const SEVERITY = { collision: "FAIL", clipped: "FAIL", overflow: "FAIL", contrast: "FAIL", unreadable: "FAIL", blank: "FAIL", "broken-number": "FAIL", "font-missing": "FAIL", error: "FAIL", "self-link": "FAIL", covered: "FAIL", "type-wall": "FAIL", "type-scale": "WARN", empty: "WARN" };
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -599,6 +602,89 @@ function measurePage(opts) {
       }
     }
 
+    const chromeCache = new Map();
+    const chrome = (el) => {
+      if (!el || el === document.body) return false;
+      if (chromeCache.has(el)) return chromeCache.get(el);
+      const p = cs(el).position;
+      const v = (header && header.contains(el)) || ((p === "fixed" || p === "sticky") && el.getBoundingClientRect().height < 0.35 * vh) || chrome(el.parentElement);
+      chromeCache.set(el, v);
+      return v;
+    };
+
+    /* --- 3b. covered: a line partly under a canvas, a photo or an opaque panel that sits above it and holds still
+       (proof run 2026-11-25: a split screen's headline ran under its own 3D panel and read "Lyset er i gl"). A cover
+       a script is moving (a panel sliding over the hero, a zoom) is a transition in progress; a line wholly under a
+       cover is hidden on purpose (stacked cards); the header and small fixed chrome are on every screen. */
+    const coverOf = (stack, at, el) => {
+      for (let i = 0; i < at; i++) {
+        const e = stack[i];
+        if (el.contains(e)) continue;
+        const s = cs(e);
+        const solid = (isMedia(e) && opacity(e) >= 0.5) || rgba(s.backgroundColor)[3] * opacity(e) >= 0.9 || (hasImageGround(e) && opacity(e) >= 0.5);
+        if (!solid || chrome(e)) continue;
+        return e;
+      }
+      return null;
+    };
+    const sliding = (el) => {
+      for (let a = el; a && a !== document.body; a = a.parentElement) if ((a.style?.transform && (Math.abs(translation(a).x) > 0.5 || Math.abs(translation(a).y) > 0.5)) || zooming(a)) return true;
+      return false;
+    };
+    const coveredDone = new Set();
+    for (const t of shown) {
+      if (t.fontSize < 14 || inHeader(t) || chrome(t.el) || coveredDone.has(t.el)) continue;
+      let total = 0;
+      let under = 0;
+      let by = null;
+      t.ink.forEach((k, i) => {
+        if (!t.shown[i]) return;
+        const l = Math.max(k.l, t.clip.l, 0);
+        const r = Math.min(k.r, t.clip.r, vw - 1);
+        const y = Math.min(Math.max((k.t + k.b) / 2, 0), vh - 1);
+        if (r - l < 4 || y <= 0 || y >= vh - 1) return;
+        const n = Math.min(16, Math.max(4, Math.round((r - l) / 24)));
+        for (let j = 0; j < n; j++) {
+          const x = l + ((j + 0.5) * (r - l)) / n;
+          const stack = document.elementsFromPoint(x, y);
+          const at = stack.findIndex((e) => e === t.el || t.el.contains(e));
+          if (at < 0) continue;
+          total++;
+          const c = coverOf(stack, at, t.el);
+          if (c) {
+            under++;
+            by ??= c;
+          }
+        }
+      });
+      if (!by || total < 4) continue;
+      const share = under / total;
+      if (share < 0.12 || share > 0.92 || sliding(by)) continue;
+      coveredDone.add(t.el);
+      const what = isMedia(by) ? `the ${by.tagName.toLowerCase()} ${path(by)}` : path(by);
+      add({ kind: "covered", text: t.text, selector: path(t.el), detail: `${Math.round(share * 100)}% of the line sits under ${what}: move the type to the calm side of the panel, give it the panel's width, or raise it above (z-index)`, key: `covered|${path(t.el)}|${t.text.slice(0, 40)}` });
+    }
+
+    /* --- 3c. type at display size after the first screen, for the page's scale ladder. A display moment is a block
+       of text at poster scale (at least 72px and 7vw); a wall is one with more than 20 words. */
+    const display = [];
+    {
+      const big = Math.max(72, 0.07 * vw);
+      const blocks = new Map();
+      for (const t of shown) {
+        if (t.fontSize < big || inHeader(t) || chrome(t.el)) continue;
+        if (!t.lines.some((r, i) => t.shown[i] && r.bottom > 0 && r.top < vh)) continue;
+        const g = t.el.closest("h1,h2,h3,h4,h5,h6,p,blockquote,li,figcaption,[data-scene]") ?? t.el;
+        if (g.closest("footer")) continue;
+        const top = Math.min(...t.lines.map((r) => r.top)) + sy;
+        const b = blocks.get(g) ?? { key: path(g), text: (g.innerText || t.text).replace(/\s+/g, " ").trim(), top, size: t.fontSize };
+        b.top = Math.min(b.top, top);
+        b.size = Math.max(b.size, t.fontSize);
+        blocks.set(g, b);
+      }
+      for (const b of blocks.values()) display.push({ ...b, words: b.text.split(/\s+/).filter(Boolean).length, text: b.text.slice(0, 120) });
+    }
+
     /* --- 4b. a number broken over two lines: "3 900.00" wrapping at its group space reads as two numbers. Every token
        (an optional currency, digits with thousands groups, decimals, a percent or a unit) gets its own Range, and the
        centres of its client rects say how many line boxes its glyphs sit on. */
@@ -655,15 +741,6 @@ function measurePage(opts) {
 
     /* --- 5. what holds content on this screen, in document coordinates. Chrome that rides along with the scroll
        (the header, a small fixed button or cursor) is on every screen, so it holds nothing. A pinned scene does. */
-    const chromeCache = new Map();
-    const chrome = (el) => {
-      if (!el || el === document.body) return false;
-      if (chromeCache.has(el)) return chromeCache.get(el);
-      const p = cs(el).position;
-      const v = (header && header.contains(el)) || ((p === "fixed" || p === "sticky") && el.getBoundingClientRect().height < 0.35 * vh) || chrome(el.parentElement);
-      chromeCache.set(el, v);
-      return v;
-    };
     const hold = (e) => {
       const r = e.getBoundingClientRect();
       const w = Math.min(r.right, vw) - Math.max(r.left, 0);
@@ -696,6 +773,7 @@ function measurePage(opts) {
       quiet: !seenText,
       mask,
       families,
+      display,
     };
   } finally {
     force.remove();
@@ -970,6 +1048,7 @@ async function lookAt(browser, vp, errors) {
   let crops = 0;
   let blankRun = null;
   const faces = new Map();
+  const displays = new Map();
   const measured = new Set();
   const stepPx = Math.round(vp.height * 0.6);
   let extra = 0;
@@ -988,6 +1067,7 @@ async function lookAt(browser, vp, errors) {
     let png = await capture(page, { path: shot });
     steps.push({ step, scrollY: m.scrollY, shot });
     content.push(...m.content);
+    for (const d of m.display) if (!displays.has(d.key)) displays.set(d.key, { ...d, step, shot });
     for (const [face, text] of Object.entries(m.families)) if (!faces.has(face)) faces.set(face, { text, step, scrollY: m.scrollY, shot });
     docHeight = Math.max(docHeight, m.docHeight);
     if (m.footerTop !== null) footerTop = m.footerTop;
@@ -1110,6 +1190,20 @@ async function lookAt(browser, vp, errors) {
     findings.push({ kind: "font-missing", viewport: vp.name, step: at.step, scrollY: Math.round(at.scrollY), text: at.text, selector: "", detail: `the face "${prettyFace(face)}" is asked for first but never loaded, so this text shows a fallback: load it (next/font, or an @font-face that answers) or name a face that does`, shot: at.shot });
   }
 
+  // 4e. The scale ladder: display type (72px and 7vw or more) after the first screen. A paragraph at poster scale is a
+  // wall the visitor scrolls through instead of reading (proof runs 2026-11-25: three of five middle scenes were one
+  // sentence at 10vw); more than two such moments flattens the page into one loud register.
+  if (vp.width >= 1024) {
+    const later = [...displays.values()].filter((d) => d.top >= vp.height * 0.9);
+    for (const d of [...displays.values()].filter((d) => d.words > 20)) {
+      findings.push({ kind: "type-wall", viewport: vp.name, step: d.step, scrollY: Math.round(d.top), text: d.text, selector: d.key, detail: `${d.words} words at ${Math.round(d.size)}px: display size is for a line of up to about twelve words; set this at heading or lead size and give the scene something to look at`, shot: d.shot });
+    }
+    if (later.length > 2) {
+      const d = later[2];
+      findings.push({ kind: "type-scale", viewport: vp.name, step: d.step, scrollY: Math.round(d.top), text: later.map((x) => x.text.slice(0, 40)).join(" / "), selector: d.key, detail: `${later.length} lines at poster scale after the first screen: keep display size for the opening and one or two moments, and set the other scenes a step down (heading size) beside a visual`, shot: d.shot });
+    }
+  }
+
   // 5. Empty stretches: a screen-high window without content, below the first screen and above the footer.
   const start = vp.height;
   const end = footerTop ?? docHeight - vp.height / 2;
@@ -1117,15 +1211,15 @@ async function lookAt(browser, vp, errors) {
   let reach = start;
   const gaps = [];
   for (const [a, b] of spans) {
-    if (a > reach && Math.min(a, end) - reach >= vp.height) gaps.push([reach, Math.min(a, end)]);
+    if (a > reach && Math.min(a, end) - reach >= vp.height * 0.6) gaps.push([reach, Math.min(a, end)]);
     reach = Math.max(reach, b);
     if (reach >= end) break;
   }
-  if (end - reach >= vp.height) gaps.push([reach, end]);
+  if (end - reach >= vp.height * 0.6) gaps.push([reach, end]);
   for (const [a, b] of gaps) {
     const near = steps.reduce((best, s) => (Math.abs(s.scrollY - a) < Math.abs(best.scrollY - a) ? s : best), steps[0]);
-    // A dead stretch of a screen and a half is a hole in the film, not a breath: it fails. One screen warns.
-    const dead = b - a >= vp.height * 1.5;
+    // A dead stretch of a whole screen is a hole in the film, not a breath: it fails. Six tenths of one warns.
+    const dead = b - a >= vp.height;
     findings.push({ kind: "empty", severity: dead ? "FAIL" : "WARN", viewport: vp.name, step: near.step, scrollY: Math.round(a), text: "", selector: "", detail: `${Math.round(b - a)}px without text or image, from ${Math.round(a)}px down${dead ? ": every screen of scroll must change something; shorten the pin or the padding, or give the stretch its beat" : ""}`, shot: near.shot });
   }
   await context.close();

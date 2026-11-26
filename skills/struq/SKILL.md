@@ -24,6 +24,16 @@ says plainly what they make or do ([references/copy.md](references/copy.md)). Pr
 earns its place by showing the product, the craft or the idea better than a still would. If it only shows off, cut
 it.
 
+**One world, one scale ladder.** A studio site feels whole because the middle is the same film as the opening, not
+a stack of type cards after it. Poster-scale type is for the opening and at most two other moments; every other
+scene sets its heading a clear step down (about 2.5 to 4.5rem on a desktop) and its body at reading size, and leads
+with something to look at: the object closer or in another light, the material, the subject piece, a photo of this
+client's world, a drawing at scale, the way to buy. A sentence of more than about twelve words never runs at display
+size, and a scene that is only a sentence is a breath, at most one per page. When the brief is thin, the middle shows
+rather than tells: the craft, the form in detail, the place, never more sentences at a larger size. With a real-time
+signature the scene carries on down the page ([references/realtime.md](references/realtime.md), "One world"). Every
+screen of scroll changes something: no stretch of a screen sits empty.
+
 Work in this order:
 
 1. **The idea**: a point of view on this client that a visitor leaves believing, not a description of the business.
@@ -196,7 +206,10 @@ yours. Compose each middle scene for this client from the
 primitives (`SplitHeadline` for fitted type, `Reveal`, `MediaFrame`, the grid and the tokens), from what only this
 trade has: a price board for a bakery, a tide table for a guesthouse, a joint drawn to scale for a plumber, a menu set
 like a chalkboard for a restaurant. No two middle scenes share a layout, and none is a one-word list, a big sentence
-with a small photo, or a photo beside text unless the idea truly asks for it.
+with a small photo, or a photo beside text unless the idea truly asks for it. Hold the scale ladder (the bar,
+above): each middle scene is a heading a step below display, a line or two at reading size, and the thing itself,
+large; never a paragraph at poster scale. Where text and a canvas or photo panel share a screen, the type keeps to
+its own column and never runs under the panel; check every split at 1440 and 390.
 
 When no photo shows the Subject and the client makes a physical object (a lamp, a machine, a bottle, a chair), show
 the object itself in real-time 3D with the kit (`kit/gl`: a lathe form or a few turned and machined parts in real
@@ -245,8 +258,9 @@ leave it running, and run `node <skill-dir>/scripts/look.mjs` (the first run ins
 Never stop a server you did not start. It scrolls the page at 390 and 1440 with motion on, saves every step to
 `.struq/look/`, and fails on text under the header, the site name twice on the first screen, letters cut by a mask
 or the screen edge, a page wider than the screen, low contrast on a solid ground or measured over a photo, a blank
-screen, a number broken across lines, a font that never loaded, and console or image errors; it warns on a
-screen-high empty stretch. Open the screenshots and crops it names and read
+screen, a number broken across lines, a font that never loaded, a line partly under a canvas or panel that holds
+still, a paragraph at poster scale, an empty stretch of a whole screen, and console or image errors; it warns on more
+than two poster-scale lines after the first screen and on an empty stretch of six tenths of a screen. Open the screenshots and crops it names and read
 them as a studio's art director would: the preloader lands, every pin engages and lets go, the first screen is bold
 enough to stop a visitor. Fix, rebuild, restart the server and run it again until `LOOK: PASS`. A centerpiece that
 fails the look is fixed or swapped for another centerpiece from the hand (or an own loud scene), with the Centerpiece
@@ -286,7 +300,7 @@ Centerpiece may come from anywhere in the catalogue: choose the pair that could 
 Defaults the plan check warns on (override with a reason under `Overrides:`): exactly one centerpiece and nothing pinned after it; never two loud scenes side by
 side; at least four in ten scenes quiet; pins together about 4.5 screens; every frame from the language; at most two
 full-bleed photo reveals, one marquee, one custom cursor, one accent device (an italic word, a weight shift, a
-coloured word, a jump in scale, or none); two or three type moments at poster scale; no eyebrows, mono, uppercase
+coloured word, a jump in scale, or none); the opening plus at most two type moments at poster scale; no eyebrows, mono, uppercase
 labels or numbered steps.
 
 ## What makes it feel high end

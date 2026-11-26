@@ -6,4 +6,4 @@ export { TurnedObject } from "./TurnedObject";
 export { ScrollCamera, type CameraKey } from "./ScrollCamera";
 export { Backdrop } from "./Backdrop";
 export { PROFILES, type Profile, type ProfileName } from "./profiles";
-export { useScrollProgress, useScrollVelocity, usePointer, useTokenColor, prefersReducedMotion, type Signal } from "./signals";
+export { useScrollProgress, useScrollVelocity, usePointer, useTokenColor, prefersReducedMotion, span, type Signal } from "./signals";
