@@ -151,9 +151,12 @@ screen, render one frame under reduced motion, and run on the page's one GSAP cl
 
 - **Ready-made objects.** `kit/gl/objects` holds hero objects already modelled and finished to a studio standard:
   `Pendant` (hand-blown glass with a filament bulb, a knurled cap and a cord), `LeverMachine` (a vintage lever
-  espresso machine, every part turned, bent or bevelled) and `Vessel` (thrown ceramic with throwing rings, a glaze
-  line and drips over bare clay). Use one of these first and adjust its props to the business: the shape, the tint,
-  the enamel, the metal, the glaze and clay, with `glow`, `lever` or `steam` on the page's scroll. Each fits about a
+  espresso machine, every part turned, bent or bevelled), `Vessel` (thrown ceramic with throwing rings, a glaze
+  line and drips over bare clay) and `Roof` (a gable roof in section for the trades: rafters, boarding, membrane,
+  battens and tile, slate, standing-seam metal or bitumen, gutters, a chimney in lead; it builds itself layer by layer,
+  sheds the rain into the gutter and turns flat with its pitch). Use one of these first and adjust its props to the
+  business: the shape, the tint, the enamel, the metal, the glaze and clay, the cover and the pitch, with `glow`,
+  `lever`, `steam`, `build` or `rain` on the page's scroll. Each fits about a
   2 unit box with its origin and best camera in the file header. Model your own only when none of them fits the
   client's object, and then to the same standard, by the rules below.
 - **Turned objects** (a lamp, a vase, a bottle, a cup): `LatheGeometry` from a profile of 20 to 40 points, then
