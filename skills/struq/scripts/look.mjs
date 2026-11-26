@@ -1169,7 +1169,8 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 async function capture(page, opts = {}) {
   for (let i = 0; ; i++) {
     try {
-      return await page.screenshot(opts);
+      // A shared machine with a WebGL page can take longer than the default 30s to hand over a frame.
+      return await page.screenshot({ timeout: 90000, ...opts });
     } catch (err) {
       if (i >= 2 || !/capture|screenshot/i.test(String(err?.message))) throw err;
       await wait(400);
