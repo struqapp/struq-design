@@ -24,6 +24,8 @@
 // - progress: 0 to 1, the build. Each layer takes an equal share, bottom up: its outline draws, its hatching settles,
 //   then its name sets in on its leader. Left out, the drawing stands finished. Drive it from your scene's scroll
 //   (ScrollTrigger progress) and read which layer is landing with `roofLayerAt(progress, layers.length)`.
+// - water: 0 to 1, the water's way drawn as a line over the membrane, under the cover, into the gutter (on a flat roof
+//   over the bitumen to the edge), with an arrowhead once it arrives. Show the idea that a leak travels. Left out, none.
 // - wall: false drops the wall and wall plate (default true). dimension: false drops the pitch (default true).
 // - locale (default "nl-NL"), title (the figure's accessible name; a sentence by default), className (on the figure).
 //
@@ -45,6 +47,8 @@ type Props = {
   layers?: readonly RoofLayer[];
   labels?: Partial<Record<RoofLayer, string>> | false;
   progress?: number;
+  /** 0 to 1: the water's way drawn as a line, over the membrane under the cover and into the gutter. Left out, none. */
+  water?: number;
   wall?: boolean;
   dimension?: boolean;
   locale?: string;
@@ -111,8 +115,8 @@ function geometry(cover: RoofCover, pitchDeg: number, layers: readonly RoofLayer
   const P = (s: number, n: number): Pt => [s * cos - n * sin, -s * sin - n * cos];
 
   const D = flat ? 220 : 171; // rafter or joist depth
-  const S = flat ? 1500 : 1700; // drawn length along the slope
-  const ends = { cover: 0.62, battens: 0.8, membrane: 0.9 };
+  const S = flat ? 1500 : 1600; // drawn length along the slope
+  const ends = { cover: 0.64, battens: 0.8, membrane: 0.89 };
   const has = (k: RoofLayer) => layers.includes(k);
   const parts: Part[] = [];
   const context: Shape[] = [];
@@ -126,7 +130,7 @@ function geometry(cover: RoofCover, pitchDeg: number, layers: readonly RoofLayer
   const ySeat = under(xa) - notch;
   const seatEnd = notch ? xa + notch / tan : xa;
   const plateH = 70;
-  const wallBottom = ySeat + plateH + 260;
+  const wallBottom = ySeat + plateH + 220;
   if (withWall) {
     context.push({ d: poly([[xa, ySeat], [xa + 100, ySeat], [xa + 100, ySeat + plateH], [xa, ySeat + plateH]]), cross: `M${xa} ${ySeat} L${xa + 100} ${ySeat + plateH} M${xa + 100} ${ySeat} L${xa} ${ySeat + plateH}` });
     const zig = (y: number) => {
@@ -154,7 +158,7 @@ function geometry(cover: RoofCover, pitchDeg: number, layers: readonly RoofLayer
       const bot = D / cos - 20;
       shapes.unshift({ d: poly([[-22, top], [0, top], [0, bot], [-22, bot]]), cross: `M-22 ${top} L0 ${bot} M0 ${top} L-22 ${bot}`, heavy: true });
     }
-    parts.push({ key: "rafters", shapes, anchor: P(S - 110, 0) });
+    parts.push({ key: "rafters", shapes, anchor: P(S * 0.95, 0) });
   }
 
   // The second layer: a membrane for a pitched roof, the boarding for a flat one.
@@ -177,7 +181,7 @@ function geometry(cover: RoofCover, pitchDeg: number, layers: readonly RoofLayer
   const base = t1 + cb; // top of the counter-batten
   const topOfBattens = base + bh;
   const coverLen = cover === "slate" ? 500 : 420;
-  const gauge = cover === "slate" ? 210 : 330;
+  const gauge = cover === "slate" ? 210 : 310;
   const firstBatten = cover === "slate" ? 330 : 300;
   const battenAt: number[] = [];
   for (let b = firstBatten; b + bw < S * ends.battens - 8; b += gauge) battenAt.push(b);
@@ -214,8 +218,7 @@ function geometry(cover: RoofCover, pitchDeg: number, layers: readonly RoofLayer
     if (cover === "tile" || cover === "slate") {
       const T = cover === "slate" ? 7 : 14;
       const lowN = cover === "slate" ? topOfBattens + 2 * T : topOfBattens + 15;
-      // The top batten stays bare, so the battens show beyond the last row.
-      const hosts = battenAt.slice(0, -1).filter((b) => b + bw + 20 <= sEnd + 1);
+      const hosts = battenAt.filter((b) => b + bw + 20 <= sEnd + 1);
       hosts.forEach((b) => {
         const top = b + bw + (cover === "slate" ? 0 : 20);
         const bot = top - coverLen;
@@ -224,7 +227,7 @@ function geometry(cover: RoofCover, pitchDeg: number, layers: readonly RoofLayer
         const outline: Pt[] = [at(bot, 0), at(top, 0), at(top, T), at(bot, T)];
         if (cover === "tile") {
           // The nib hooks behind the batten.
-          const nib: Pt[] = [P(b + bw + 14, topOfBattens), P(b + bw + 14, topOfBattens - 15), P(b + bw, topOfBattens - 15), P(b + bw, topOfBattens)];
+          const nib: Pt[] = [at(b + bw + 1, 0), at(b + bw + 1, -15), at(b + bw + 13, -15), at(b + bw + 13, 0)];
           outline.splice(1, 0, ...nib);
         }
         shapes.push({ d: poly(outline), face: "solid", accent: true, heavy: true });
@@ -286,7 +289,36 @@ function geometry(cover: RoofCover, pitchDeg: number, layers: readonly RoofLayer
   if (!xs.length) xs.push(0, 100), ys.push(0, 100);
   const box = { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
   const dim = flat ? null : { at: [seatEnd, ySeat] as Pt, len: 230 };
-  return { parts, context, box, dim, wallBottom, p, P, S };
+  // The water's way: what blows under the cover runs down the membrane (on a flat roof, over the bitumen) and over
+  // the fascia into the gutter.
+  const wn = flat ? deckTop + 12 : t1 + 11;
+  const gx = flat ? -110 : -104;
+  const gy = (flat ? 40 : 46) + 40;
+  const water: Pt[] = [P(S * ends.cover * (flat ? 0.9 : 0.85), wn), P(0, wn), [P(0, wn)[0] - 14, P(0, wn)[1] + 4], [gx + 18, gy - 26], [gx + 4, gy]];
+  return { parts, context, box, dim, wallBottom, p, P, S, water };
+}
+
+/** The first `t` of a polyline by length, so a dashed line can draw itself without a moving dash offset. */
+function partial(pts: Pt[], t: number): Pt[] {
+  const seg = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
+  let left = seg.reduce((a, b) => a + b, 0) * t;
+  const out: Pt[] = [pts[0]];
+  for (let i = 0; i < seg.length && left > 0; i++) {
+    const k = Math.min(1, left / (seg[i] || 1));
+    out.push([pts[i][0] + (pts[i + 1][0] - pts[i][0]) * k, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * k]);
+    left -= seg[i];
+  }
+  return out;
+}
+
+/** A filled arrowhead at `to`, pointing away from `from`. */
+function head(from: Pt, to: Pt, u: (n: number) => number) {
+  const dx = to[0] - from[0];
+  const dy = to[1] - from[1];
+  const l = Math.hypot(dx, dy) || 1;
+  const [ux, uy] = [dx / l, dy / l];
+  const [a, w] = [u(8), u(3)];
+  return poly([to, [to[0] - ux * a - uy * w, to[1] - uy * a + ux * w], [to[0] - ux * a + uy * w, to[1] - uy * a - ux * w]]);
 }
 
 export function RoofSection({
@@ -297,6 +329,7 @@ export function RoofSection({
   progress,
   wall = true,
   dimension = true,
+  water,
   locale = "nl-NL",
   title,
   className = "",
@@ -320,7 +353,9 @@ export function RoofSection({
   const labelRoom = showLabels ? ladder + u(10) : 40;
   const vx = geo.box.x0 - pad - (showLabels ? u(8) : 0);
   const vy = geo.box.y0 - labelRoom;
-  const vw = geo.box.x1 - vx + pad + (showLabels ? u(72) : 0);
+  // The names run right of their leaders: the frame reaches as far as the longest one, at about 0.58 em a letter.
+  const reach = showLabels ? Math.max(0, ...order.map((x) => x.anchor[0] + u(14) + (names[x.key]?.length ?? 0) * font * 0.58 - geo.box.x1)) : 0;
+  const vw = geo.box.x1 - vx + pad + reach;
   const vh = geo.box.y1 + (showLabels && layers.includes("gutter") ? u(52) : pad) - vy;
   // The scale the drawing renders at: the svg fits its box (meet), so the smaller of the two ratios.
   useEffect(() => {
@@ -426,6 +461,20 @@ export function RoofSection({
               </g>
             );
           })()
+        ) : null}
+        {water !== undefined && water > 0 && layers.includes("membrane") ? (
+          <g data-water="">
+            <path
+              d={poly(partial(geo.water, clamp(water)), false)}
+              fill="none"
+              stroke="var(--ink)"
+              strokeWidth={u(1.3)}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray={`${u(5)} ${u(4)}`}
+            />
+            {water >= 1 ? <path d={head(geo.water[geo.water.length - 2], geo.water[geo.water.length - 1], u)} fill="var(--ink)" /> : null}
+          </g>
         ) : null}
         {showLabels
           ? geo.parts.map((part, i) => {
