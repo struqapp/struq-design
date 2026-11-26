@@ -245,7 +245,10 @@ never as a fact about the client: no customer names, no figures they would quote
 Start from the kit's designed pieces in `@/components/struq/kit/subject` before drawing your own: `Document` (an
 invoice, quote, receipt, menu or label), `AppScreen` (a window or phone with the app's real screen), `Ticket` (a
 ticket, badge or poster), `PatternPaper` (a sewing pattern) and `SectionDrawing` (a technical section). Fill them with
-this client's content and palette; read each file header for its props and its scroll motion.
+this client's content and palette; read each file header for its props and its scroll motion. Where a trade's own
+construction is the signature (a roofer, a builder), `@/components/struq/kit/drawn` holds drawings that build with
+the scroll at illustration quality: `RoofSection` (a roof in section, tile, slate, metal or flat, built layer by layer
+and named as each lands; examples/van-rijn shows it).
 
 For the middle of the page, start from the designed scenes in `@/components/struq/kit/middle` before composing your
 own: `ServicesList` (what the business does, as rows, photo panels or a pair; never an icon grid), `ProcessStrip` (how
