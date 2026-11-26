@@ -220,6 +220,11 @@ above): each middle scene is a heading a step below display, a line or two at re
 large; never a paragraph at poster scale. Where text and a canvas or photo panel share a screen, the type keeps to
 its own column and never runs under the panel; check every split at 1440 and 390.
 
+**The phone is half the build.** Every site works at once on a phone and a desktop, at every common width. Design the
+390 layout on purpose, never a squeezed desktop: its own type scale (body 15px and up), the object framed for it
+(Framed's `phoneSize`, BeatCamera's `phone` poses, the type below the object), and the door within a thumb's reach,
+filled and full width, every tap target 44px. look.mjs holds the phone to this.
+
 When no photo shows the Subject and the client makes a physical object (a lamp, a machine, a bottle, a chair), show
 the object itself in real-time 3D with the kit (`kit/gl`: a lathe form or a few turned and machined parts in real
 glass, metal or ceramic, lit by the Stage), on the first screen when it is the signature. A line drawing or a

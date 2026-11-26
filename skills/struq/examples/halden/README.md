@@ -67,6 +67,23 @@ the motif's last line: the cord draws down to a small drawn pendant.
 
 ![Order close](shots/desktop-order.jpg)
 
+## On a phone
+
+The 390 layout is designed, not squeezed. What Halden does there:
+
+- **The lamp above, the type below.** Framed moves the lamp to the upper centre on a phone; every sticky scene
+  (`Pusten`, `Veggen`, `Blatimen`) sets its type at the foot of the screen (`justify-end` with bottom padding), so the
+  two never share a band.
+- **Type leaves before the lamp.** `useLeave` fades a scene's type in the first tenth of a screen after it lets go, so
+  it never scrolls up through the lamp.
+- **The row travels past.** Five lamps do not fit across 390, so `world.tsx` shrinks the row by half on a phone and
+  slides it past the type as `Veggen` scrolls, instead of shrinking it to fit.
+- **A ground of its own where the world would crowd.** `Rommene` takes `bg-surface-1` below `md` (see-through above),
+  so the list stands alone and the world fades out while it holds the screen; each room name is fitted to one line
+  (`page.css`).
+- **Thumb-sized doors.** The order close's door spans the screen, filled and 64px tall; the header's menu has a 44px
+  hit area; body text stays at `text-body` (17px).
+
 ## Adapting it
 
 Keep: the skeleton, one object that stays with the visitor, a scene that shows how it is made, a scene that shows it
