@@ -119,7 +119,11 @@ export function World({ children }: { children: ReactNode }) {
 Each section over the world says what the visitor learns there and leaves the side the object is on free; a section
 that wants the page to itself has its own ground, and the world waits behind it. Put a key on the camera path at
 each section's share of the page (measure it once, from `offsetTop` against the scroll height, when the beats must
-land exactly), and check every key at 1440 and 390 with the type in place. The opening's own pin can still run inside
+land exactly), and check every key at 1440 and 390 with the type in place. Between the keys matters as much: the
+object travels while the visitor scrolls, and a lamp that swings through the headline on its way in reads as a
+mistake, even with the type above it. Let the object arrive before the section's line is on screen (its key a little
+ahead of the section's share), or keep its path on the side the type leaves free, and scroll through each beat slowly
+at 1024 as well, where a shorter screen brings the line up into the object's path. The opening's own pin can still run inside
 it: give that section `span(page, a, b)` beats rather than a second canvas. One canvas for the whole page is also
 cheaper than one per section.
 
