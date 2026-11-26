@@ -126,6 +126,8 @@ type FaceProps = {
   links: HeaderLink[];
   action?: HeaderLink;
   menuHref: string;
+  menuLabel: string;
+  navLabel: string;
   onMenu?: () => void;
   place: string;
   clock: boolean;
@@ -153,7 +155,7 @@ function Letters({ text }: { text: string }) {
  * The bar's face. Drawn once for real (links, transparent text once the copies show) and as aria-hidden copies in every
  * ink, so all of them lay out alike to the pixel.
  */
-function Face({ real = false, tone = "ground", variant, name, homeHref, links, action, menuHref, onMenu, place, clock, time, bind }: FaceProps) {
+function Face({ real = false, tone = "ground", variant, name, homeHref, links, action, menuHref, menuLabel, navLabel, onMenu, place, clock, time, bind }: FaceProps) {
   const n = links.length;
   const split = variant === "split";
   // Where the full bar starts: split needs the room for three parts.
@@ -211,10 +213,10 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
 
   const menu = onMenu && real ? (
     <button type="button" data-hb-link={n + 1} onClick={onMenu} className="relative inline-flex cursor-pointer bg-transparent py-2 text-small leading-none" {...on(n + 1)}>
-      {label("Menu")}
+      {label(menuLabel)}
     </button>
   ) : (
-    link(n + 1, { label: "Menu", href: menuHref })
+    link(n + 1, { label: menuLabel, href: menuHref })
   );
 
   const Nav = real ? "nav" : "div";
@@ -237,7 +239,7 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
 
       {split ? (
         <>
-          <Nav data-hb-fade="" {...(real ? { "aria-label": "Hoofdmenu" } : {})} className={`relative justify-self-center ${wide}`}>
+          <Nav data-hb-fade="" {...(real ? { "aria-label": navLabel } : {})} className={`relative justify-self-center ${wide}`}>
             {list}
           </Nav>
           <div data-hb-fade="" className={`relative flex items-center gap-8 justify-self-end ${wide}`}>
@@ -256,7 +258,7 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
           </div>
         </>
       ) : (
-        <Nav data-hb-fade="" {...(real ? { "aria-label": "Hoofdmenu" } : {})} className={`relative flex items-center gap-x-7 ${wide}`}>
+        <Nav data-hb-fade="" {...(real ? { "aria-label": navLabel } : {})} className={`relative flex items-center gap-x-7 ${wide}`}>
           {list}
           {act}
         </Nav>
@@ -309,6 +311,8 @@ export function HeaderBar({
   links,
   action,
   menuHref = "#menu",
+  menuLabel = "Menu",
+  navLabel = "Hoofdmenu",
   onMenu,
   place = "Rotterdam",
   clock = false,
@@ -324,6 +328,10 @@ export function HeaderBar({
   action?: HeaderLink;
   /** Where the phone's "Menu" link goes, when there is no onMenu. */
   menuHref?: string;
+  /** The phone menu link's label, in the site's language. */
+  menuLabel?: string;
+  /** The nav's accessible name, in the site's language. */
+  navLabel?: string;
   /** Opens the site's menu (the menu curtain); the phone's "Menu" is then a button. */
   onMenu?: () => void;
   /** split: the studio's place, on the right of the bar. */
@@ -753,7 +761,7 @@ export function HeaderBar({
     { scope: root, dependencies: [variant, links.length] },
   );
 
-  const face = { variant, name, homeHref, links, action, menuHref, onMenu, place, clock, time };
+  const face = { variant, name, homeHref, links, action, menuHref, menuLabel, navLabel, onMenu, place, clock, time };
 
   return (
     <div ref={root} data-header-bar={variant} style={{ "--hb-adv": advanceEm(name).toFixed(3) } as CSSProperties}>
