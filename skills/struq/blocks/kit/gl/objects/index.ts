@@ -4,4 +4,5 @@
 export { Pendant, type PendantShape, type PendantCap } from "./Pendant";
 export { LeverMachine } from "./LeverMachine";
 export { Vessel, FORM_FOOT, type VesselForm, type VesselFinish } from "./Vessel";
+export { Roof, roofLayers, roofLayerAt, type RoofCover, type RoofLayer, type RoofColors } from "./Roof";
 export { METALS, type MetalName } from "./parts";
