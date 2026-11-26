@@ -2,7 +2,7 @@
 
 ## 0.6.0 (2026-11-26)
 
-The skill shows instead of tells: finished reference builds to copy, and every site ships complete.
+The skill shows instead of tells: finished reference builds to copy, and every site ships complete. Blocks and canon come from Struq main d0df7a45.
 
 - `examples/`: three reference builds on one skeleton (`lib/site.ts`, one page of scenes, one signature, one close).
   Halden for shops, Van Rijn for trades (no 3D: a roof drawn in section), Oostwerk for agencies (a canal at night
