@@ -70,6 +70,12 @@ the copy craft ([references/copy.md](references/copy.md)) and a self-check. They
 like nothing Struq built before. `<skill-dir>` is this file's folder. Worked treatments:
 [references/film.md](references/film.md); craft: [references/craft.md](references/craft.md).
 
+**Start from a reference build.** [examples/](examples/README.md) holds finished sites, one per kind of business, each
+on one skeleton: `lib/site.ts` for every fact and line, `app/page.tsx` composing one file per scene, one signature, an
+ending that asks for the visitor's action. Before the treatment, read the README of the reference nearest this brief and
+its screenshots; build on its skeleton and patterns, then change everything that belongs to the business. Never its
+copy, name or claims.
+
 | Invocation | Mode |
 |---|---|
 | `/struq <brief>` | **Build**: the checklist below. |
