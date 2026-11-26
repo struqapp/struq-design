@@ -1,0 +1,30 @@
+/* app/page.css: the page rules Oostwerk needs on top of the kit's blocks.css (in the site they close globals.css,
+   after the STRUQ TOKENS block that canon.mjs writes). */
+
+/* The opener's door on a phone: filled and full width, within a thumb's reach. */
+@media (max-width: 767px) {
+  [data-blocks] [data-showpiece="hero-opener"] [data-opener-copy] > div,
+  [data-blocks] [data-showpiece="hero-opener"] [data-opener-copy] > div > a {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* The opener: the poster line first, then the lead and the door under it. */
+[data-blocks] [data-showpiece="hero-opener"] [data-opener-title] {
+  order: -1;
+}
+
+/* The order close under the street: the two offers stacked on the left, the door at the top of the right column. */
+@media (min-width: 768px) {
+  [data-blocks] #contact [data-close-shape="order"] ul:has(> [data-order-item]) {
+    grid-column: 1 / span 7;
+    grid-row: 1;
+  }
+  [data-blocks] #contact [data-close-shape="order"] div:has(> [data-door]) {
+    grid-column: 9 / span 4;
+    grid-row: 1;
+    align-self: start;
+    position: static;
+  }
+}

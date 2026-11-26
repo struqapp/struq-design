@@ -9,3 +9,6 @@ brief. The kit itself is not here: install it with `blocks.mjs`, as for any site
 
 - [halden](halden/README.md): product brands and shops. A glass pendant maker in Bergen; one lamp in a 3D world
   carries the page from the first screen to an order close.
+- [oostwerk](oostwerk/README.md): agencies and studios (neighbours: personal portfolios, creative freelancers). A web
+  studio in Amsterdam; a canal at night fills the first screen, one lit door among dark windows, and the same street
+  closes the page.
