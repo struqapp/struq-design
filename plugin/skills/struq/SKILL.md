@@ -85,15 +85,18 @@ For a dashboard or product UI keep the tokens, faces and tells; drop the preload
    stop. A caption is copy you write for this client, never the alt read back.
 2. **Never invent, never stand in.** No testimonials, logos, stats, awards, prices, addresses, hours, bios, quotes,
    product features, programme, process, equipment (a wood oven) or name the brief did not give. A missing fact
-   leaves no trace: no "to follow", "to be announced", "Your Name", example.com, and no button for an action with no
-   real destination (shop, booking, contact, sign-up), no "come by" without the address. Drop the line, the field or
-   the button and list it under
-   Assumptions in STRUQ.md. With no door (no address, phone, mail, booking or shop link from the brief or the stop) the
-   site ends on the idea, never on an invitation: no "Schuif aan", "Pick up a mug", "Book a class" or "Shop the
-   collection", and Assumptions names the door the client must add. With no name in the brief the header shows no
+   leaves no trace: no "to follow", "to be announced", "Your Name", example.com in the copy, no button with no
+   destination (the placeholder door below is the one exception), and no "come by" without
+   the address. Drop the line or the field and list it under Assumptions in STRUQ.md. A site that sells or takes
+   enquiries ends on the order close (`Close` shape `order`): what it sells or takes on, the prices the brief gives,
+   and the one way to buy or ask. With no door (no address, phone, mail, booking, shop or quote link from the brief or
+   the one stop) it uses the placeholder door, `door: { kind: "email", href: "mailto:post@example.com", label: "...",
+   placeholder: true }` in lib/site.ts, listed under Assumptions; the self-check warns until the client replaces it. The
+   placeholder is the only stand-in allowed, and only as that door. A site that neither sells nor takes enquiries,
+   with no door, ends on the idea, never on an invitation. With no name in the brief the header shows no
    wordmark and the opener and the close carry none (or ask for the name at the one stop); the trade word ("Yoga",
-   "Bakery") is never a name. The self-check fails stand-ins, links to anchors that do not exist, calls with no door
-   and a trade word as the name.
+   "Bakery") is never a name. The self-check fails stand-ins, links to anchors that do not exist, calls with no door,
+   a selling site with no way to buy, and a trade word as the name.
 3. **Never the tells** ([references/tells.md](references/tells.md)): no eyebrows, pills, CSS gradients or gradient
    text, glow shadows behind cards or words, mono on marketing, Inter or the other generator faces, default purple or
    blue, numbered steps, icon grids, stat banners, generic CTAs, em or en dashes. Light inside a WebGL scene (bloom,

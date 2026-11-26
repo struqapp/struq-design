@@ -377,6 +377,51 @@ test('an imperative call to act fails without a door, in English and in Dutch', 
   assert.ok(!fails(run(fixture()), 'Invitation without a door'));
 });
 
+// why: the Halden build (2026-11-26) sold glass pendants and ended on its idea with no price, no product and no way to
+// buy, because the rule said a brief with no door renders no door. A selling site now ends on the order close; with no
+// door from the brief it carries a placeholder door, which counts as a door but warns until the client replaces it.
+const withBrief = (brief) => PLAN.replace('# STRUQ.md: fixture\n', `# STRUQ.md: b\nBrief: ${brief}\n`);
+const PLACEHOLDER_SITE = 'export const site = {\n  name: "Halden",\n  door: { kind: "email", href: "mailto:post@example.com", label: "Bestill på e-post", placeholder: true },\n} as const;\n';
+
+test('a placeholder door counts as a door but warns until it is replaced', () => {
+  const page = (site) => run(fixture({ extra: { 'components/C.tsx': 'export const C = () => <section><h2>Shop the collection</h2></section>;\n', 'lib/site.ts': site } }));
+  const out = page(PLACEHOLDER_SITE);
+  assert.ok(!fails(out, 'Invitation without a door'), out);
+  assert.ok(!fails(out, 'Notes to the client'), out);
+  assert.ok(warns(out, 'Placeholder door:'), out);
+  assert.match(out, /replace before launch \(Assumptions\)/);
+  assert.match(out, /lib\/site\.ts:3 /);
+  // An example.no or example.nl address is a placeholder too, with or without the flag.
+  for (const addr of ['post@example.no', 'hallo@example.nl']) {
+    const o = page(`export const site = { door: { kind: "email", href: "mailto:${addr}", label: "Mail" } } as const;\n`);
+    assert.ok(warns(o, 'Placeholder door:'), addr);
+    assert.ok(!fails(o, 'Invitation without a door'), addr);
+  }
+  // A real door does not warn.
+  assert.ok(!warns(page('export const site = { door: { kind: "email", href: "mailto:post@halden.no", label: "Mail" } } as const;\n'), 'Placeholder door:'));
+  assert.ok(!warns(run(fixture()), 'Placeholder door:'));
+});
+
+test('a site the brief says sells fails with no order close, no shop door and no door at all', () => {
+  const sells = (brief, extra = {}) => run(fixture({ extra: { 'STRUQ.md': withBrief(brief), ...extra } }));
+  for (const brief of ['Halden, a glass studio in Bergen that sells pendant lamps', 'een webshop voor keramiek', 'Halden lager og selger glasslamper', 'Kiln, mugs to order', 'Vuur verkoopt houtovens']) {
+    assert.ok(fails(sells(brief), 'The site sells but has no way to buy'), brief);
+  }
+  const out = sells('Halden sells pendant lamps');
+  assert.match(out, /Close shape="order"/);
+  // The order close, a ProductRow with a shop door, a door of any kind, or the placeholder door settles it.
+  const settled = [
+    { 'components/O.tsx': 'export const O = () => <Close shape="order" items={[{ name: "Dråpe" }]} doors={site.doors} />;\n' },
+    { 'components/O.tsx': 'export const O = () => <ProductRow items={items} shop={{ label: "Nettbutikk", href: "https://halden.no/butikk" }} />;\n' },
+    { 'components/O.tsx': 'export const O = () => <a href="mailto:post@halden.no">post@halden.no</a>;\n' },
+    { 'lib/site.ts': PLACEHOLDER_SITE },
+  ];
+  for (const extra of settled) assert.ok(!fails(sells('Halden sells pendant lamps', extra), 'The site sells but has no way to buy'), JSON.stringify(extra));
+  // A brief that sells nothing, or no brief, is not held to it.
+  assert.ok(!fails(sells('a yoga studio in Deventer'), 'The site sells'));
+  assert.ok(!fails(run(fixture()), 'The site sells'));
+});
+
 // why: proof round 6 shipped a yoga studio called "Yoga" (header, opener, finale): the trade word standing in for a name
 // the brief never gave, and no check read it.
 test('a site named only by the trade word fails, unless the brief gives that name', () => {

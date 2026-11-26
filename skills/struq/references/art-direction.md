@@ -21,7 +21,9 @@ Open every still. Then look for, in this order:
    the opening; a glossary of the trade; a labelled anatomy diagram; the name at full width as the close; a dot or
    particle wave as the opening; one-word rows; a photo beside a paragraph.
 7. **Honesty.** A line that invents a fact, invites the visitor to a door the site never gives (an address, a number,
-   a link), speaks of a stock photo as the client's own, or promises something coming.
+   a link), speaks of a stock photo as the client's own, or promises something coming. A price, product, address or
+   number the brief did not give is invented. A site that sells or takes enquiries and does not end on the order close
+   fails too; with no door in the brief that close carries the placeholder door, listed under Assumptions.
 
 Answer with at most five changes, the ones that would raise the site most, worst first, as a numbered list (1. to 5.).
 Each: the still's file name, what is wrong in one sentence, and what to build instead, concrete enough to build without
