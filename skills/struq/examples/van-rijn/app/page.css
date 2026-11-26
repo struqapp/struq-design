@@ -1,5 +1,0 @@
-/* app/page.css: the page's own rules, on top of the kit's blocks.css. */
-
-/* Werk: the active service's name steps in, as the row's own hover nudge does, while the roof answers it. */
-[data-blocks] .vanrijn-werk [data-flood-name] { transition: transform 0.6s var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)); }
-[data-blocks] .vanrijn-werk li[data-active] [data-flood-name] { transform: translateX(0.35em); }

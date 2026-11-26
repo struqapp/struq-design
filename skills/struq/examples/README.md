@@ -9,6 +9,3 @@ brief. The kit itself is not here: install it with `blocks.mjs`, as for any site
 
 - [halden](halden/README.md): product brands and shops. A glass pendant maker in Bergen; one lamp in a 3D world
   carries the page from the first screen to an order close.
-- [van-rijn](van-rijn/README.md): local trades and home services (and construction, garden and landscaping,
-  removals). A family roofer in Utrecht; one roof in a 3D world stands in the rain, is built again layer by layer, and
-  the phone is a thumb away on every screen.

@@ -43,7 +43,11 @@ Work in this order:
    at poster scale, or both. A calm editorial page of small serif lines on a pale ground is what every agent makes;
    it is the reflex to beat, not the bar.
 3. **The system**: type, palette, motion language, easing curves and grid, each chosen because of the idea.
-4. **The build**: Struq's blocks first, because they are hardened and already at this level. For a real-time
+4. **The build**: Struq's blocks first, because they are hardened and already at this level. **3D is a choice, never
+   a default.** Use it only when the subject is an object that real-time light makes more beautiful (glass, metal,
+   ceramic, a product) and the render can stand beside a studio's; a scene that looks like a game (blocky tiles,
+   toy houses, procedural props, flat plastic) is worse than none. A roofer, a lawyer, a restaurant or a portfolio
+   mostly wins on type, photography, a drawn piece and motion. When 3D is unsure, the one stop asks. For a real-time
    signature start from the 3D kit (`kit/gl`: a Stage with studio light and post-processing, real glass,
    ceramic and metal, an inner light, a scroll camera). Adapt or fork any of it, or write your own scenes and shaders,
    wherever the idea needs a moment the kit does not have.

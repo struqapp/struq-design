@@ -6,7 +6,6 @@ export { TurnedObject } from "./TurnedObject";
 export { ScrollCamera, type CameraKey } from "./ScrollCamera";
 export { Backdrop } from "./Backdrop";
 export { Pendant, LeverMachine, Vessel, FORM_FOOT, METALS, type PendantShape, type PendantCap, type VesselForm, type VesselFinish, type MetalName } from "./objects";
-export { Roof, roofLayers, roofLayerAt, type RoofCover, type RoofLayer, type RoofColors } from "./objects";
 export { PROFILES, type Profile, type ProfileName } from "./profiles";
 export { useScrollProgress, useScrollVelocity, usePointer, useTokenColor, prefersReducedMotion, span, type Signal } from "./signals";
 // One world behind the whole page: World (the fixed canvas, behind the type), the beats of the page's data-beat
