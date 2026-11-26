@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -94,6 +94,7 @@ function fixture({ log = LOG_OK, page = PAGE_OK, extra = {} } = {}) {
   };
   if (log !== null) files['STRUQ-LOG.md'] = log;
   for (const [rel, text] of Object.entries(files)) {
+    if (text === null) continue;
     mkdirSync(dirname(join(dir, rel)), { recursive: true });
     writeFileSync(join(dir, rel), text);
   }
@@ -662,4 +663,86 @@ test('MOTION: the close is never the site name at full width', () => {
   const finale = '<WordmarkFinale name="Zout" />';
   assert.ok(name(run(fixture({ page: page('      <PanelWipe left="Vis" right="Zee" />', finale) }))));
   assert.ok(!name(run(fixture({ page: page('      <PanelWipe left="Vis" right="Zee" />\n      <Close shape="idea" line="Vis van het getij." />', finale) }))));
+});
+
+// why: a build shipped with Next's starter favicon, no logo, no link preview and no sitemap although nothing stopped it.
+// The FINISH group fails each missing piece on its own line, and warns when the site never imports Struq Icons.
+const FINISHED = {
+  'app/layout.tsx': LAYOUT_OK.replace('import { SmoothScroll }', 'import { siteMetadata } from "@/components/struq/kit/brand";\nimport { site } from "@/lib/site";\nexport const metadata = siteMetadata(site);\nimport { SmoothScroll }'),
+  'app/page.tsx': PAGE_OK.replace('<HeaderBar name="Zout" />', '<HeaderBar name="Zout" mark={<Mark symbol={site.brand.symbol} />} />'),
+  'app/icon.tsx': 'export default function Icon() { return null; }\n',
+  'app/opengraph-image.tsx': 'export default function Og() { return null; }\n',
+  'app/sitemap.ts': 'export default function sitemap() { return []; }\n',
+  'app/robots.ts': 'export default function robots() { return {}; }\n',
+  'app/manifest.ts': 'export default function manifest() { return {}; }\n',
+  'app/llms.txt/route.ts': 'export function GET() { return new Response("# Zout"); }\n',
+  'app/not-found.tsx': 'export default function NotFound() { return <a href="/">Naar de voorpagina</a>; }\n',
+  'components/Menu.tsx': 'import { Menu } from "@struq/icons";\nexport const M = () => <Menu size={20} />;\n',
+};
+const finishFails = (out) => out.split('\n').filter((l) => /^\s+No .*\. Fix:/.test(l)).map((l) => l.trim());
+const finish = (extra) => {
+  const dir = fixture({ extra: { ...FINISHED, ...extra } });
+  return run(dir);
+};
+
+test('FINISH passes a finished site: favicon, logo, link preview, description, sitemap, robots, llms.txt, manifest, lang, 404', () => {
+  const out = finish({});
+  assert.ok(out.includes('PASS  Finished: favicon'), out);
+  assert.deepEqual(finishFails(out), []);
+  assert.ok(!warns(out, 'No @struq/icons import'));
+});
+
+test('FINISH fails a site with only the starter favicon.ico, and passes its own favicon.ico', () => {
+  const starter = finish({ 'app/icon.tsx': null });
+  assert.ok(finishFails(starter).some((l) => l.startsWith('No favicon')), starter);
+  const dir = fixture({ extra: { ...FINISHED } });
+  rmSync(join(dir, 'app/icon.tsx'));
+  writeFileSync(join(dir, 'app/favicon.ico'), Buffer.alloc(15086));
+  assert.ok(finishFails(run(dir)).some((l) => l.startsWith('No favicon')));
+  writeFileSync(join(dir, 'app/favicon.ico'), Buffer.alloc(4286));
+  assert.ok(!finishFails(run(dir)).some((l) => l.startsWith('No favicon')));
+});
+
+test('FINISH fails a header with the name alone, and passes a HeaderBar with a mark, a <Logo> or an svg in a <header>', () => {
+  assert.ok(finishFails(finish({ 'app/page.tsx': PAGE_OK })).some((l) => l.startsWith('No logo in the header')));
+  const own = PAGE_OK.replace('<HeaderBar name="Zout" />', '<header><a href="/"><svg viewBox="0 0 48 48" /> Zout</a></header>');
+  assert.ok(!finishFails(finish({ 'app/page.tsx': own })).some((l) => l.startsWith('No logo')));
+  const logo = PAGE_OK.replace('<HeaderBar name="Zout" />', '<header><Logo name="Zout" symbol={site.brand.symbol} /></header>');
+  assert.ok(!finishFails(finish({ 'app/page.tsx': logo })).some((l) => l.startsWith('No logo')));
+});
+
+for (const [file, start] of [
+  ['app/opengraph-image.tsx', 'No link preview image'],
+  ['app/sitemap.ts', 'No sitemap'],
+  ['app/robots.ts', 'No robots'],
+  ['app/llms.txt/route.ts', 'No llms.txt'],
+  ['app/manifest.ts', 'No web app manifest'],
+  ['app/not-found.tsx', 'No 404 page'],
+]) {
+  test(`FINISH fails without ${file} (${start})`, () => {
+    const out = finish({ [file]: null });
+    assert.ok(fails(out, 'finishing piece(s) missing'), out);
+    const lines = finishFails(out);
+    assert.equal(lines.length, 1, lines.join(' | '));
+    assert.ok(lines[0].startsWith(start), lines[0]);
+  });
+}
+
+test('FINISH takes the static files in public/ for sitemap, robots, llms.txt and manifest', () => {
+  const out = finish({ 'app/sitemap.ts': null, 'app/robots.ts': null, 'app/llms.txt/route.ts': null, 'app/manifest.ts': null, 'public/sitemap.xml': '<urlset/>', 'public/robots.txt': 'User-agent: *', 'public/llms.txt': '# Zout', 'public/manifest.json': '{}' });
+  assert.deepEqual(finishFails(out), []);
+});
+
+test('FINISH fails a layout without a description or without html lang', () => {
+  const noDesc = finish({ 'app/layout.tsx': LAYOUT_OK });
+  assert.ok(finishFails(noDesc).some((l) => l.startsWith('No meta description')));
+  const described = LAYOUT_OK.replace('export default', 'export const metadata = { title: "Zout", description: "Vis van het getij." };\nexport default');
+  assert.ok(!finishFails(finish({ 'app/layout.tsx': described })).some((l) => l.startsWith('No meta description')));
+  const noLang = finish({ 'app/layout.tsx': described.replace(' lang="nl"', '') });
+  assert.ok(finishFails(noLang).some((l) => l.startsWith('No lang on <html>')));
+});
+
+test('FINISH warns when the site never imports @struq/icons', () => {
+  assert.ok(warns(finish({ 'components/Menu.tsx': null }), 'No @struq/icons import'));
+  assert.ok(!warns(finish({ 'components/Menu.tsx': 'import "@struq/icons/icons.css";\n' }), 'No @struq/icons import'));
 });

@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, posix, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -106,4 +106,45 @@ test('blocks.mjs init leaves the WebGL layer out until a block needs it', () => 
   assert.match(layout, /sq-js/);
   assert.match(layout, /data-blocks/);
   assert.match(readFileSync(join(dir, 'app/globals.css'), 'utf8'), /STRUQ TOKENS/);
+});
+
+// why: init must bring Struq Icons and its wiring, and finish must write every finishing file from lib/site.ts
+// without replacing one the site already has, and set the metadata, the JSON-LD and lang in the layout.
+test('blocks.mjs init wires Struq Icons; finish writes the finishing files and keeps the site own', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'struq-finish-'));
+  writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'x', dependencies: { next: '16.0.0' } }));
+  const init = spawnSync(process.execPath, [CLI, 'init', '--dir', dir, '--no-install'], { encoding: 'utf8' });
+  assert.equal(init.status, 0, init.stderr);
+  assert.match(init.stdout, /npm install [^\n]*@struq\/icons/);
+  assert.match(readFileSync(join(dir, 'app/layout.tsx'), 'utf8'), /import "@struq\/icons\/icons\.css";\nimport "@struq\/icons\/states\.css";\nimport "\.\/globals\.css";/);
+  assert.match(readFileSync(join(dir, 'app/globals.css'), 'utf8'), /--icon-accent: var\(--accent\)/);
+  assert.ok(existsSync(join(dir, 'components/struq/kit/brand/Logo.tsx')));
+
+  const none = spawnSync(process.execPath, [CLI, 'finish', '--dir', dir], { encoding: 'utf8' });
+  assert.notEqual(none.status, 0);
+  assert.match(none.stderr, /no lib\/site\.ts/);
+
+  mkdirSync(join(dir, 'lib'));
+  writeFileSync(join(dir, 'lib/site.ts'), 'export const site = { name: "Zout", lang: "nl", meta: { title: "Zout", description: "Vis." }, brand: { symbol: { viewBox: "0 0 48 48", paths: [{ d: "M8 8h32v32H8z" }] }, colors: { ground: "#111111", ink: "#eeeeee", accent: "#cc5533" } } };\n');
+  writeFileSync(join(dir, 'app/robots.txt'), 'User-agent: *\n');
+  writeFileSync(join(dir, 'app/favicon.ico'), Buffer.alloc(15086));
+  const r = spawnSync(process.execPath, [CLI, 'finish', '--dir', dir], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  for (const f of ['icon.tsx', 'apple-icon.tsx', 'icons/[kind]/route.tsx', 'opengraph-image.tsx', 'twitter-image.tsx', 'sitemap.ts', 'manifest.ts', 'llms.txt/route.ts', 'not-found.tsx']) {
+    assert.ok(existsSync(join(dir, 'app', f)), f);
+  }
+  assert.ok(!existsSync(join(dir, 'app/robots.ts')), 'the site own robots.txt is kept');
+  assert.ok(!existsSync(join(dir, 'app/favicon.ico')), 'the starter favicon goes');
+  const layout = readFileSync(join(dir, 'app/layout.tsx'), 'utf8');
+  assert.match(layout, /export const metadata: Metadata = siteMetadata\(site\);/);
+  assert.match(layout, /export const viewport: Viewport = siteViewport\(site\);/);
+  assert.match(layout, /<html lang=\{site\.lang\}/);
+  assert.match(layout, /<body[^>]*>\n\s*<JsonLd site=\{site\} \/>/);
+  assert.match(layout, /import \{ site \} from "@\/lib\/site";/);
+  assert.ok(!/SITE_TITLE/.test(layout));
+  // Run again: nothing is written twice.
+  const again = spawnSync(process.execPath, [CLI, 'finish', '--dir', dir], { encoding: 'utf8' });
+  assert.equal(again.status, 0, again.stderr);
+  assert.equal(readFileSync(join(dir, 'app/layout.tsx'), 'utf8'), layout);
+  assert.equal((readFileSync(join(dir, 'app/layout.tsx'), 'utf8').match(/<JsonLd/g) ?? []).length, 1);
 });
