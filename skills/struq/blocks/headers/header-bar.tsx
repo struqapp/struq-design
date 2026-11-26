@@ -175,8 +175,8 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
       <span data-hb-label="">{text}</span>
     );
 
-  const link = (i: number, item: HeaderLink, isAction = false) => {
-    const cls = `relative inline-flex whitespace-nowrap py-2 text-small leading-none ${isAction ? "ml-3" : ""}`;
+  const link = (i: number, item: HeaderLink, isAction = false, extra = "") => {
+    const cls = `relative inline-flex whitespace-nowrap py-2 text-small leading-none ${isAction ? "ml-3" : ""} ${extra}`;
     const flag = isAction ? { "data-hb-action": "" } : {};
     return real ? (
       <a href={item.href} data-hb-link={i} {...flag} className={cls} {...on(i)}>
@@ -199,6 +199,8 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
       </span>
     </span>
   );
+  // The menu is a phone visitor's way round the page: a 44px hit area, the word centred in it.
+  const TAP = "min-h-11 min-w-11 items-center justify-center";
   const wordCls = "relative block origin-top-left font-display text-[1.375rem] leading-none tracking-[-0.02em] [justify-self:start]";
 
   const list = (
@@ -212,11 +214,11 @@ function Face({ real = false, tone = "ground", variant, name, homeHref, links, a
   const act = action ? link(n, action, true) : null;
 
   const menu = onMenu && real ? (
-    <button type="button" data-hb-link={n + 1} onClick={onMenu} className="relative inline-flex cursor-pointer bg-transparent py-2 text-small leading-none" {...on(n + 1)}>
+    <button type="button" data-hb-link={n + 1} onClick={onMenu} className={`relative inline-flex cursor-pointer bg-transparent py-2 text-small leading-none ${TAP}`} {...on(n + 1)}>
       {label(menuLabel)}
     </button>
   ) : (
-    link(n + 1, { label: menuLabel, href: menuHref })
+    link(n + 1, { label: menuLabel, href: menuHref }, false, TAP)
   );
 
   const Nav = real ? "nav" : "div";

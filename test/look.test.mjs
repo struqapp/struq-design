@@ -32,7 +32,9 @@ const page = (body, css = '') => `<!doctype html><html lang="nl"><head><meta cha
   ${css}
 </style></head><body>${body}</body></html>`;
 
-const HEADER = '<header style="position:fixed;top:0;left:0;right:0;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:#f4f1ea;z-index:10"><a href="/" data-wordmark style="color:#1a1a1a;text-decoration:none;font-size:20px">Noord</a><nav><a href="#werk" style="color:#1a1a1a">Werk</a></nav></header>';
+// The header's links are 44px tall, as a phone needs them (look warns under 44 by 44).
+const TAP = 'display:inline-flex;align-items:center;min-height:44px;min-width:44px;';
+const HEADER = `<header style="position:fixed;top:0;left:0;right:0;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:#f4f1ea;z-index:10"><a href="/" data-wordmark style="${TAP}color:#1a1a1a;text-decoration:none;font-size:20px">Noord</a><nav><a href="#werk" style="${TAP}color:#1a1a1a">Werk</a></nav></header>`;
 const FILL = ['Een huis aan het water.', 'Wij bouwen wat blijft.', 'Hout, steen en licht.', 'Elk detail telt mee.', 'Bel ons op maandag.']
   .map((t) => `<section><h2>${t}</h2><p>De ruimte vraagt om rust en om materiaal dat ouder mag worden.</p></section>`)
   .join('');
@@ -43,6 +45,16 @@ const svg = (ground, spot) => `data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 const PALE = svg('efe8da', 'e2d6c0');
 const DARK = svg('1f1a15', '2e261e');
 const photo = (src, line) => `<section style="position:relative;padding:0;min-height:70vh"><img src="${src}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><h2 style="position:relative;color:#ffffff;margin:0;padding:160px 24px">${line}</h2></section>`;
+
+// The world behind the page as the kit sets it: a fixed canvas at -z-10, <html> without a ground so the body's ground
+// is the viewport's, painted under the canvas. The canvas draws a wall and, in the solid case, an object in the
+// middle of the screen, right under the centred line; in the glow case only a soft pool of light.
+const world = (draw) => `<canvas id="w" style="position:fixed;inset:0;width:100%;height:100%;z-index:-10"></canvas><script>(() => { const c = document.getElementById('w'); const f = () => { const w = (c.width = innerWidth); const h = (c.height = innerHeight); const x = c.getContext('2d'); ${draw} }; f(); addEventListener('resize', f); })();</script>`;
+const WALL = "x.fillStyle = '#e8e2d6'; x.fillRect(0, 0, w, h);";
+const SOLID = `${WALL} x.fillStyle = '#6b7a5e'; x.fillRect(w * 0.36, h * 0.28, w * 0.28, h * 0.44);`;
+const GLOW = "const g = x.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.55); g.addColorStop(0, '#f7e6c8'); g.addColorStop(1, '#e0dacd'); x.fillStyle = g; x.fillRect(0, 0, w, h);";
+const CENTRED = '<section style="height:100vh;display:grid;place-items:center;padding:0 24px"><h2 style="margin:0;font-size:56px;text-align:center">De schijf draait door.</h2></section>';
+const objectPage = (draw) => page(`${HEADER}<main style="position:relative">${CENTRED}${world(draw)}</main>${FOOTER}`, 'html { background: transparent; } main section { background: transparent; }');
 
 const PAGES = {
   clean: page(`${HEADER}<main>${HERO}${FILL}</main>${FOOTER}`),
@@ -88,6 +100,14 @@ const PAGES = {
   // A middle scene that is one long paragraph at poster scale, and three display lines after the first screen.
   wall: page(`${HEADER}<main>${HERO}<section><p style="font-size:min(120px,12vw);line-height:1.05;max-width:none">Vi tegner og blåser hver lampe for hånd i Bergen, én om gangen, og den er ikke ferdig før den henger over bordet og lyser om kvelden for dem som bor der.</p></section>${FILL}</main>${FOOTER}`),
   ladder: page(`${HEADER}<main>${HERO}<section><h2 style="font-size:min(128px,13vw)">Lyset først.</h2></section><section><h2 style="font-size:min(128px,13vw)">Så formen.</h2></section><section><h2 style="font-size:min(128px,13vw)">Så glasset.</h2></section><section><h2 style="font-size:min(128px,13vw)">Så rommet.</h2></section>${FILL}</main>${FOOTER}`),
+  // A line over the world's object fails; the same line over a soft pool of light on the wall passes.
+  objectsolid: objectPage(SOLID),
+  objectglow: objectPage(GLOW),
+  // Phone: a link set alone at text size warns, a link inside a sentence does not; the door and the menu fail.
+  taps: page(`${HEADER}<main>${HERO}<section><p>Lees eerst <a href="/werk">over ons werk</a> en bel ons als je vragen hebt over een huis.</p><p><a href="/archief" style="display:inline-block;font-size:14px">Archief</a></p></section>${FILL}</main>${FOOTER}`),
+  tapdoor: page(`${HEADER.replace('<nav>', '<nav><a href="#menu" style="font-size:14px;color:#1a1a1a">Menu</a> ')}<main>${HERO}<section><a data-door href="/bestel" style="display:inline-block;font-size:14px;color:#1a1a1a">Bestel</a></section>${FILL}</main>${FOOTER}`),
+  // Phone: running text at 13px, a field at 14px and a fixed bar that takes nearly a third of the screen.
+  phone: page(`${HEADER}<main>${HERO}<section><p style="font-size:13px">De ruimte vraagt om rust en om materiaal dat ouder mag worden, zegt de architect.</p><label>E-mail <input name="email" style="font-size:14px;height:48px;width:220px"></label></section>${FILL}</main><div style="position:fixed;left:0;right:0;bottom:0;height:260px;background:#1a1a1a;color:#f4f1ea;z-index:20;padding:24px;box-sizing:border-box"><p style="margin:0">Bel ons</p></div>${FOOTER}`),
   // None of the four may fire here: a quiet pinned scene with one sentence on its flat ground, white text over a dark
   // photo, a total kept whole by a no-break space beside running text with numbers that wrap between them, and a face
   // that loads.
@@ -336,6 +356,43 @@ test('look: a link to the section it sits in fails as a self-link', async (t) =>
   assert.equal(r.code, 1, r.out);
   const f = r.json.findings.find((x) => x.kind === 'self-link');
   assert.ok(f && f.text === 'Badkamers' && f.severity === 'FAIL', r.out);
+});
+
+test('look: a line over the object in the world behind the page fails; over a soft glow on the wall it passes', async (t) => {
+  if (skip) return t.skip(skip);
+  const [solid, glow] = await Promise.all([result('objectsolid'), result('objectglow')]);
+  const f = solid.json.findings.find((x) => x.kind === 'over-object' && /De schijf draait door/.test(x.text));
+  assert.ok(f && f.severity === 'FAIL' && /side the object leaves free/.test(f.detail) && /Framed/.test(f.detail), solid.out);
+  assert.equal(solid.code, 1, solid.out);
+  assert.ok(!kinds(glow).includes('over-object'), glow.out);
+  assert.equal(glow.code, 0, glow.out);
+});
+
+test('look: on a phone a small link warns, a link in a sentence does not; a small door or menu button fails', async (t) => {
+  if (skip) return t.skip(skip);
+  const [taps, door] = await Promise.all([result('taps'), result('tapdoor')]);
+  const small = taps.json.findings.filter((x) => x.kind === 'tap-target');
+  assert.ok(small.some((x) => x.text === 'Archief' && x.severity === 'WARN' && x.viewport === 'phone'), taps.out);
+  assert.ok(!small.some((x) => /over ons werk/.test(x.text)), taps.out);
+  assert.ok(!small.some((x) => x.viewport === 'desktop'), taps.out);
+  assert.equal(taps.code, 0, taps.out);
+  const fails = door.json.findings.filter((x) => x.kind === 'tap-target' && x.severity === 'FAIL');
+  assert.ok(fails.some((x) => x.text === 'Bestel' && /the page's door/.test(x.detail)), door.out);
+  assert.ok(fails.some((x) => x.text === 'Menu' && /the menu button/.test(x.detail)), door.out);
+  assert.equal(door.code, 1, door.out);
+});
+
+test('look: on a phone small running text fails, a small field warns, fixed chrome over a quarter of the screen warns', async (t) => {
+  if (skip) return t.skip(skip);
+  const r = await result('phone');
+  const text = r.json.findings.find((x) => x.kind === 'small-text');
+  assert.ok(text && text.severity === 'FAIL' && text.viewport === 'phone' && /13px/.test(text.detail), r.out);
+  const field = r.json.findings.find((x) => x.kind === 'input-zoom');
+  assert.ok(field && field.severity === 'WARN' && field.text === 'email', r.out);
+  const bar = r.json.findings.find((x) => x.kind === 'fixed-cover');
+  assert.ok(bar && bar.severity === 'WARN' && /31% of the phone screen/.test(bar.detail), r.out);
+  assert.ok(!r.json.findings.some((x) => x.viewport === 'desktop' && ['small-text', 'input-zoom', 'fixed-cover'].includes(x.kind)), r.out);
+  assert.equal(r.code, 1, r.out);
 });
 
 test('look: nothing served means exit 2 and how to start it', () => {
