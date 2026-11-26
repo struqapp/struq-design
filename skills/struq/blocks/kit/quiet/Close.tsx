@@ -13,8 +13,10 @@
 //   a place people visit, call or book.
 // - "order": what the client sells or takes on, and the one way to get it, as the page's last scene. For any site that
 //   sells or takes enquiries: a studio's pendants, a builder's renovation, an agency's engagement, a restaurant's
-//   tasting menu. The idea turned to the offer in one line, the items as a composed index on hairlines with their
-//   prices aligned, the primary door as one large Pressable, the other doors as HoverLinks, and a small note.
+//   tasting menu. The idea turned to the offer in one line at display scale; the items as plates with their images
+//   in a loose grid, or as a large index on hairlines when no item has an image, prices on the name's baseline; beside
+//   them on a wide screen and under them on a phone the door: filled, large (64px and up), full width in its column,
+//   an arrow that travels on hover, marked data-door; the other doors as HoverLinks and the note under a hairline.
 //
 // <Close shape="idea" line="Grown slowly, poured by hand." accent="slowly" motif={{ path: "M2 40 C 120 0, 240 80, 398 30", viewBox: "0 0 400 80" }}
 //   doors={[{ kind: "email", href: "mailto:hello@kiln.studio", label: "hello@kiln.studio" }]} />
@@ -49,7 +51,8 @@
 // - items (shape "order"): { name, price?, text?, image? }[], two to six, products or services. name: the brief's own
 //   word for the thing. price: { amount, currency, from? } only when the brief gives it, written through
 //   Intl.NumberFormat in locale; from: true sets the locale's "from" word before it (fra, vanaf, from). text: one
-//   short line. image: a StruqImage, a small upright plate at the row's start.
+//   short line. image: a StruqImage, an upright 4:5 plate; give every item one or none (an item without one in a set
+//   with images keeps an empty hairline frame).
 // - note (shape "order"): one small line under the door from the brief only: lead time, made to order, area served.
 // - subject (shape "order"): the subject of an email door; default the item names, so a mail order names the items.
 // - locale (shape "order"): for the prices and the "from" word (default "en-GB").
@@ -62,7 +65,7 @@
 // MaskWipe or ImageCurtain on the echo; order: the line through RevealText, the item rows rising one after another
 // (Rise each), the door rising last; doors answer hover and press by the feel. No pin. Reduced motion, no scripts
 // or the server render: every primitive shows its final state. Phones: one column, the doors stacked; an order row
-// keeps the name and the price on one line with the text under them.
+// keeps the name and the price on one line with the text under them, and the order door spans the screen.
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { withAccent } from "../accent";
@@ -182,7 +185,65 @@ function Doors({ doors, size, look, className = "" }: { doors?: readonly Door[];
   );
 }
 
-/** The order shape: the items as an index on hairlines, prices on one right edge, then the door and the note. */
+/** The arrow in the primary door: it travels a little on hover, the one movement the door makes besides its press. */
+function DoorArrow() {
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className="h-[1.1em] w-[1.1em] shrink-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1.5 group-focus-visible:translate-x-1.5">
+      <path d="M3 12h17M14 5.5 20.5 12 14 18.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
+    </svg>
+  );
+}
+
+/** The columns for the plates: one for one item, two for two or four, three for three, five or six on a wide screen. */
+const plateCols = (n: number) => (n <= 1 ? "grid-cols-1" : n === 2 || n === 4 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3");
+
+/** One item with its image: the plate, then the name and the price on one baseline, the line under them. */
+function Plate({ item, locale, offset }: { item: OrderItem; locale: string; offset: boolean }) {
+  return (
+    <li data-order-item="" className={`m-0 flex flex-col ${offset ? "sm:mt-[min(14vh,8rem)]" : ""}`}>
+      <div className="relative aspect-[4/5] w-full overflow-hidden">
+        {item.image ? (
+          <Image src={item.image.src} alt={item.image.alt} fill sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 92vw" unoptimized={item.image.unoptimized} className="object-cover" />
+        ) : (
+          <div aria-hidden className="absolute inset-0 shadow-[inset_0_0_0_1px_var(--line)]" />
+        )}
+      </div>
+      <div className="mt-5 flex items-baseline justify-between gap-6 md:mt-6">
+        <h3 className="m-0 font-display text-[clamp(1.625rem,1.1rem+1.4vw,2.5rem)] leading-[1.05] tracking-[-0.015em] text-ink">{item.name}</h3>
+        {item.price ? (
+          <p className="m-0 shrink-0 font-body text-lead tabular-nums text-ink">
+            <PriceText price={item.price} locale={locale} />
+          </p>
+        ) : null}
+      </div>
+      {item.text ? <p className="m-0 mt-2 max-w-[38ch] font-body text-body text-ink-muted">{item.text}</p> : null}
+    </li>
+  );
+}
+
+/** One item without an image: a row of the index, the name large, the line beside it, the price on the right edge. */
+function IndexRow({ item, locale }: { item: OrderItem; locale: string }) {
+  return (
+    <li data-order-item="" className="m-0 grid grid-cols-[1fr_auto] items-baseline gap-x-6 gap-y-2 border-b border-line py-7 md:grid-cols-[minmax(0,5fr)_minmax(0,4fr)_auto] md:py-10">
+      <h3 className="m-0 font-display text-[clamp(2rem,1.2rem+2.6vw,3.75rem)] leading-[1] tracking-[-0.02em] text-ink">{item.name}</h3>
+      <p className="m-0 justify-self-end whitespace-nowrap font-body text-lead tabular-nums text-ink md:order-last">
+        {item.price ? <PriceText price={item.price} locale={locale} /> : null}
+      </p>
+      {item.text ? (
+        <p className="col-span-2 m-0 max-w-[38ch] font-body text-body text-ink-muted md:col-span-1">{item.text}</p>
+      ) : (
+        <span aria-hidden className="hidden md:block" />
+      )}
+    </li>
+  );
+}
+
+/**
+ * The order shape: the items, then the door. With images the items are plates in a loose grid (every second one set
+ * lower on a wide screen); without, a large index on hairlines. Beside them on a wide screen, under them on a phone,
+ * the door: filled, large, full width in its column, the arrow travelling on hover; the other doors as HoverLinks and
+ * the note under it.
+ */
 function Order({
   items = [],
   doors,
@@ -203,67 +264,53 @@ function Order({
   const primary = doors?.find((door) => door.href);
   const rest = (doors ?? []).filter((door) => door !== primary);
   const mailSubject = subject ?? shown.map((item) => item.name).join(", ");
+  const twoUp = shown.length === 2 || shown.length === 4;
   return (
     <>
       {shown.length ? (
-        <Rise as="ul" each className="col-span-12 m-0 list-none border-t border-line p-0">
-          {shown.map((item) => (
-            <li key={item.name} data-order-item="" className="grid grid-cols-12 items-baseline gap-x-sheet-gutter border-b border-line py-6 md:py-9">
-              {plates ? (
-                <div className="relative col-span-3 row-span-2 aspect-[4/5] self-start overflow-hidden md:col-span-2 md:row-span-1">
-                  {item.image ? (
-                    <Image src={item.image.src} alt={item.image.alt} fill sizes="(min-width: 768px) 14vw, 24vw" unoptimized={item.image.unoptimized} className="object-cover" />
-                  ) : null}
-                </div>
-              ) : null}
-              <h3 className={`m-0 font-display text-h3 md:text-[clamp(1.75rem,1rem+2.2vw,3.25rem)] md:leading-[1.05] md:tracking-[-0.015em] ${plates ? "col-span-6 md:col-span-4" : "col-span-7 md:col-span-5"}`}>
-                {item.name}
-              </h3>
-              {item.text ? (
-                <p className={`m-0 mt-2 max-w-[38ch] font-body text-small text-ink-muted md:col-span-4 md:mt-0 md:text-body ${plates ? "col-span-9 col-start-4 row-start-2 md:col-start-auto md:row-start-auto" : "col-span-12 row-start-2 md:row-start-auto"}`}>
-                  {item.text}
-                </p>
-              ) : (
-                <span aria-hidden className="hidden md:col-span-4 md:block" />
-              )}
-              <p className={`m-0 text-right font-body text-body tabular-nums text-ink md:col-span-3 md:text-lead ${plates ? "col-span-3" : "col-span-5"} whitespace-nowrap`}>
-                {item.price ? <PriceText price={item.price} locale={locale} /> : null}
-              </p>
-            </li>
-          ))}
-        </Rise>
+        plates ? (
+          <Rise as="ul" each className={`col-span-12 m-0 grid list-none gap-x-sheet-gutter gap-y-14 p-0 md:col-span-8 md:gap-y-20 ${plateCols(shown.length)}`}>
+            {shown.map((item, i) => (
+              <Plate key={item.name} item={item} locale={locale} offset={twoUp && i % 2 === 1} />
+            ))}
+          </Rise>
+        ) : (
+          <Rise as="ul" each className="col-span-12 m-0 list-none border-t border-line p-0 md:col-span-8">
+            {shown.map((item) => (
+              <IndexRow key={item.name} item={item} locale={locale} />
+            ))}
+          </Rise>
+        )
       ) : null}
-      <Rise className="col-span-12 grid grid-cols-12 items-end gap-x-sheet-gutter gap-y-8">
-        <div className="col-span-12 md:col-span-7">
-          {primary?.href ? (
-            <Pressable
-              {...mark(primary)}
-              href={primary.kind === "email" || primary.href.startsWith("mailto:") ? withSubject(primary.href, mailSubject) : primary.href}
-              press="fill"
-              className="w-full px-8 py-6 font-body text-h3 font-medium text-ink shadow-[inset_0_0_0_1px_var(--ink)] md:w-auto md:min-w-[22rem] md:px-12 md:py-7"
-            >
-              {primary.label}
-            </Pressable>
-          ) : null}
-        </div>
-        <div className="col-span-12 flex flex-col gap-4 md:col-span-5 md:items-end md:text-right">
-          {rest.length ? (
-            <ul className="m-0 flex list-none flex-col gap-2 p-0 md:items-end">
-              {rest.map((door) => (
-                <li key={`${door.kind ?? "link"}:${door.label}`}>
-                  {door.href ? (
-                    <HoverLink {...mark(door)} href={door.href} look={look} className="font-body text-lead text-ink">
-                      {door.label}
-                    </HoverLink>
-                  ) : (
-                    <p {...mark(door)} className="m-0 font-body text-lead text-ink">{door.label}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {note ? <p className={`${LABEL} max-w-[34ch]`}>{note}</p> : null}
-        </div>
+      <Rise className={`col-span-12 flex flex-col gap-8 md:sticky md:top-28 md:self-start ${shown.length ? "md:col-span-4 md:col-start-9" : "md:col-span-6"}`}>
+        {primary?.href ? (
+          <Pressable
+            {...mark(primary)}
+            data-door=""
+            href={primary.kind === "email" || primary.href.startsWith("mailto:") ? withSubject(primary.href, mailSubject) : primary.href}
+            press="sink"
+            className="group min-h-16 w-full gap-6 bg-ink px-7 py-5 font-body text-lead font-medium text-surface-0 transition-colors duration-500 hover:bg-accent hover:text-accent-ink md:min-h-20 md:px-8 md:py-6 [&>[data-press-label]]:flex [&>[data-press-label]]:w-full [&>[data-press-label]]:items-center [&>[data-press-label]]:justify-between [&>[data-press-label]]:gap-6"
+          >
+            <span>{primary.label}</span>
+            <DoorArrow />
+          </Pressable>
+        ) : null}
+        {rest.length ? (
+          <ul className="m-0 flex list-none flex-col gap-3 p-0">
+            {rest.map((door) => (
+              <li key={`${door.kind ?? "link"}:${door.label}`}>
+                {door.href ? (
+                  <HoverLink {...mark(door)} href={door.href} look={look} className="inline-flex min-h-11 items-center font-body text-lead text-ink">
+                    {door.label}
+                  </HoverLink>
+                ) : (
+                  <p {...mark(door)} className="m-0 font-body text-lead text-ink">{door.label}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {note ? <p className="m-0 max-w-[34ch] border-t border-line pt-6 font-body text-body text-ink-muted">{note}</p> : null}
       </Rise>
     </>
   );
@@ -357,7 +404,9 @@ export function Close({
         {shape === "order" ? (
           <>
             {line ? (
-              <RevealText as="h2" by="lines" className="col-span-12 m-0 max-w-[20ch] font-display text-h2 md:col-span-9">
+              // Display scale, a step under poster size (look's display moments start at 72px and 7vw), so the close is
+              // the page's last big line without counting against the scale ladder.
+              <RevealText as="h2" by="lines" className="col-span-12 m-0 max-w-[16ch] pb-[0.08em] font-display text-[clamp(2.75rem,1.2rem+5.2vw,6rem)] leading-[1] tracking-[-0.025em] md:col-span-10 md:mb-6">
                 {withAccent(line, accent)}
               </RevealText>
             ) : null}
