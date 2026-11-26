@@ -114,6 +114,8 @@ function hits(pattern, { scope = files, exclude = null } = {}) {
   return out;
 }
 const uses = (pattern) => own.some((f) => pattern.test(f.text));
+/** A placeholder door: flagged placeholder: true, or an example.com, example.no or example.nl address. */
+const PLACEHOLDER_DOOR = /\bplaceholder\s*:\s*true\b|(?:mailto:[\w.+-]+@|https?:\/\/(?:[\w-]+\.)?)example\.(?:com|no|nl)\b/i;
 
 function isImageFile(path) {
   try {
@@ -307,7 +309,8 @@ function namedInBrief(name) {
   // Copy
   tell("Notes to the client on the page",
     /volg(?:t|en) zodra|zodra (?:de studio|de klant|je|jullie|we)\b[^"'<>]{0,40}(?:aanlever|doorgeef|doorgeven|binnen)|nog aan te leveren|wordt nog aangevuld|(?:telefoon|e-?mail|adres|reserveren|gegevens|openingstijden|data|datum|prijzen)[^.<>"'{}]{0,30}\bvolg(?:t|en)\b|\bvolg(?:t|en) (?:nog|later|binnenkort)\b|lorem ipsum|\bcoming soon\b|to be (?:confirmed|announced)|will be announced|details to (?:follow|come)|\bto follow\)|\bTB[AC]\b|\byour (?:name|company|logo|photo|text) here\b|\bYour Name\b|\bexample\.(?:com|org|net)\b|\b(?:John|Jane) Doe\b|\[(?:naam|adres|telefoon|e-?mail|name|phone|address)\]/i,
-    "a line written to the client or the developer, or a stand-in (Your Name, example.com, to be announced), is not copy. A missing fact leaves no line on the page: drop the sentence, the field or the button, and list it under Assumptions: in STRUQ.md.");
+    "a line written to the client or the developer, or a stand-in (Your Name, example.com, to be announced), is not copy. A missing fact leaves no line on the page: drop the sentence, the field or the button, and list it under Assumptions: in STRUQ.md.",
+    { exclude: PLACEHOLDER_DOOR });
 
   // The visible copy of your own files: string literals and JSX text, line by line, comments left out. Class lists,
   // paths and identifiers hold no sentences, so the honesty phrases below match the words a reader sees.
@@ -374,21 +377,39 @@ function namedInBrief(name) {
     return [...segs, ...wholeLine].some(isCall);
   }).map((c) => `${c.where}  ${c.line.slice(0, 120)}`);
   const invites = [...new Set([...copyHits(COME_BY), ...calls])];
+  const DOORS = [
+    /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/,
+    /(?:\+|\b00)\d{1,3}[\s.-]?\(?\d[\d\s.()-]{6,}\d|\b0\d{1,3}[\s.-]?\d{3}[\s.-]?\d{2,4}(?:[\s.-]?\d{2,4})?\b/,
+    /\b\p{Lu}[\p{L}'-]*(?:straat|weg|laan|plein|gracht|kade|dijk|singel|markt|steeg|dreef|hof|pad|haven|wal|baan|burgwal|straße|strasse|gasse|platz)\s+\d+[a-z]?\b/u,
+    /\b[1-9]\d{3}\s?[A-Z]{2}\b/,
+    /\b\d{1,5}\s+(?:\p{Lu}[\p{L}'-]+\s+){1,3}(?:Street|St|Road|Rd|Avenue|Ave|Lane|Way|Square|Place|Boulevard|Drive|Court|Row|Terrace)\b/u,
+    /\b[A-Z]{1,2}\d[A-Z\d]?\s\d[A-Z]{2}\b/,
+  ];
+  // An external link is a door only to a booking or shop: not Struq's own credit, a font host, or a social profile.
+  const EXTERNAL = /\b(?:href|action)\s*[:=]\s*\{?\s*["'`]https?:\/\/(?!(?:www\.)?(?:struq\.(?:app|nl)|localhost|schema\.org|w3\.org|fonts\.(?:googleapis|gstatic)\.com|api\.fontshare\.com|(?:instagram|facebook|twitter|x|linkedin|tiktok|youtube|pinterest|github|behance|dribbble)\.com)\b)[^"'`\s]+/i;
+  // A placeholder door (placeholder: true, or an example.com, example.no or example.nl address) is the door the skill
+  // sets when the brief gave none: it counts as a door, so the page reads finished, and warns until it is replaced.
+  const placeholderDoors = hits(PLACEHOLDER_DOOR, { scope: own.filter((f) => !f.rel.endsWith(".css")) });
+  const door = placeholderDoors.length > 0 || copy.some((c) => c.segs.some((s) => DOORS.some((re) => re.test(s)))) || own.some((f) => /\b(?:tel|mailto):[^"'`\s{}]{4,}/.test(f.text) || EXTERNAL.test(f.text));
   if (invites.length) {
-    const DOORS = [
-      /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/,
-      /(?:\+|\b00)\d{1,3}[\s.-]?\(?\d[\d\s.()-]{6,}\d|\b0\d{1,3}[\s.-]?\d{3}[\s.-]?\d{2,4}(?:[\s.-]?\d{2,4})?\b/,
-      /\b\p{Lu}[\p{L}'-]*(?:straat|weg|laan|plein|gracht|kade|dijk|singel|markt|steeg|dreef|hof|pad|haven|wal|baan|burgwal|straße|strasse|gasse|platz)\s+\d+[a-z]?\b/u,
-      /\b[1-9]\d{3}\s?[A-Z]{2}\b/,
-      /\b\d{1,5}\s+(?:\p{Lu}[\p{L}'-]+\s+){1,3}(?:Street|St|Road|Rd|Avenue|Ave|Lane|Way|Square|Place|Boulevard|Drive|Court|Row|Terrace)\b/u,
-      /\b[A-Z]{1,2}\d[A-Z\d]?\s\d[A-Z]{2}\b/,
-    ];
-    // An external link is a door only to a booking or shop: not Struq's own credit, a font host, or a social profile.
-    const EXTERNAL = /\b(?:href|action)\s*[:=]\s*\{?\s*["'`]https?:\/\/(?!(?:www\.)?(?:struq\.(?:app|nl)|localhost|schema\.org|w3\.org|fonts\.(?:googleapis|gstatic)\.com|api\.fontshare\.com|(?:instagram|facebook|twitter|x|linkedin|tiktok|youtube|pinterest|github|behance|dribbble)\.com)\b)[^"'`\s]+/i;
-    const door = copy.some((c) => c.segs.some((s) => DOORS.some((re) => re.test(s)))) || own.some((f) => /\b(?:tel|mailto):[^"'`\s{}]{4,}/.test(f.text) || EXTERNAL.test(f.text));
     if (door) add(G, "PASS", "The invitations on the page have a door: an address, a phone number, an email or a booking or shop link is on it");
     else add(G, "FAIL", "Invitation without a door: the copy asks the reader to act (come by, call, eat, book, buy, order, join, sit down, pick up: tonight, kom langs, Schuif aan, Pick up a mug, Reserveer, Shop the collection), but the page shows no address, phone number, mailto or tel link, or external booking or shop link. With no door the site ends on the idea, never on an invitation: drop the line, the button or the link, and list the door the client must add under Assumptions: in STRUQ.md.", invites);
   } else add(G, "PASS", "No invitation without a door");
+  if (placeholderDoors.length) add(G, "WARN", "Placeholder door: the way to buy or get in touch points at a placeholder (placeholder: true or an example address), set because the brief gave no door. The page reads finished, but nobody can order yet: replace before launch (Assumptions) with the client's real email, shop or booking link.", placeholderDoors);
+
+  // A site that sells needs a way to buy. The Brief line says it sells (sells, shop, order, buy, verkoopt, selger,
+  // bestill, kopen); then the page needs the order close, a ProductRow with its shop door, or a door of any kind.
+  {
+    const SELLS = /(?<![\p{L}\p{N}])(?:sells?|selling|(?:web)?shop|order|orders|buy|verkoopt|verkopen|selger|selge|bestill\w*|kopen)(?![\p{L}\p{N}])/iu;
+    const word = BRIEF.match(SELLS)?.[0];
+    if (word) {
+      const orderClose = uses(/<Close\b[^>]*\bshape=\{?\s*["'`]order["'`]/);
+      const shopRow = uses(/<ProductRow\b[^>]*\bshop=/);
+      if (!orderClose && !shopRow && !door) {
+        add(G, "FAIL", `The site sells but has no way to buy: the Brief line says it sells ("${word}"), but the page has no order close, no ProductRow with a shop door and no door at all. End the page on <Close shape="order"> with the things for sale and the brief's door; with no door in the brief or the one stop, set the placeholder door in lib/site.ts (door: { kind: "email", href: "mailto:post@example.com", label, placeholder: true }) and list it under Assumptions: in STRUQ.md.`, [`STRUQ.md  Brief: ${BRIEF.slice(0, 110)}`]);
+      } else add(G, "PASS", "The site sells and has a way to buy");
+    }
+  }
 
   // A stand-in name: the trade word shown as the business's name (a yoga studio called "Yoga"). The names a site shows are
   // the wordmark props of its header, preloader, hero and footer blocks, a data-wordmark element, the name and title in

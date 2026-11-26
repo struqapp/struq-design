@@ -11,8 +11,10 @@ native copywriter would, never as a translation.
 2. **A plain line under it** that says what the client makes or does, for whom and where. A visitor who reads only
    these two lines knows whether this is for them.
 3. **The next step**, when the brief gives one: the real address, booking link, shop or mail, as a confident link,
-   never a generic "Get in touch". With no door in the brief, ask for it at the one stop; with none given, the site
-   ends on the idea and Assumptions names the door to add.
+   never a generic "Get in touch". With no door in the brief, ask for it at the one stop. A site that sells or takes
+   enquiries ends on the order close; with no door given it carries the placeholder door from lib/site.ts, listed
+   under Assumptions. Any other site with no door ends on the idea. Never an invented price, product, address or
+   number.
 
 | Weak | Strong |
 |---|---|
@@ -31,7 +33,8 @@ native copywriter would, never as a translation.
   business.
 - **Verbs on links and buttons** that say what happens: "See the pendants", "Book a table for Friday", "Mail the
   studio". Never "Learn more", "Discover", "Click here".
-- **The close lands the idea or opens the door,** in one line, never a summary of the page.
+- **The close lands the idea or opens the door,** in one line, never a summary of the page. On a site that sells or
+  takes enquiries that line turns the idea to the offer, above the order close.
 
 ## Before you ship
 
