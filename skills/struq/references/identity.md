@@ -13,8 +13,8 @@ draws it in the header (`<Mark>` or `<Logo>`), as the favicon and app icons, and
 1. **Derive it from the site's idea, never from the trade.** Read the treatment: the Idea, the Motif, the
    centerpiece, the signature scene. The mark is that idea reduced to one drawing. Halden's site draws a pendant in
    half section before it is blown, so its mark is that half section. A potter's site turns a lump into a vase on the
-   wheel, so the mark is the wheel's axis and the one wall profile the wheel turns. A trade alone (a lamp, a vase, a
-   house) gives the generic icon; the idea gives the one nobody else has.
+   wheel, so the mark is the lump with the vase drawn out of it. A trade alone (a lamp, a vase, a house) gives the
+   generic icon; the idea gives the one nobody else has.
 2. **Sketch at least three constructions** as SVG on the grid below, each a different idea, not three styles of one.
    Name each in one line: what it is built from and why.
 3. **Reduce to one memorable construction.** One or two primitives in one relation (a circle split by its axis, a
@@ -58,6 +58,10 @@ draws it in the header (`<Mark>` or `<Logo>`), as the favicon and app icons, and
 - Three or more colours, more than two weights, text inside the symbol.
 - The same construction for two clients. Check `references/identity/` and the examples first.
 
+Two marks Struq shipped failed this list and were redrawn: Leirvik's axis beside one wall read as the letters "LS",
+and Vaart's square cut by a slash was competent but safe, one of a hundred marks like it; render every candidate and
+reject the one that spells letters or that any studio could have drawn without reading the brief.
+
 ## Self-review before it ships
 
 Render every candidate at 16 (real pixels, zoomed), 32, 64, a 180 tile and 512, on the light and the dark ground,
@@ -71,15 +75,19 @@ and in the header lockup. Look at the renders, then ask:
 - Would you put it on the client's invoice?
 
 Keep only the one that passes. A contact sheet of each mark Struq designed lives in `references/identity/`: Halden,
-Leirvik and Vaart Studio, as SVG and one PNG sheet each.
+Leirvik, Vaart Studio and Van Rijn, as SVG and one PNG sheet each.
 
-## The three references
+## The references
 
 - **Halden** (glass pendants, Bergen): the pendant in half section, the left half drawn as a 2 unit contour, the
   right half filled as glass in the accent, on a 2 unit cord. From the site's Formen scene, "drawn before it is
   blown". Bodoni Moda 500.
-- **Leirvik** (ceramics, Rotterdam): the revolve. The wheel's axis as a 2 unit line and the one thrown wall beside it,
-  heavy at the foot and thin at the rim, the profile the wheel turns into the whole vase. Axis and foot read as an L.
-  Fraunces 400.
-- **Vaart Studio** (web design, invented): a still field cut once at the Kelvin wake angle, 19.47 degrees, the angle
-  every wake opens at whatever the speed; the larger part in the accent. Urbanist 600.
+- **Leirvik** (ceramics, Rotterdam): the lump with the vase drawn out of it. A disc of r 15.25, the clay before the
+  wheel, with the vase as its counter: the lip opens through the top of the lump, the foot stands on 4 units of clay
+  that is left. One shape in terracotta, before and after in one drawing, from the site's throw. Fraunces 400.
+- **Vaart Studio** (web design, invented): a still field parted by the bend onto a course, an S of
+  cubic-bezier(0.65, 0, 0.35, 1) from corner to corner with a 3 unit channel. It is the turn a boat makes into a
+  vaart and the easing curve every move on a site follows; the water side in the accent. Urbanist 600.
+- **Van Rijn Dakwerk** (roofer, Utrecht): the rain stopped by the roof. Four bars of rain end 2.5 units above a tile
+  layer at the site's 40 degree pitch, and the home is the dry space beneath, never drawn. The tile layer in the
+  brick accent. Schibsted Grotesk 400.
