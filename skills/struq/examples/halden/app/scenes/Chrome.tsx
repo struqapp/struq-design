@@ -1,11 +1,12 @@
 // app/scenes/Chrome.tsx: the frame round the scenes. The header bar (labels in the site's language) and the foot:
-// the name at text size, the trade in one line, the chapters again.
+// the name at text size, the trade in one line, the chapters again, and the credit line in the footer's smallest type.
 import { HeaderBar } from "@/components/struq/headers/header-bar";
+import { Credit, Mark } from "@/components/struq/kit/brand";
 import { site } from "@/lib/site";
 
 export function Header() {
   const { links, menu, menuHref, label } = site.nav;
-  return <HeaderBar variant="quiet" name={site.name} links={[...links]} menuHref={menuHref} menuLabel={menu} navLabel={label} />;
+  return <HeaderBar variant="quiet" name={site.name} links={[...links]} menuHref={menuHref} menuLabel={menu} navLabel={label} mark={<Mark symbol={site.brand.symbol} />} />;
 }
 
 export function Footer() {
@@ -27,6 +28,9 @@ export function Footer() {
             ))}
           </ul>
         </nav>
+        <p className="md:col-span-12">
+          <Credit lang={site.lang} off={!site.credit} />
+        </p>
       </div>
     </footer>
   );

@@ -83,6 +83,14 @@ copy, name or claims.
 | `/struq audit <path-or-url>` | Change nothing. Run `check.mjs` (or `struq_check`), report every FAIL and WARN and the three fixes with the most payoff. Never a score. |
 | `/struq direct <brief>` | One continuous WebGL experience: steps 1 to 4, then [cinematic/README.md](cinematic/README.md). |
 
+**Every site ships finished.** Design the client's mark by [references/identity.md](references/identity.md) (three
+constructions from the site's idea, rendered at 16 to 512 on light and dark, one kept) and put it in `lib/site.ts`
+as `brand: { symbol, colors, face }`. Then `node <skill-dir>/scripts/blocks.mjs finish` writes, from `lib/site.ts`, the
+favicon and app icons, the link preview, the metadata and JSON-LD in the layout, the sitemap, robots, manifest,
+llms.txt and the 404. Pass `mark={<Mark symbol={site.brand.symbol} />}` to the header and keep the footer's quiet
+"Made with Struq" line (`credit: false` in site.ts removes it). Functional icons come from Struq Icons, which init
+installs ([references/iconography.md](references/iconography.md)). `check.mjs` fails a site missing any of these.
+
 ## Rules that never bend
 
 1. **Never an empty frame.** Every image slot holds a real photo: the client's, else the beeldbank pack (free, CC0,

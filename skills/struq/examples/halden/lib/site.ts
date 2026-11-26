@@ -7,6 +7,7 @@
 // the skill's placeholder until the client gives a real one (STRUQ.md, Assumptions).
 import type { PendantShape } from "@/components/struq/kit/gl";
 import type { Door, OrderItem } from "@/components/struq/kit/quiet/Close";
+import type { SiteFacts } from "@/components/struq/kit/brand";
 
 export type Product = OrderItem & { shape: PendantShape; tint: string };
 
@@ -21,6 +22,27 @@ export const site = {
     description: "Pendellamper tegnet og munnblåst for hånd i Bergen. Hver lampe er formet av et pust, og ingen to er like.",
   },
   preloader: "Halden, Bergen",
+
+  /** The mark (references/identity.md): the pendant in half section, the left half drawn, the right half glass, as the
+   *  Formen scene draws it. On the 48 grid, the origin shifted 1.5 left and 1 up to centre on the visual mass. */
+  brand: {
+    symbol: {
+      viewBox: "1.5 1 48 48",
+      paths: [
+        { d: "M23 5h2v11.25h-2z" },
+        { d: "M24 44.75A14.25 14.25 0 0 1 24 16.25", stroke: 2 },
+        { d: "M24 15.25A15.25 15.25 0 0 1 24 45.75Z", tone: "accent" },
+      ],
+    },
+    /** The image files' colours (the tokens surface-0, ink and accent as hex). */
+    colors: { ground: "#002323", ink: "#f3eee1", accent: "#eba941" },
+    face: { family: "Bodoni Moda", weight: 500 },
+  } satisfies SiteFacts["brand"],
+  /** The JSON-LD: a shop of lamps. No address, phone or prices: the brief gave none. */
+  kind: "shop" as const,
+  schemaType: "HomeGoodsStore",
+  /** The footer's "Laget med Struq" line; false removes it. */
+  credit: true,
 
   nav: {
     links: [

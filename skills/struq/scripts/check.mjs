@@ -888,6 +888,45 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
   }
 }
 
+/* ------------------------------------------------------------------ FINISH */
+// A site ships finished: its own favicon and logo, a link preview, the metadata, the files crawlers and agents read,
+// a 404 with a way home. blocks.mjs finish writes them from lib/site.ts; this holds every site to them.
+{
+  const G = "FINISH";
+  const appRel = existsSync(join(root, "src", "app")) ? "src/app" : "app";
+  const conv = (stem, exts = ["tsx", "ts", "jsx", "js"]) => exts.some((e) => existsSync(join(root, appRel, `${stem}.${e}`)));
+  const pub = (name) => existsSync(join(root, "public", name));
+  const layoutText = read(`${appRel}/layout.tsx`) || read(`${appRel}/layout.jsx`) || read(`${appRel}/layout.js`);
+  const missing = [];
+  const need = (ok, what, fix) => (ok ? null : missing.push(`${what}. Fix: ${fix}`));
+  const runFinish = "node <skill-dir>/scripts/blocks.mjs finish";
+
+  // create-next-app's favicon.ico (by size) is no favicon of this site.
+  const STARTER_ICO = new Set([15086, 25931]);
+  const ownIco = (p) => existsSync(join(root, p)) && !STARTER_ICO.has(statSync(join(root, p)).size);
+  const favicon = conv("icon", ["tsx", "ts", "jsx", "js", "png", "svg", "ico", "jpg"]) || ownIco(`${appRel}/favicon.ico`) || ownIco("public/favicon.ico") || pub("favicon.svg") || pub("icon.svg") || pub("icon.png");
+  need(favicon, "No favicon of the site's own (create-next-app's favicon.ico alone is the starter's)", `${runFinish} writes app/icon.tsx from site.brand.symbol`);
+
+  const sources = own.filter((f) => /\.(tsx|jsx)$/.test(f.rel));
+  const logo = sources.some((f) => /<(?:Logo|Mark|SiteLogo|BrandMark)\b/.test(f.text) || /<HeaderBar\b[^>]*?\b(?:mark|logo)=\{/s.test(f.text) || /<header\b[\s\S]{0,1500}?<(?:svg|img|Image)\b/.test(f.text));
+  need(logo, "No logo in the header: the name alone as text", "design the mark (references/identity.md), put it in lib/site.ts brand.symbol and pass mark={<Mark symbol={site.brand.symbol} />} to HeaderBar, or <Logo> in your own bar");
+
+  need(conv("opengraph-image", ["tsx", "ts", "jsx", "js", "png", "jpg"]) || /openGraph\s*:\s*\{[\s\S]{0,400}images\s*:/.test(layoutText), "No link preview image (app/opengraph-image)", runFinish);
+  need(/\bdescription\s*:/.test(layoutText) || /siteMetadata\(/.test(layoutText) || /generateMetadata/.test(layoutText), "No meta description in app/layout.tsx", "export const metadata = siteMetadata(site) (blocks.mjs finish does it)");
+  need(conv("sitemap", ["ts", "js", "xml"]) || pub("sitemap.xml"), "No sitemap (app/sitemap.ts)", runFinish);
+  need(conv("robots", ["ts", "js", "txt"]) || pub("robots.txt"), "No robots (app/robots.ts)", runFinish);
+  need(pub("llms.txt") || existsSync(join(root, appRel, "llms.txt")), "No llms.txt (app/llms.txt/route.ts or public/llms.txt)", runFinish);
+  need(conv("manifest", ["ts", "js", "json", "webmanifest"]) || pub("manifest.json") || pub("manifest.webmanifest") || pub("site.webmanifest"), "No web app manifest (app/manifest.ts)", runFinish);
+  need(/<html\b[^>]*\blang=/.test(layoutText), "No lang on <html> in app/layout.tsx", "<html lang={site.lang}>");
+  need(conv("not-found"), "No 404 page (app/not-found.tsx) with a way home", runFinish);
+
+  if (missing.length) add(G, "FAIL", `${missing.length} finishing piece(s) missing: a site ships complete, down to the last file.`, missing);
+  else add(G, "PASS", "Finished: favicon, logo in the header, link preview, description, sitemap, robots, llms.txt, manifest, lang, 404");
+
+  const icons = own.some((f) => /from\s+["']@struq\/icons(?:\/[^"']*)?["']|import\s+["']@struq\/icons\//.test(f.text)) || files.some((f) => f.recipe && /from\s+["']@struq\/icons["']/.test(f.text));
+  if (!icons) add(G, "WARN", "No @struq/icons import: the functional icons (menu, close, an arrow on a text link) come from Struq Icons. npm i @struq/icons and wire it as references/iconography.md says.");
+}
+
 /* -------------------------------------------------------------------- LOOK */
 // look.mjs renders the built page and writes .struq/look.json with what it measured and a stamp of the source. The
 // check holds to it: no look, a failing look, or a look of an older page than the source on disk all fail.
@@ -1028,7 +1067,7 @@ const usesKind = (kind) => [...usedBlocks].some((b) => b.startsWith(`${kind}/`))
 }
 
 /* ------------------------------------------------------------------ REPORT */
-const order = ["IMAGES", "TELLS", "MOTION", "HERO", "FILM", "TYPE", "PLAN", "LOOK", "ART", "LOG"];
+const order = ["IMAGES", "TELLS", "MOTION", "HERO", "FILM", "TYPE", "FINISH", "PLAN", "LOOK", "ART", "LOG"];
 console.log(`Struq check: ${root}\n`);
 for (const g of order) {
   const rows = results.filter((r) => r.group === g);

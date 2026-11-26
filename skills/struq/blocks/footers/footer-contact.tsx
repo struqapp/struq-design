@@ -40,6 +40,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerE
 import { feel } from "../kit/feel";
 import { gsap, ScrollTrigger, SplitText, useGSAP } from "../kit/gsap";
 // The hours as words, the wall clock and the open marker's logic: one copy, shared with kit/middle/PlaceHours.
+import { Credit } from "../kit/brand/Credit";
 import { hoursText as rowText, openStatus, useNow, wallClock } from "../kit/middle/hours";
 
 export const FOOTER_CONTACT_VARIANTS = [
@@ -72,6 +73,8 @@ type Props = {
   links: Link[];
   /** The small foot line. */
   foot: string;
+  /** The "Made with Struq" line on the foot, in this language (site.lang); false removes it (site.credit === false). */
+  credit?: string | false;
   className?: string;
 };
 
@@ -299,6 +302,7 @@ export function FooterContact({
   line = "Zullen we een keer komen kijken?",
   links,
   foot,
+  credit = "nl",
   className = "",
 }: Props) {
   const root = useRef<HTMLElement>(null);
@@ -659,7 +663,10 @@ export function FooterContact({
         <div className="grid md:grid-cols-3 md:gap-x-[3vw]">{rows.map((r) => row(r.label, r.value))}</div>
         <div className="relative mt-2 flex flex-col gap-3 pt-4 text-small text-ink-muted md:flex-row md:items-baseline md:justify-between">
           <span aria-hidden data-fc-rule="" className="absolute inset-x-0 top-0 h-px bg-line" />
-          <p data-fc-soft="">{foot}</p>
+          <p data-fc-soft="" className="flex flex-wrap gap-x-6 gap-y-1">
+          <span>{foot}</span>
+          <Credit lang={credit || undefined} off={credit === false} />
+        </p>
           <div data-fc-soft="">{linkList("flex flex-wrap gap-x-6 gap-y-2 text-ink")}</div>
         </div>
       </footer>
@@ -711,7 +718,10 @@ export function FooterContact({
           </div>
         </div>
         <div className="mt-[12svh] flex flex-col gap-2 text-small text-ink-muted md:flex-row md:justify-between">
-          <p data-fc-soft="">{foot}</p>
+          <p data-fc-soft="" className="flex flex-wrap gap-x-6 gap-y-1">
+          <span>{foot}</span>
+          <Credit lang={credit || undefined} off={credit === false} />
+        </p>
           <p data-fc-soft="">{hoursText(hours)}</p>
         </div>
       </footer>
@@ -738,7 +748,10 @@ export function FooterContact({
           {clock ? <OpenMark status={status} /> : <span>{hoursText(hours)}</span>}
         </p>
         <div data-fc-soft="">{linkList("flex gap-x-5 text-ink")}</div>
-        <p data-fc-soft="">{foot}</p>
+        <p data-fc-soft="" className="flex flex-wrap gap-x-6 gap-y-1">
+          <span>{foot}</span>
+          <Credit lang={credit || undefined} off={credit === false} />
+        </p>
       </div>
     </footer>
   );

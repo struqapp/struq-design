@@ -134,6 +134,7 @@
       ],
       "packages": [
         "@gsap/react",
+        "@struq/icons",
         "gsap"
       ]
     },
