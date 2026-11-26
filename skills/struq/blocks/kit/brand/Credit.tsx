@@ -29,7 +29,8 @@ export function Credit({ lang = "en", off = false, className = "" }: { lang?: st
     <a
       href="https://struq.app"
       data-struq-credit=""
-      className={`text-small text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline ${className}`}
+      // py-3 with -my-3: a 44px hit area on a phone without moving the line.
+      className={`-my-3 inline-block py-3 text-small text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline ${className}`}
     >
       {creditWords(lang)}
     </a>

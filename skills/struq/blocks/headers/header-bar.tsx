@@ -248,7 +248,8 @@ function Face({ real = false, tone = "ground", variant, name, mark, homeHref, li
     >
       {real ? null : <div data-hb-ground="" aria-hidden="true" className={`absolute inset-0 ${TONE_GROUND[tone]}`} />}
       {real ? (
-        <a href={homeHref} data-hb-word="" data-hb-link="w" className={wordCls} {...on(-1)}>
+        // py-3 with -my-3: a 44px hit area for a thumb without moving the word.
+        <a href={homeHref} data-hb-word="" data-hb-link="w" className={`${wordCls} -my-3 py-3`} {...on(-1)}>
           {lockup}
         </a>
       ) : (
