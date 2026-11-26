@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="512" height="512">
+  <title>Van Rijn</title>
+  <rect x="0" y="0" width="48" height="48" fill="#f4efe9"/>
+  <path d="M6 6H12.38V28.25L6 33.6ZM15.88 6H22.25V19.97L15.88 25.32ZM25.75 6H32.13V25.32L25.75 19.97ZM35.63 6H42V33.6L35.63 28.25Z" fill="#1b1512"/>
+  <path d="M24 21L42 36.1V41.6L24 26.5L6 41.6V36.1Z" fill="#9b2f1f"/>
+</svg>
