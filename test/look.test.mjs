@@ -35,15 +35,16 @@ const page = (body, css = '') => `<!doctype html><html lang="nl"><head><meta cha
 // The header's links are 44px tall, as a phone needs them (look warns under 44 by 44).
 const TAP = 'display:inline-flex;align-items:center;min-height:44px;min-width:44px;';
 const HEADER = `<header style="position:fixed;top:0;left:0;right:0;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:#f4f1ea;z-index:10"><a href="/" data-wordmark style="${TAP}color:#1a1a1a;text-decoration:none;font-size:20px">Noord</a><nav><a href="#werk" style="${TAP}color:#1a1a1a">Werk</a></nav></header>`;
-const FILL = ['Een huis aan het water.', 'Wij bouwen wat blijft.', 'Hout, steen en licht.', 'Elk detail telt mee.', 'Bel ons op maandag.']
-  .map((t) => `<section><h2>${t}</h2><p>De ruimte vraagt om rust en om materiaal dat ouder mag worden.</p></section>`)
-  .join('');
-const FOOTER = '<footer><p>Noord, Utrecht</p></footer>';
-const HERO = '<section style="padding-top:140px"><h1>Huizen die blijven</h1><p>Een architect in Utrecht.</p></section>';
-// A photo as an SVG data image (an <img>, so look treats it as a photo), and a heading set over it in white.
+// A photo as an SVG data image (an <img>, so look treats it as a photo), and a heading set over it in white. The filler
+// sections carry one too: a page of headings and paragraphs alone on the ground is sparse.
 const svg = (ground, spot) => `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23${ground}'/%3E%3Ccircle cx='120' cy='90' r='70' fill='%23${spot}'/%3E%3Ccircle cx='300' cy='210' r='90' fill='%23${spot}'/%3E%3C/svg%3E`;
 const PALE = svg('efe8da', 'e2d6c0');
 const DARK = svg('1f1a15', '2e261e');
+const FILL = ['Een huis aan het water.', 'Wij bouwen wat blijft.', 'Hout, steen en licht.', 'Elk detail telt mee.', 'Bel ons op maandag.']
+  .map((t) => `<section><h2>${t}</h2><p>De ruimte vraagt om rust en om materiaal dat ouder mag worden.</p><img src="${DARK}" alt="" style="display:block;width:min(100%,560px);height:30vh;object-fit:cover"></section>`)
+  .join('');
+const FOOTER = '<footer><p>Noord, Utrecht</p></footer>';
+const HERO = '<section style="padding-top:140px"><h1>Huizen die blijven</h1><p>Een architect in Utrecht.</p></section>';
 const photo = (src, line) => `<section style="position:relative;padding:0;min-height:70vh"><img src="${src}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><h2 style="position:relative;color:#ffffff;margin:0;padding:160px 24px">${line}</h2></section>`;
 
 // The world behind the page as the kit sets it: a fixed canvas at -z-10, <html> without a ground so the body's ground
@@ -111,6 +112,10 @@ const PAGES = {
   // None of the four may fire here: a quiet pinned scene with one sentence on its flat ground, white text over a dark
   // photo, a total kept whole by a no-break space beside running text with numbers that wrap between them, and a face
   // that loads.
+  // Three middle screens of cream with one small line each and nothing to look at (proof run 2026-11-26, Oostwerk).
+  sparse: page(`${HEADER}<main>${HERO}${['Klein, met opzet.', 'Open als het gebouw dicht is.', 'Uw deuren sluiten om zes uur.'].map((t) => `<section style="min-height:100vh"><h2>${t}</h2><p>Een studio in Amsterdam.</p></section>`).join('')}${FILL}</main>${FOOTER}`),
+  // The same lines, each beside a drawn piece (an inline SVG) or an inset panel of its own colour: composed, not sparse.
+  composed: page(`${HEADER}<main>${HERO}${['Klein, met opzet.', 'Open als het gebouw dicht is.', 'Uw deuren sluiten om zes uur.'].map((t, i) => `<section style="min-height:100vh"><h2>${t}</h2><p>Een studio in Amsterdam.</p>${i === 1 ? '<div style="width:70%;height:55vh;background:#3a2c20"></div>' : '<svg viewBox="0 0 100 100" style="display:block;width:60%;height:55vh"><path d="M10 90V30l40-20 40 20v60Z" fill="none" stroke="#1a1a1a"/></svg>'}</section>`).join('')}${FILL}</main>${FOOTER}`),
   kept: page(
     `${HEADER}<main>${HERO}<section style="height:250vh;padding:0;background:#d9cbb3"><p style="position:sticky;top:45vh;margin:0 auto;text-align:center">Hier is het stil.</p></section>`
       + `${photo(DARK, 'Een avond aan tafel')}`
@@ -220,7 +225,8 @@ test('look: descenders cut by a line mask fail as clipped', async (t) => {
   const f = r.json.findings.find((x) => x.kind === 'clipped');
   assert.ok(f, r.out);
   assert.equal(f.text, 'gypsy');
-  assert.deepEqual([...new Set(kinds(r))], ['clipped'], r.out);
+  // The lone fixture section is also a sparse stop (a warning); the fail is the one asserted.
+  assert.deepEqual([...new Set(kinds(r).filter((k) => k !== 'sparse'))], ['clipped'], r.out);
 });
 
 test('look: a word running off inside an overflow-hidden section fails as clipped, with no page overflow', async (t) => {
@@ -238,7 +244,8 @@ test('look: pale text on a solid ground fails as contrast', async (t) => {
   assert.equal(r.code, 1, r.out);
   const f = r.json.findings.find((x) => x.kind === 'contrast');
   assert.ok(f && f.severity === 'FAIL' && /needs 4.5/.test(f.detail), r.out);
-  assert.deepEqual([...new Set(kinds(r))], ['contrast'], r.out);
+  // The lone fixture section is also a sparse stop (a warning); the fail is the one asserted.
+  assert.deepEqual([...new Set(kinds(r).filter((k) => k !== 'sparse'))], ['contrast'], r.out);
 });
 
 test('look: a hairline seam under a word is not its ground; the word is measured on the paper it stands on', async (t) => {
@@ -297,11 +304,23 @@ test('look: a page wider than a laptop screen fails as overflow, though it fits 
   assert.ok(f && f.severity === 'FAIL' && /at 1024 wide/.test(f.detail), r.out);
 });
 
+test('look: a stop of empty ground with one small line warns as sparse; the same line beside a drawing or a panel does not', async (t) => {
+  if (skip) return t.skip(skip);
+  const r = await result('sparse');
+  assert.equal(r.code, 0, r.out);
+  const f = r.json.findings.filter((x) => x.kind === 'sparse');
+  assert.ok(f.length >= 1 && f.every((x) => x.severity === 'WARN' && /nothing to look at/.test(x.detail)), r.out);
+  assert.ok(f.some((x) => x.viewport === 'desktop'), r.out);
+  const c = await result('composed');
+  assert.ok(!kinds(c).includes('sparse'), c.out);
+});
+
 test('look: a stretch of nothing is empty, and fails from a whole screen', async (t) => {
   if (skip) return t.skip(skip);
   const r = await result('empty');
   // Two and a half screens of nothing also hold a scroll stop that is one flat colour: that stop fails as blank.
-  assert.deepEqual([...new Set(kinds(r))].sort(), ['blank', 'empty'], r.out);
+  // The one line above the hole is a sparse stop too (a warning).
+  assert.deepEqual([...new Set(kinds(r))].sort(), ['blank', 'empty', 'sparse'], r.out);
   // Dead stretches were the most common hole in the proof builds of 2026-11-25: from a whole screen it fails.
   assert.ok(r.json.findings.filter((f) => f.kind === 'empty').every((f) => f.severity === 'FAIL'));
   assert.match(r.out, /FAIL empty/);

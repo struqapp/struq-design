@@ -39,9 +39,13 @@ Work in this order:
 1. **The idea**: a point of view on this client that a visitor leaves believing, not a description of the business.
 2. **The signature element**: the one moment a juror remembers tomorrow. Everything else makes room for it. It
    lives on the first screen or starts there: the opening is where a visitor decides to stay, so never hide the best
-   moment halfway down a page of type. The first screen is bold: the signature filling the frame, or display type
-   at poster scale, or both. A calm editorial page of small serif lines on a pale ground is what every agent makes;
-   it is the reflex to beat, not the bar.
+   moment halfway down a page of type. **The first screen is the signature, full-bleed and moving from the first
+   second** (a band of drawing above a line of type is not it), with display type on or beside it, arriving after a
+   preloader whose ending is the signature's own first beat (the lights come on, the door opens), and one page
+   transition and one menu curtain in the same motion language and eases. On a one-page site the transition is the
+   handover between scenes. The test: would a juror stop scrolling on frame one; is the signature full-bleed and
+   moving within the first second; are the preloader, the transition and the menu curtain one motion language? A
+   calm editorial page of small serif lines on a pale ground is what every agent makes; it is the reflex to beat.
 3. **The system**: type, palette, motion language, easing curves and grid, each chosen because of the idea.
 4. **The build**: Struq's blocks first, because they are hardened and already at this level. **3D is a choice, never
    a default.** Use it only when the subject is an object that real-time light makes more beautiful (glass, metal,
@@ -293,7 +297,9 @@ Never stop a server you did not start. It scrolls the page at 390 and 1440 with 
 or the screen edge, a page wider than the screen, low contrast on a solid ground or measured over a photo, a blank
 screen, a number broken across lines, a font that never loaded, a line partly under a canvas or panel that holds
 still, a paragraph at poster scale, an empty stretch of a whole screen, and console or image errors; it warns on more
-than two poster-scale lines after the first screen and on an empty stretch of six tenths of a screen. Open the screenshots and crops it names and read
+than two poster-scale lines after the first screen, on an empty stretch of six tenths of a screen and on a sparse stop
+(type and media under a tenth of the screen, nothing to look at in view): fill it with composition or merge the scene
+into its neighbour, never with decoration. Open the screenshots and crops it names and read
 them as a studio's art director would: the preloader lands, every pin engages and lets go, the first screen is bold
 enough to stop a visitor. Fix, rebuild, restart the server and run it again until `LOOK: PASS`. A centerpiece that
 fails the look is fixed or swapped for another centerpiece from the hand (or an own loud scene), with the Centerpiece

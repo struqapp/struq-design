@@ -39,9 +39,13 @@ Work in this order:
 1. **The idea**: a point of view on this client that a visitor leaves believing, not a description of the business.
 2. **The signature element**: the one moment a juror remembers tomorrow. Everything else makes room for it. It
    lives on the first screen or starts there: the opening is where a visitor decides to stay, so never hide the best
-   moment halfway down a page of type. The first screen is bold: the signature filling the frame, or display type
-   at poster scale, or both. A calm editorial page of small serif lines on a pale ground is what every agent makes;
-   it is the reflex to beat, not the bar.
+   moment halfway down a page of type. **The first screen is the signature, full-bleed and moving from the first
+   second** (a band of drawing above a line of type is not it), with display type on or beside it, arriving after a
+   preloader whose ending is the signature's own first beat (the lights come on, the door opens), and one page
+   transition and one menu curtain in the same motion language and eases. On a one-page site the transition is the
+   handover between scenes. The test: would a juror stop scrolling on frame one; is the signature full-bleed and
+   moving within the first second; are the preloader, the transition and the menu curtain one motion language? A
+   calm editorial page of small serif lines on a pale ground is what every agent makes; it is the reflex to beat.
 3. **The system**: type, palette, motion language, easing curves and grid, each chosen because of the idea.
 4. **The build**: Struq's blocks first, because they are hardened and already at this level. **3D is a choice, never
    a default.** Use it only when the subject is an object that real-time light makes more beautiful (glass, metal,

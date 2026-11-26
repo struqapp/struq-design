@@ -12,3 +12,6 @@ brief. The kit itself is not here: install it with `blocks.mjs`, as for any site
 - [van-rijn](van-rijn/README.md): trades and their neighbours (construction, garden and landscaping, removals). A
   family roofer in Utrecht; no 3D: poster type beside a roof drawn in section that builds layer by layer, the phone a
   thumb away.
+- [oostwerk](oostwerk/README.md): agencies and studios (neighbours: personal portfolios, creative freelancers). A web
+  studio in Amsterdam; a canal at night fills the first screen, one lit door among dark windows, and the same street
+  closes the page.
