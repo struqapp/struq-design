@@ -24,6 +24,25 @@ an agent can, on Opus and on Haiku.
    screenshots beside the build, and answers "where is this below the reference".
 4. **Selling at the source.** The one stop asks for products, prices and a door. With none, the page still ends on
    the order close with a placeholder door from `lib/site.ts`; check.mjs warns until it is replaced.
+   **The reference set covers every kind of business at the same bar** (Roy, 2026-11-26: portfolios, agencies,
+   restaurants, real companies and constructors alike). Six references, each a different archetype and a different
+   signature, all on one skeleton (content in `lib/site.ts`, one page composing scenes, one signature, one close),
+   so a model learns the structure and swaps the business:
+
+   | Reference | Archetype | Signature | Close |
+   | --- | --- | --- | --- |
+   | Halden, glass pendants | maker or product shop | a modelled object in one world (Pendant) | order |
+   | a restaurant | a place people visit | photo-led cinematic: full-bleed stills, image transitions, the room at night | book a table |
+   | a construction company | real company, trade, B2B | the building assembles: a 3D massing model or a blueprint that draws and fills | request a quote |
+   | a design or creative agency | agency or studio | kinetic type and a work index with WebGL image distortion | start a project |
+   | a photographer or designer | portfolio | the work full screen: a gallery with directed transitions | enquire or commission |
+   | a law firm or consultancy | professional services | type-led trust: editorial type, a drawn diagram of how they work | book a call |
+
+   Each README names the structure, the signature, and the swaps for other businesses of that archetype (the
+   restaurant reference also serves a hotel or a bakery; the construction one a plumber or an architect). The kit
+   grows with each signature (Massing or Blueprint for construction, image transitions for the restaurant and the
+   portfolio, kinetic type for the agency), always finished code with props, never only prose. The 12 standing
+   briefs (struq-showcases `proof/phase-1/BRIEFS.md`) already span these archetypes and stay the measure.
 5. **Trim SKILL.md.** Core moves only; detail moves into references and the examples.
 6. **Measure on the fixed set.** The 12 one-line briefs of the main plan, once, on Haiku and on Opus medium.
 
