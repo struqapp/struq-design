@@ -67,6 +67,16 @@ the motif's last line: the cord draws down to a small drawn pendant.
 
 ![Order close](shots/desktop-order.jpg)
 
+## The finish
+
+The mark is the pendant in half section (references/identity.md, `references/identity/halden-sheet.png`): the left
+half drawn, the right half glass in the accent, on its cord, as the Formen scene draws it. It lives in `lib/site.ts`
+as `brand` with the palette as hex and Bodoni Moda for the link preview, beside `kind: "shop"` for the JSON-LD and
+`credit`. `Chrome.tsx` passes it to the header bar as `mark` and puts "Laget med Struq" on the footer's last line.
+`blocks.mjs finish` wrote the rest: `app/layout.tsx` (metadata, theme colour, JSON-LD, `lang`), `icon.tsx`,
+`apple-icon.tsx`, `icons/[kind]/route.tsx`, `opengraph-image.tsx`, `twitter-image.tsx`, `sitemap.ts`, `robots.ts`,
+`manifest.ts`, `llms.txt/route.ts` and `not-found.tsx`. The brief gave no web address, so `url` waits for the client.
+
 ## Adapting it
 
 Keep: the skeleton, one object that stays with the visitor, a scene that shows how it is made, a scene that shows it
