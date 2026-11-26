@@ -37,8 +37,11 @@
 //   poster    the still shown before the first frame and kept without WebGL.
 //   label     what the world shows, for screen readers.
 //   root      the element that holds the data-beat sections. Default "main".
+//   fade      true (default): the world shows only where the open beats (sections without a ground of their own) own
+//             the screen, and fades out while a section with its own ground holds it, so no band of the world and no
+//             cut-off object shows above, below or around those sections. false keeps the canvas on for the whole page.
 import { useFrame, useThree } from "@react-three/fiber";
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { MathUtils, type Group } from "three";
 import { Backdrop } from "../Backdrop";
 import { Stage, type StageLight, type StagePost } from "../Stage";
@@ -56,9 +59,53 @@ type Props = {
   poster?: ReactNode;
   label?: string;
   root?: string;
+  fade?: boolean;
 };
 
 const WALL = 8;
+
+/**
+ * The fixed layer behind the page that holds the canvas. Its opacity follows the beats' shown signal on every scroll
+ * and resize, so the world leaves while a section with its own ground has the screen and comes back with the next
+ * open beat.
+ */
+function Layer({ fade, children }: { fade: boolean; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { shown } = useBeats();
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!fade) {
+      el.style.opacity = "";
+      el.style.visibility = "";
+      return;
+    }
+    let raf = 0;
+    const apply = () => {
+      raf = 0;
+      const v = shown.current;
+      el.style.opacity = v >= 0.999 ? "" : v.toFixed(3);
+      el.style.visibility = v <= 0.001 ? "hidden" : "";
+    };
+    const queue = () => {
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+    apply();
+    window.addEventListener("scroll", queue, { passive: true });
+    window.addEventListener("resize", queue);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", queue);
+      window.removeEventListener("resize", queue);
+    };
+  }, [fade, shown]);
+  return (
+    // -z-10 and fixed: behind every line of type on the page, for the whole page. Never remove the -z-10.
+    <div ref={ref} className="pointer-events-none fixed inset-0 -z-10">
+      {children}
+    </div>
+  );
+}
 
 /**
  * The lit wall. Its pool of light sits behind the framed object as the camera sees it (the line from the eye through
@@ -107,14 +154,16 @@ export function World({
   poster,
   label,
   root = "main",
+  fade = true,
 }: Props) {
   const inside = useHasBeats();
   const stage = (
-    // -z-10 and fixed: behind every line of type on the page, for the whole page. Never remove the -z-10.
-    <Stage className="pointer-events-none fixed inset-0 -z-10" light={light} post={post} camera={camera} poster={poster} label={label}>
-      <Wall ground={ground} glow={glow} pool={pool} />
-      {children}
-    </Stage>
+    <Layer fade={fade}>
+      <Stage className="absolute inset-0" light={light} post={post} camera={camera} poster={poster} label={label}>
+        <Wall ground={ground} glow={glow} pool={pool} />
+        {children}
+      </Stage>
+    </Layer>
   );
   return inside ? stage : <BeatsProvider root={root}>{stage}</BeatsProvider>;
 }

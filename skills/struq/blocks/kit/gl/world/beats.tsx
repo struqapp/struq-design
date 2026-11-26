@@ -10,16 +10,22 @@
 //   beat("craft")   0 when the section's top reaches the top of the screen, 1 when its bottom does
 //   on("finale")    1 while the section holds the screen, easing in as it arrives and out as it leaves:
 //                   the signal for a light that comes on for one scene (glow={on("finale")})
-//   range("craft")  { from, to }: the section's share of the page scroll, for your own span(page, a, b)
+//   range("craft")  { from, to, open }: the section's share of the page scroll, for your own span(page, a, b)
+//   shown           0 to 1, how much of the screen the world owns right now: World fades its canvas by it
 // Every value is read live inside useFrame, so it never goes stale, and the shares are measured again when the page
 // resizes, a font or an image loads, or a pin changes the page's height. World puts a BeatsProvider round itself;
 // wrap the page in your own when its DOM also needs the beats.
 //
 // Only the outermost [data-beat] elements count: a data-beat inside a section belongs to that section's own timeline.
+//
+// A beat is open (the world shows through it) when its section has no ground of its own: a background colour under
+// half opaque and no background image. A section with its own ground (bg-surface-0, scene-inverse) covers the world,
+// beat or not. Say it outright with data-world="on" or data-world="off" on the section when the ground lies (a
+// see-through section that should stay clean, or a ground that only covers part of it).
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Signal } from "../signals";
 
-export type BeatRange = { name: string; from: number; to: number };
+export type BeatRange = { name: string; from: number; to: number; open?: boolean };
 
 export type Beats = {
   /** The whole page's scroll, 0 at the top to 1 at the bottom. */
@@ -34,6 +40,9 @@ export type Beats = {
   ranges: BeatRange[];
   /** One screen of scroll in page units (0 to 1). */
   screen: number;
+  /** How much of the screen the open beats (the sections the world shows through) hold right now, eased: 1 when
+   *  they own the screen, 0 when sections with their own ground do. World fades its canvas by it. */
+  shown: Signal;
   /** Where the framed object stands in the world, written by Framed each frame; World lights the wall behind it. */
   focus: { current: [number, number, number] | null };
 };
@@ -43,26 +52,47 @@ const BeatsContext = createContext<Beats | null>(null);
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
-type Measure = { ranges: BeatRange[]; byName: Map<string, BeatRange>; max: number; screen: number };
+type Measure = { ranges: BeatRange[]; byName: Map<string, BeatRange>; max: number; screen: number; spans: [number, number][] };
+
+/** A section with no ground of its own lets the world through. */
+function seeThrough(el: HTMLElement) {
+  const flag = el.dataset.world;
+  if (flag === "on") return true;
+  if (flag === "off") return false;
+  const s = getComputedStyle(el);
+  if (s.backgroundImage && s.backgroundImage !== "none") return false;
+  const bg = s.backgroundColor.trim();
+  if (!bg || bg === "transparent") return true;
+  const rgba = bg.match(/^rgba?\(([^)]*)\)$/);
+  const parts = rgba ? rgba[1].split(/[\s,/]+/).filter(Boolean) : [];
+  const alpha = rgba ? (parts.length > 3 ? parts[3] : "1") : (bg.match(/\/\s*([\d.]+%?)\s*\)$/)?.[1] ?? "1");
+  const a = alpha.endsWith("%") ? parseFloat(alpha) / 100 : parseFloat(alpha);
+  return !(a >= 0.5);
+}
 
 function measure(root: string): Measure {
   const vh = window.innerHeight || 1;
   const max = Math.max(1, document.documentElement.scrollHeight - vh);
   const scope = document.querySelector(root) ?? document.body;
   const ranges: BeatRange[] = [];
+  const spans: [number, number][] = [];
   for (const el of Array.from(scope.querySelectorAll<HTMLElement>("[data-beat]"))) {
     if (el.parentElement?.closest("[data-beat]")) continue;
     const name = el.dataset.beat;
     if (!name) continue;
     const top = el.getBoundingClientRect().top + window.scrollY;
-    ranges.push({ name, from: clamp01(top / max), to: clamp01((top + el.offsetHeight) / max) });
+    const open = seeThrough(el);
+    ranges.push({ name, from: clamp01(top / max), to: clamp01((top + el.offsetHeight) / max), open });
+    if (open) spans.push([top, top + el.offsetHeight]);
   }
   ranges.sort((a, b) => a.from - b.from);
-  return { ranges, byName: new Map(ranges.map((r) => [r.name, r])), max, screen: Math.min(1, vh / max) };
+  return { ranges, byName: new Map(ranges.map((r) => [r.name, r])), max, screen: Math.min(1, vh / max), spans };
 }
 
 const same = (a: Measure, b: Measure) =>
-  a.max === b.max && a.ranges.length === b.ranges.length && a.ranges.every((r, i) => r.name === b.ranges[i].name && r.from === b.ranges[i].from && r.to === b.ranges[i].to);
+  a.max === b.max &&
+  a.ranges.length === b.ranges.length &&
+  a.ranges.every((r, i) => r.name === b.ranges[i].name && r.from === b.ranges[i].from && r.to === b.ranges[i].to && r.open === b.ranges[i].open);
 
 type ProviderProps = {
   children: ReactNode;
@@ -71,7 +101,7 @@ type ProviderProps = {
 };
 
 export function BeatsProvider({ children, root = "main" }: ProviderProps) {
-  const state = useRef<Measure>({ ranges: [], byName: new Map(), max: 1, screen: 1 });
+  const state = useRef<Measure>({ ranges: [], byName: new Map(), max: 1, screen: 1, spans: [] });
   const [version, setVersion] = useState(0);
   const focus = useRef<[number, number, number] | null>(null);
 
@@ -129,7 +159,20 @@ export function BeatsProvider({ children, root = "main" }: ProviderProps) {
         return rise * (1 - fall);
       },
     });
-    return { page, beat, on, range: (name) => state.current.byName.get(name), ranges: st.ranges, screen: st.screen, focus };
+    // The open beats' share of the screen: under nine twentieths the world is gone, from seventeen twentieths it is
+    // whole, so a strip of a see-through section under a section with its own ground shows the page's ground, not a band of the
+    // world with the object cut off at the seam.
+    const shown: Signal = {
+      get current() {
+        if (typeof window === "undefined" || !state.current.ranges.length) return 1;
+        const top = window.scrollY;
+        const vh = window.innerHeight || 1;
+        let held = 0;
+        for (const [a, b] of state.current.spans) held += Math.max(0, Math.min(b, top + vh) - Math.max(a, top));
+        return smooth(clamp01((held / vh - 0.45) / 0.4));
+      },
+    };
+    return { page, beat, on, shown, range: (name) => state.current.byName.get(name), ranges: st.ranges, screen: st.screen, focus };
     // version is the measure: a new value tells every reader the shares moved.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version]);
