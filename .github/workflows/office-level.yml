@@ -1,0 +1,46 @@
+name: Keep office level with main
+
+# The Living Company's staff cut their work from the `office` branch: their pull requests land there, and the founder
+# promotes office to main. After every change to main this brings office level with it, so staff never start from old
+# code. It fast-forwards when office has nothing of its own, and otherwise merges main into office. It never forces a
+# push. A conflict stops it, red, for a person to merge by hand.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: office-level
+  cancel-in-progress: false
+
+jobs:
+  level:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: office
+          fetch-depth: 0
+      - name: Bring office level with main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          if git merge-base --is-ancestor origin/main HEAD; then
+            echo "office already holds everything on main."
+          elif git merge-base --is-ancestor HEAD origin/main; then
+            git merge --ff-only origin/main
+            git push origin HEAD:refs/heads/office
+            echo "office fast-forwarded to main."
+          elif git merge --no-edit -m "Merge main into office (kept level)" origin/main; then
+            git push origin HEAD:refs/heads/office
+            echo "main merged into office."
+          else
+            git merge --abort
+            echo "::error::office and main conflict. Merge main into office by hand."
+            exit 1
+          fi
